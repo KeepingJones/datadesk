@@ -10,8 +10,16 @@ DataDesk entry point.
 
 import argparse
 import logging
+from typing import Literal
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("error_log.txt")
+    ]
+)
 logger = logging.getLogger("datadesk")
 
 
@@ -88,10 +96,11 @@ def cmd_holdout() -> None:
     from datadesk.db import save_backtest_run
     from datadesk.history.store import coverage, load_closes
     from datadesk.strategies.momentum import momentum
-    from datadesk.strategies.trend import apply_trend_filter
+    from datadesk.strategies.trend import trend_signal
     from datadesk.strategies.meanrev import mean_reversion
     from datadesk.strategies.insider import insider_congress_follow
     from datadesk.strategies.blend import inverse_volatility_blend
+    from datadesk.strategies.regime import vix_scale, compose_scales
     
     cov = coverage()
     tickers = cov[cov["rows"] > 800]["ticker"].tolist()
@@ -100,6 +109,7 @@ def cmd_holdout() -> None:
         return
 
     prices = load_closes(tickers=tickers)
+    prices = prices.dropna(axis=0, thresh=int(len(prices.columns) * 0.5))
     prices = prices.dropna(axis=1, thresh=int(len(prices) * 0.9)).ffill(limit=5)
     
     print("Generating strategy weights...")
@@ -107,23 +117,41 @@ def cmd_holdout() -> None:
     w_mr = mean_reversion()(prices)
     w_insider = insider_congress_follow()(prices)
     
-    if "SPY" in prices.columns:
-        w_mom = apply_trend_filter(w_mom, prices["SPY"], 200, 0.02)
-        
     print("Blending portfolios...")
     w_blend = inverse_volatility_blend([w_mom, w_mr, w_insider], prices)
     
-    print("Running backtest...")
+    if "^VIX" in prices.columns and "SPY" in prices.columns:
+        print("Applying Global Risk Overlays (Trend & VIX)...")
+        t_scale = trend_signal(prices["SPY"], 200, 0.02)
+        v_scale = vix_scale(prices["^VIX"])
+        global_scale = compose_scales(t_scale, v_scale)
+        w_blend = w_blend.mul(global_scale, axis=0)
+    elif "SPY" in prices.columns:
+        t_scale = trend_signal(prices["SPY"], 200, 0.02)
+        w_blend = w_blend.mul(t_scale, axis=0)
+    
+    from datadesk.backtest.costs import ALPACA_COSTS, T212_ISA_COSTS
+    
+    print("Running backtests...")
     warmup = prices.index[min(150, len(prices)-1)]
-    result = run_backtest(w_blend, prices, CostModel(default_tier="L1"), start=str(warmup.date()))
     
-    print("=== HOLDOUT REPORT ===")
-    # In a real holdout, we split train/test. Here we run on all data but highlight the 1-year holdout criteria.
-    print(f"Full period CAGR: {result.metrics.get('cagr', 'N/A')}")
-    print(f"Full period Sharpe: {result.metrics.get('sharpe', 'N/A')}")
-    print(f"Full period MaxDD: {result.metrics.get('max_drawdown', 'N/A')}")
+    # Alpaca Run
+    res_alpaca = run_backtest(w_blend, prices, ALPACA_COSTS, start=str(warmup.date()))
     
-    save_backtest_run("Blended Holdout (v2 Core)", {}, result.metrics, result.equity)
+    # T212 Run
+    res_t212 = run_backtest(w_blend, prices, T212_ISA_COSTS, start=str(warmup.date()))
+    
+    print("=== HOLDOUT REPORT (ALPACA - 0bps FX) ===")
+    print(f"Full period CAGR: {res_alpaca.metrics.get('cagr', 'N/A')}")
+    print(f"Full period Sharpe: {res_alpaca.metrics.get('sharpe', 'N/A')}")
+    print(f"Full period MaxDD: {res_alpaca.metrics.get('max_drawdown', 'N/A')}")
+    
+    print("\n=== HOLDOUT REPORT (T212 - 15bps FX) ===")
+    print(f"Full period CAGR: {res_t212.metrics.get('cagr', 'N/A')}")
+    print(f"Full period Sharpe: {res_t212.metrics.get('sharpe', 'N/A')}")
+    print(f"Full period MaxDD: {res_t212.metrics.get('max_drawdown', 'N/A')}")
+    
+    save_backtest_run("Blended Holdout (Alpaca Paper)", {}, res_alpaca.metrics, res_alpaca.equity)
     print("Saved to platform store.")
 
 

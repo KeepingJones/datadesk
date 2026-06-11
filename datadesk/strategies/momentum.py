@@ -34,6 +34,7 @@ def momentum(
             w[top.index] = 1.0 / top_n  # cash remainder if fewer than N qualify
             rows[date] = w
 
-        return pd.DataFrame(rows).T.sort_index()
+        df = pd.DataFrame(rows).T.sort_index()
+        return df.reindex(prices.index).ffill().fillna(0.0)
 
     return target_weights

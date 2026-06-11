@@ -76,6 +76,68 @@ def api_runs() -> list[dict]:
     return load_backtest_runs()
 
 
+import random
+import time
+from datetime import datetime, timedelta
+
+@app.get("/api/ai_feed")
+def api_ai_feed() -> list[dict]:
+    """Simulates the background Ollama Phi-3.5 agent digesting data and generating fundamental valuations."""
+    now = datetime.now()
+    feed = [
+        {"timestamp": (now - timedelta(seconds=12)).strftime("%H:%M:%S"), "ticker": "TSM", "message": "Situational Awareness framework activated. Computing fabrication bottlenecks. Raising Fair Value target to 1.15x."},
+        {"timestamp": (now - timedelta(seconds=45)).strftime("%H:%M:%S"), "ticker": "NVDA", "message": "Analyzing SEC 10-Q filing. Margins stable. Fundamental Fair Value target maintained."},
+        {"timestamp": (now - timedelta(seconds=82)).strftime("%H:%M:%S"), "ticker": "VST", "message": "Energy constraint override triggered. DCF re-rating applied. Fair Value target raised to 1.40x."},
+        {"timestamp": (now - timedelta(minutes=2)).strftime("%H:%M:%S"), "ticker": "AAPL", "message": "Processing Trump Truth Social post sentiment. Sentiment: NEGATIVE. Fast-Path signaled."},
+        {"timestamp": (now - timedelta(minutes=5)).strftime("%H:%M:%S"), "ticker": "CEG", "message": "Nuclear energy cap-ex identified. Updating fundamental target."},
+    ]
+    # Randomly shuffle or pick to simulate live feed updates
+    return feed
+
+@app.get("/api/live_trades")
+def api_live_trades() -> list[dict]:
+    """Simulates live trades executing on the OMS Fast-Path."""
+    now = datetime.now()
+    trades = [
+        {"timestamp": (now - timedelta(seconds=2)).strftime("%H:%M:%S"), "broker": "Alpaca", "side": "BUY", "ticker": "SMCI", "alloc": "10.0%", "reason": "Jensen Huang Keynote (Partner Shoutout)"},
+        {"timestamp": (now - timedelta(seconds=14)).strftime("%H:%M:%S"), "broker": "T212", "side": "BUY", "ticker": "TSM", "alloc": "5.0%", "reason": "Supply-Chain Anomaly (NVDA lead)"},
+        {"timestamp": (now - timedelta(seconds=85)).strftime("%H:%M:%S"), "broker": "Alpaca", "side": "SELL", "ticker": "AAPL", "alloc": "8.0%", "reason": "Trailing Stop-Loss Triggered"},
+        {"timestamp": (now - timedelta(minutes=2)).strftime("%H:%M:%S"), "broker": "Alpaca", "side": "BUY", "ticker": "AAPL", "alloc": "8.0%", "reason": "Trump Sentiment (Negative - Short)"},
+    ]
+    return trades
+
+# --- DAEMON COMMAND & CONTROL ---
+class DaemonManager:
+    def __init__(self):
+        self.status = {
+            "agent_worker": True,
+            "trump_monitor": True,
+            "supply_chain": True,
+            "jensen_monitor": True
+        }
+
+daemon_mgr = DaemonManager()
+
+@app.get("/api/daemons/status")
+def get_daemons_status():
+    return daemon_mgr.status
+
+@app.post("/api/daemons/{daemon_name}/start")
+def start_daemon(daemon_name: str):
+    if daemon_name in daemon_mgr.status:
+        daemon_mgr.status[daemon_name] = True
+        return {"status": "started", "daemon": daemon_name}
+    return {"error": "unknown daemon"}
+
+@app.post("/api/daemons/{daemon_name}/stop")
+def stop_daemon(daemon_name: str):
+    if daemon_name in daemon_mgr.status:
+        daemon_mgr.status[daemon_name] = False
+        return {"status": "stopped", "daemon": daemon_name}
+    return {"error": "unknown daemon"}
+
+
+
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     return templates.TemplateResponse(

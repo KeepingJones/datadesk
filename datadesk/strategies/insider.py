@@ -80,8 +80,8 @@ def insider_congress_follow(
         
         price_dates = pd.Series(prices.index)
         
-        for i, current_date in enumerate(prices.index):
-            current_date = pd.Timestamp(current_date)
+        for i, original_date in enumerate(prices.index):
+            current_date = pd.Timestamp(original_date)
             
             # Age existing positions
             expired = []
@@ -109,7 +109,7 @@ def insider_congress_follow(
                     
             if holding:
                 active_tickers = list(holding.keys())
-                weights.loc[current_date, active_tickers] = 1.0 / max_positions
+                weights.loc[original_date, active_tickers] = 1.0 / max_positions
                 
         return weights
         

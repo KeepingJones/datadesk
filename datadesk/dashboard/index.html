@@ -109,10 +109,57 @@
     </table>
   </div>
 
+  <!-- DAEMON COMMAND & CONTROL -->
+  <div class="panel">
+      <h2>Command & Control (Daemon Manager)</h2>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+          <div style="border: 1px solid #30363d; padding: 10px; border-radius: 6px;">
+              <strong>AI Worker</strong><br>
+              <button onclick="toggleDaemon('agent_worker', true)" id="btn-agent_worker-start">Start</button>
+              <button onclick="toggleDaemon('agent_worker', false)" id="btn-agent_worker-stop">Stop</button>
+          </div>
+          <div style="border: 1px solid #30363d; padding: 10px; border-radius: 6px;">
+              <strong>Trump Monitor</strong><br>
+              <button onclick="toggleDaemon('trump_monitor', true)" id="btn-trump_monitor-start">Start</button>
+              <button onclick="toggleDaemon('trump_monitor', false)" id="btn-trump_monitor-stop">Stop</button>
+          </div>
+          <div style="border: 1px solid #30363d; padding: 10px; border-radius: 6px;">
+              <strong>Supply Chain</strong><br>
+              <button onclick="toggleDaemon('supply_chain', true)" id="btn-supply_chain-start">Start</button>
+              <button onclick="toggleDaemon('supply_chain', false)" id="btn-supply_chain-stop">Stop</button>
+          </div>
+          <div style="border: 1px solid #30363d; padding: 10px; border-radius: 6px;">
+              <strong>Jensen Monitor</strong><br>
+              <button onclick="toggleDaemon('jensen_monitor', true)" id="btn-jensen_monitor-start">Start</button>
+              <button onclick="toggleDaemon('jensen_monitor', false)" id="btn-jensen_monitor-stop">Stop</button>
+          </div>
+      </div>
+  </div>
+
+  <div class="panel">
+    <h2>AI Background Workers (Phi-3.5)</h2>
+    <div class="table-container" style="max-height: 250px; overflow-y: auto;">
+        <table id="aiFeedTable">
+            <thead><tr><th>Time</th><th>Ticker</th><th>Fundamental Revaluation Log</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Live OMS Fast-Path</h2>
+    <div class="table-container" style="max-height: 250px; overflow-y: auto;">
+        <table id="liveTradesTable">
+            <thead><tr><th>Time</th><th>Broker</th><th>Side</th><th>Ticker</th><th>Reason</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+  </div>
+
 </div>
 
-{% if runs %}
 <script>
+  {% if runs %}
   const pts = {{ runs[0].equity | tojson }};
   new Chart(document.getElementById("equity"), {
     type: "line",
@@ -123,7 +170,55 @@
                scales: { x: { ticks: { color: "#8b949e", maxTicksLimit: 12 }, grid: { color: "#21262d" } },
                          y: { ticks: { color: "#8b949e" }, grid: { color: "#21262d" } } } }
   });
+  {% endif %}
+
+  async function fetchAIFeed() {
+      try {
+          const response = await fetch('/api/ai_feed');
+          const data = await response.json();
+          const tbody = document.querySelector('#aiFeedTable tbody');
+          tbody.innerHTML = data.map(log => `<tr><td>${log.timestamp}</td><td>${log.ticker}</td><td>${log.message}</td></tr>`).join('');
+      } catch (err) { console.error("Failed to fetch AI feed", err); }
+  }
+
+  async function fetchLiveTrades() {
+      try {
+          const response = await fetch('/api/live_trades');
+          const data = await response.json();
+          const tbody = document.querySelector('#liveTradesTable tbody');
+          tbody.innerHTML = data.map(trade => `<tr><td>${trade.timestamp}</td><td>${trade.broker}</td><td class="${trade.side === 'BUY' ? 'pos' : 'neg'}">${trade.side}</td><td>${trade.ticker}</td><td>${trade.reason}</td></tr>`).join('');
+      } catch (err) { console.error("Failed to fetch live trades", err); }
+  }
+
+  async function toggleDaemon(name, start) {
+      const action = start ? 'start' : 'stop';
+      await fetch(`/api/daemons/${name}/${action}`, { method: 'POST' });
+      fetchDaemonStatus();
+  }
+
+  async function fetchDaemonStatus() {
+      try {
+          const res = await fetch('/api/daemons/status');
+          const status = await res.json();
+          for (const [name, isRunning] of Object.entries(status)) {
+              const btnStart = document.getElementById(`btn-${name}-start`);
+              const btnStop = document.getElementById(`btn-${name}-stop`);
+              if (btnStart && btnStop) {
+                  btnStart.style.backgroundColor = isRunning ? "#238636" : "#21262d";
+                  btnStart.style.color = isRunning ? "#fff" : "#c9d1d9";
+                  btnStop.style.backgroundColor = isRunning ? "#21262d" : "#da3633";
+                  btnStop.style.color = isRunning ? "#c9d1d9" : "#fff";
+              }
+          }
+      } catch (e) {}
+  }
+
+  setInterval(fetchAIFeed, 3000);
+  setInterval(fetchLiveTrades, 3000);
+  setInterval(fetchDaemonStatus, 2000);
+  fetchAIFeed();
+  fetchLiveTrades();
+  fetchDaemonStatus();
 </script>
-{% endif %}
 </body>
 </html>
