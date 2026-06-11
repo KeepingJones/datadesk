@@ -106,17 +106,57 @@ def api_live_trades() -> list[dict]:
     ]
     return trades
 
-# --- DAEMON COMMAND & CONTROL ---
+# --- DAEMON COMMAND & CONTROL (REAL THREADING) ---
+import threading
+from datadesk.live.monitors.agent_worker import AgentWorker
+from datadesk.live.monitors.trump_monitor import TrumpMonitor
+from datadesk.live.monitors.supply_chain import SupplyChainMonitor
+from datadesk.live.monitors.jensen_monitor import JensenMonitor
+from datadesk.live.monitors.news_monitor import NewsMonitor
+from datadesk.live.oms import OMSFastPath
+
 class DaemonManager:
     def __init__(self):
-        self.status = {
-            "agent_worker": True,
-            "trump_monitor": True,
-            "supply_chain": True,
-            "jensen_monitor": True
+        self.oms = OMSFastPath()
+        self.daemons = {
+            "agent_worker": {"instance": AgentWorker(self.oms), "thread": None},
+            "trump_monitor": {"instance": TrumpMonitor(self.oms), "thread": None},
+            "supply_chain": {"instance": SupplyChainMonitor(self.oms), "thread": None},
+            "jensen_monitor": {"instance": JensenMonitor(self.oms), "thread": None},
+            "news_monitor": {"instance": NewsMonitor(), "thread": None}
         }
 
+    @property
+    def status(self):
+        return {
+            name: {
+                "running": (info["thread"] is not None and info["thread"].is_alive()),
+                "last_run": getattr(info["instance"], "last_run", "Never")
+            }
+            for name, info in self.daemons.items()
+        }
+
+    def start(self, name: str):
+        if name in self.daemons:
+            info = self.daemons[name]
+            if info["thread"] is None or not info["thread"].is_alive():
+                info["thread"] = threading.Thread(target=info["instance"].start, daemon=True)
+                info["thread"].start()
+            return True
+        return False
+
+    def stop(self, name: str):
+        if name in self.daemons:
+            self.daemons[name]["instance"].stop()
+            self.daemons[name]["thread"] = None
+            return True
+        return False
+
 daemon_mgr = DaemonManager()
+
+# Auto-start all daemons on boot
+for d_name in daemon_mgr.daemons.keys():
+    daemon_mgr.start(d_name)
 
 @app.get("/api/daemons/status")
 def get_daemons_status():
@@ -124,29 +164,118 @@ def get_daemons_status():
 
 @app.post("/api/daemons/{daemon_name}/start")
 def start_daemon(daemon_name: str):
-    if daemon_name in daemon_mgr.status:
-        daemon_mgr.status[daemon_name] = True
+    if daemon_mgr.start(daemon_name):
         return {"status": "started", "daemon": daemon_name}
     return {"error": "unknown daemon"}
 
 @app.post("/api/daemons/{daemon_name}/stop")
 def stop_daemon(daemon_name: str):
-    if daemon_name in daemon_mgr.status:
-        daemon_mgr.status[daemon_name] = False
+    if daemon_mgr.stop(daemon_name):
         return {"status": "stopped", "daemon": daemon_name}
     return {"error": "unknown daemon"}
 
+@app.get("/api/alpaca/account")
+def api_alpaca_account():
+    """Returns live paper trading balance and daily performance from Alpaca."""
+    import os
+    api_key = os.getenv("ALPACA_API_KEY")
+    secret_key = os.getenv("ALPACA_SECRET_KEY")
+    
+    if not api_key or not secret_key:
+        return {"status": "error", "message": "ALPACA_API_KEY or ALPACA_SECRET_KEY not set in .env"}
+        
+    try:
+        from alpaca.trading.client import TradingClient
+        alpaca = TradingClient(api_key, secret_key, paper=True)
+        account = alpaca.get_account()
+        
+        equity = float(account.equity)
+        last_equity = float(account.last_equity)
+        buying_power = float(account.buying_power)
+        
+        # Calculate daily PnL
+        pnl_dollar = equity - last_equity
+        pnl_pct = (pnl_dollar / last_equity) * 100 if last_equity > 0 else 0.0
+        
+        return {
+            "status": "ok",
+            "equity": round(equity, 2),
+            "buying_power": round(buying_power, 2),
+            "pnl_dollar": round(pnl_dollar, 2),
+            "pnl_pct": round(pnl_pct, 2)
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
+@app.get("/api/alpaca/positions")
+def api_alpaca_positions():
+    """Returns live active paper positions from Alpaca."""
+    import os
+    api_key = os.getenv("ALPACA_API_KEY")
+    secret_key = os.getenv("ALPACA_SECRET_KEY")
+    
+    if not api_key or not secret_key:
+        return {"status": "error", "message": "Keys missing"}
+        
+    try:
+        from alpaca.trading.client import TradingClient
+        alpaca = TradingClient(api_key, secret_key, paper=True)
+        positions = alpaca.get_all_positions()
+        
+        result = []
+        for p in positions:
+            result.append({
+                "symbol": p.symbol,
+                "qty": p.qty,
+                "market_value": p.market_value,
+                "unrealized_pl": p.unrealized_pl,
+                "unrealized_plpc": p.unrealized_plpc,
+            })
+        return {"status": "ok", "positions": result}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+
+from pydantic import BaseModel
+from datadesk.live.universe import get_active_universe, add_ticker
+from datadesk.ingest.validation import validate_universe
+
+class TickerRequest(BaseModel):
+    ticker: str
+
+@app.get("/api/universe/list")
+def api_universe_list():
+    return {"universe": get_active_universe()}
+
+@app.post("/api/universe/add")
+def api_universe_add(req: TickerRequest):
+    return add_ticker(req.ticker)
+
+@app.get("/api/validation")
+def api_validation():
+    from datadesk.ingest.backfill import backfill_smart
+    report = validate_universe()
+    bad_tickers = [ticker for ticker, r in report.items() if r["status"] in ["FAIL", "WARN"]]
+    if bad_tickers:
+        backfill_smart(bad_tickers)
+        report = validate_universe()
+    return report
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
+    runs = load_backtest_runs(limit=50)
+    # Sort runs by highest CAGR
+    runs.sort(key=lambda r: r["metrics"].get("cagr", 0), reverse=True)
+    top_runs = runs[:5] if runs else []
+    
     return templates.TemplateResponse(
         request,
         "index.html",
         {
             "paper": PAPER_TRADE_MODE,
             "coverage": _coverage_summary(),
-            "runs": load_backtest_runs(limit=5),
+            "runs": top_runs,
             "trump": _trump_stats(),
             "insider": _insider_stats(),
         },

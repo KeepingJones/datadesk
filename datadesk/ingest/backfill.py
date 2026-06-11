@@ -100,7 +100,87 @@ def backfill_missing(
         logger.info("backfill_missing: all tickers already covered")
         return {}
     logger.info(f"backfill_missing: {len(todo)} of {len(tickers)} tickers need history")
-    return backfill_history(todo, start=start, db_path=db_path)
+    return backfill_smart(todo, db_path=db_path)
+
+def backfill_smart(
+    tickers: list[str],
+    db_path: Path | None = None,
+) -> dict[str, int]:
+    """
+    Smart backfill: For each ticker, check the last date we have in the DB.
+    Only fetch from that date forward to save bandwidth and time.
+    If the ticker has no data, fetch from DEFAULT_START.
+    """
+    cov = coverage(db_path=db_path)
+    cov_dict = {}
+    if not cov.empty:
+        cov_dict = cov.set_index("ticker")["last"].to_dict()
+
+    written: dict[str, int] = {}
+    
+    # Group tickers by their required start date to minimize API calls
+    # Or for simplicity and robust gap filling, we can fetch individually since 
+    # it's just catching up.
+    for ticker in tickers:
+        last_date = cov_dict.get(ticker)
+        start_date = last_date if pd.notna(last_date) else DEFAULT_START
+        
+        try:
+            logger.info(f"Smart backfill for {ticker} starting from {start_date}")
+            raw = yf.download(
+                ticker,
+                start=start_date,
+                auto_adjust=True,
+                progress=False,
+            )
+            
+            if raw is None or raw.empty:
+                logger.warning(f"backfill_smart: no data for {ticker}")
+                written[ticker] = 0
+                continue
+                
+            raw = raw.dropna(how="all")
+            if raw.empty:
+                written[ticker] = 0
+                continue
+                
+            rows = raw.reset_index()
+            # Handle multi-index columns if yf returns them for single ticker
+            if isinstance(raw.columns, pd.MultiIndex):
+                close_col = rows[("Close", ticker)] if ("Close", ticker) in rows else rows["Close"]
+                open_col = rows[("Open", ticker)] if ("Open", ticker) in rows else rows.get("Open")
+                high_col = rows[("High", ticker)] if ("High", ticker) in rows else rows.get("High")
+                low_col = rows[("Low", ticker)] if ("Low", ticker) in rows else rows.get("Low")
+                vol_col = rows[("Volume", ticker)] if ("Volume", ticker) in rows else rows.get("Volume")
+                date_col = rows.iloc[:, 0]
+            else:
+                close_col = rows["Close"]
+                open_col = rows.get("Open")
+                high_col = rows.get("High")
+                low_col = rows.get("Low")
+                vol_col = rows.get("Volume")
+                date_col = rows.iloc[:, 0]
+
+            df = pd.DataFrame(
+                {
+                    "ticker": ticker,
+                    "date": date_col,
+                    "open": open_col,
+                    "high": high_col,
+                    "low": low_col,
+                    "close": close_col,
+                    "volume": vol_col,
+                }
+            ).dropna(subset=["close"])
+            
+            w = save_bars(df, source="yahoo_smart_backfill", db_path=db_path)
+            written[ticker] = w
+            
+        except Exception as e:
+            logger.error(f"backfill_smart failed for {ticker}: {e}")
+            written[ticker] = 0
+
+    return written
 
 
 def _extract_ticker_frame(raw: pd.DataFrame, ticker: str, single: bool) -> pd.DataFrame | None:

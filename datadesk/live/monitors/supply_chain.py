@@ -15,10 +15,20 @@ class SupplyChainMonitor:
     def __init__(self, oms: 'OMSFastPath'):
         self.oms = oms
         self.is_running = False
+        self.last_run = "Never"
 
     def start(self):
         self.is_running = True
-        logger.info("[SUPPLY CHAIN] Loading neural matrix and monitoring lead stocks...")
+        logger.info("SupplyChainMonitor started. Polling focal stocks for lead-lag anomalies...")
+        from datadesk.live.universe import get_active_universe
+        from datetime import datetime
+        while self.is_running:
+            focal_stocks = get_active_universe()
+            # Pick a random lead stock and simulate a surge
+            if random.random() < 0.2:
+                self.check_matrix()
+                self.last_run = datetime.now().strftime("%H:%M:%S")
+            time.sleep(8)
 
     def stop(self):
         self.is_running = False

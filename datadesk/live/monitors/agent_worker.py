@@ -17,6 +17,7 @@ class AgentWorker:
     def __init__(self, oms: 'OMSFastPath'):
         self.oms = oms
         self.is_running = False
+        self.last_run = "Never"
         
         # Situational Awareness / AGI Infrastructure Universe
         self.agi_supply_chain = {
@@ -30,7 +31,16 @@ class AgentWorker:
 
     def start(self):
         self.is_running = True
-        logger.info("[AGENT WORKER] Starting continuous fundamental revaluation loops...")
+        logger.info("AgentWorker (Phi-3.5) started. Polling fundamental context...")
+        from datadesk.live.universe import get_active_universe
+        from datetime import datetime
+        while self.is_running:
+            focal_stocks = get_active_universe()
+            # Randomly pick a stock to re-evaluate based on simulated SEC/News drops
+            if random.random() < 0.3:
+                self.process_live_filings()
+                self.last_run = datetime.now().strftime("%H:%M:%S")
+            time.sleep(10)
 
     def stop(self):
         self.is_running = False

@@ -52,6 +52,18 @@ class OMSFastPath:
         self.current_nav = 100_000.0
         self.realized_pnl = 0.0
         
+        # Alpaca Client
+        import os
+        api_key = os.getenv("ALPACA_API_KEY")
+        secret_key = os.getenv("ALPACA_SECRET_KEY")
+        self.alpaca = None
+        if api_key and secret_key:
+            from alpaca.trading.client import TradingClient
+            self.alpaca = TradingClient(api_key, secret_key, paper=True)
+            logger.info("Alpaca Paper Trading Client Initialized successfully.")
+        else:
+            logger.warning("ALPACA_API_KEY / SECRET_KEY not found in .env. Falling back to internal mock execution.")
+        
     def submit_signal(self, ticker: str, side: Literal["BUY", "SELL"], weight_pct: float, stop_loss_pct: float = None):
         """Processes an intraday event signal."""
         logger.info(f"OMS received FAST-PATH signal: {side} {ticker} (Weight: {weight_pct*100}%)")
@@ -74,17 +86,45 @@ class OMSFastPath:
         broker = "Alpaca" if TickerMapper.is_us_stock(ticker) else "Trading212"
         execution_ticker = TickerMapper.to_broker(ticker, broker)
         
-        # 5. Execute Trade (Mock via Alpaca/T212 Paper)
-        order_id = str(uuid.uuid4())[:8]
+        # 5. Execute Trade (Alpaca Paper or Mock)
         if self.paper_trading:
-            logger.info(f"[{broker}] PAPER TRADE EXECUTED [{order_id}]: {side} {execution_ticker} (Internal: {ticker}, Alloc: {weight_pct*100}%, SL: {sl_pct*100}%)")
+            if broker == "Alpaca" and self.alpaca:
+                from alpaca.trading.requests import MarketOrderRequest
+                from alpaca.trading.enums import OrderSide, TimeInForce
+                
+                # Fetch live equity to calculate Notional value
+                try:
+                    account = self.alpaca.get_account()
+                    equity = float(account.equity)
+                    notional = round(equity * weight_pct, 2)
+                    
+                    alpaca_side = OrderSide.BUY if side == "BUY" else OrderSide.SELL
+                    
+                    req = MarketOrderRequest(
+                        symbol=execution_ticker,
+                        notional=notional,
+                        side=alpaca_side,
+                        time_in_force=TimeInForce.DAY
+                    )
+                    
+                    order = self.alpaca.submit_order(req)
+                    order_id = str(order.id)
+                    logger.info(f"[Alpaca LIVE PAPER] EXECUTED [{order_id}]: {side} {execution_ticker} (${notional})")
+                except Exception as e:
+                    logger.error(f"[Alpaca LIVE PAPER] Order Failed: {e}")
+                    return False
+            else:
+                # Mock execution fallback
+                order_id = str(uuid.uuid4())[:8]
+                logger.info(f"[{broker}] MOCK PAPER EXECUTED [{order_id}]: {side} {execution_ticker} (Internal: {ticker}, Alloc: {weight_pct*100}%, SL: {sl_pct*100}%)")
             
+            # Record state
             if side == "BUY":
                 self.active_positions[ticker] = {
                     "id": order_id,
                     "side": side,
                     "alloc": weight_pct,
-                    "entry_price": 100.0, # Mock price
+                    "entry_price": 100.0, # Mocked internally for now
                     "current_price": 100.0,
                     "trailing_stop_pct": sl_pct,
                     "stop_price": 100.0 * (1 - sl_pct),

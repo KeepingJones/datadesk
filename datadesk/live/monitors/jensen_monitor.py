@@ -17,10 +17,17 @@ class JensenMonitor:
     def __init__(self, oms: 'OMSFastPath'):
         self.oms = oms
         self.is_running = False
+        self.last_run = "Never"
 
     def start(self):
         self.is_running = True
         logger.info("[JENSEN MONITOR] Starting live speech & transcript polling for Jensen Huang...")
+        from datetime import datetime
+        while self.is_running:
+            if random.random() < 0.1:
+                self.poll()
+                self.last_run = datetime.now().strftime("%H:%M:%S")
+            time.sleep(5)
 
     def stop(self):
         self.is_running = False
