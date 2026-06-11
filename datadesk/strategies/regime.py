@@ -24,3 +24,20 @@ def vix_scale(
 def apply_vix_overlay(weights: pd.DataFrame, vix: pd.Series, **kwargs) -> pd.DataFrame:
     scale = vix_scale(vix, **kwargs).reindex(weights.index).ffill().fillna(1.0)
     return weights.mul(scale, axis=0)
+
+
+def compose_scales(*scales: pd.Series) -> pd.Series:
+    """
+    Combine de-risk overlays (trend, VIX regime, event risk, drawdown control)
+    by element-wise MIN — the most cautious overlay wins outright.
+
+    Multiplying them instead double-counts the same market stress (a crash
+    trips trend AND vix AND drawdown: 0.6 × 0.3 × 0.5 = liquidated three
+    times over, whipsawed into cash at the exact bottom).
+    """
+    if not scales:
+        raise ValueError("compose_scales needs at least one scale series")
+    combined = scales[0]
+    for s in scales[1:]:
+        combined = combined.combine(s.reindex(combined.index).ffill(), min)
+    return combined

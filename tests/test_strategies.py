@@ -109,3 +109,14 @@ def test_vix_scale_three_regimes():
     vix = pd.Series([15.0, 25.0, 40.0], index=idx)
     scale = vix_scale(vix, calm_below=20, stress_above=30, mid_scale=0.6, stress_scale=0.3)
     assert list(scale) == [1.0, 0.6, 0.3]
+
+
+def test_compose_scales_takes_min_not_product():
+    from datadesk.strategies.regime import compose_scales
+
+    idx = pd.bdate_range("2022-01-03", periods=3)
+    trend = pd.Series([1.0, 0.0, 1.0], index=idx)
+    vix = pd.Series([0.6, 0.3, 1.0], index=idx)
+    combined = compose_scales(trend, vix)
+    # min, not product: stressed day is 0.0 (trend) not 0.0*0.3, calm day stays 1.0
+    assert list(combined) == [0.6, 0.0, 1.0]
