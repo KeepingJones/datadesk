@@ -292,3 +292,1038 @@
 2026-06-11 22:18:39,918 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
 2026-06-11 22:18:41,919 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
 2026-06-11 22:18:43,920 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SMCI: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:18:53,923 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:18:54,925 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:18:54,925 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 117.81 -> 109.93. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:18:57,156 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:18:57,659 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:18:57,659 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:18:57,661 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [8fe0ce61]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:19:00,923 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:19:02,928 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:19:04,929 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SMCI: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:19:21,931 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:19:23,932 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:19:24,931 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:19:25,932 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:19:25,932 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 119.54. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:19:25,933 [INFO] datadesk.live.monitors.news_monitor: [NEWS] AAPL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:19:42,936 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:19:44,938 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:19:46,939 [INFO] datadesk.live.monitors.news_monitor: [NEWS] AAPL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:19:53,677 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:19:54,178 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:19:54,183 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:19:54,183 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [5e629d67]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:20:02,184 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:20:02,688 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:20:02,690 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:20:02,690 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [33de2106]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:20:03,942 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:20:05,938 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:20:05,943 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:20:06,942 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:20:06,942 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 120.27. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:20:07,943 [INFO] datadesk.live.monitors.news_monitor: [NEWS] MSFT: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:20:10,693 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:20:11,194 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:20:11,194 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:20:11,194 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [efc1f111]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:20:16,944 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:20:17,945 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:20:17,946 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 119.18. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:20:19,201 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:20:19,702 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:20:19,704 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:20:19,704 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [f52bffce]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:20:21,034 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:20:21,535 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:20:21,537 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:20:21,537 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [ccda91a7]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:20:24,946 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:20:26,947 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:20:27,706 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:20:28,207 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:20:28,209 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:20:28,210 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [05569e7e]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:20:28,950 [INFO] datadesk.live.monitors.news_monitor: [NEWS] DELL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:20:45,953 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:20:47,954 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:20:49,955 [INFO] datadesk.live.monitors.news_monitor: [NEWS] DELL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:20:53,545 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:20:54,048 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:20:54,050 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:20:54,050 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [a9a7f4a6]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:21:02,053 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:21:02,554 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:21:02,556 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:21:02,557 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [71bc310c]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:21:06,958 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:21:08,959 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:21:10,557 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:21:10,959 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SMCI: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:21:11,060 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:21:11,061 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:21:11,062 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [4f09305a]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:21:27,066 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:21:27,568 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:21:27,572 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:21:27,573 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [5f301521]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:21:27,962 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:21:27,966 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:21:28,967 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:21:28,968 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 118.13. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:21:29,964 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:21:31,964 [INFO] datadesk.live.monitors.news_monitor: [NEWS] TSM: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:21:35,576 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:21:36,077 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:21:36,079 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:21:36,079 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [60d56d7a]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:21:48,969 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:21:48,975 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:21:49,976 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:21:49,977 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 114.96. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:21:50,971 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:21:52,083 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:21:52,587 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:21:52,588 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:21:52,588 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [3c575b5f]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:21:52,971 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SMCI: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:21:56,239 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:21:56,741 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:21:56,743 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:21:56,743 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [3356668d]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:22:09,974 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:22:11,976 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:22:13,977 [INFO] datadesk.live.monitors.news_monitor: [NEWS] TSM: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:22:28,754 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:22:29,255 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:22:29,255 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:22:29,255 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [b5e971cc]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:22:29,987 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:22:30,980 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:22:30,988 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:22:30,988 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 119.09. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:22:32,982 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:22:34,983 [INFO] datadesk.live.monitors.news_monitor: [NEWS] NVDA: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:22:51,989 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:22:53,261 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:22:53,764 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:22:53,764 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:22:53,764 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [882015a6]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:22:53,990 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:22:55,991 [INFO] datadesk.live.monitors.news_monitor: [NEWS] NVDA: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:23:04,609 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:23:05,112 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:23:05,113 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:23:05,113 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [76a700b0]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:23:12,994 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:23:14,995 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:23:16,996 [INFO] datadesk.live.monitors.news_monitor: [NEWS] DELL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:23:25,774 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:23:26,275 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:23:26,277 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:23:26,277 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [876e79b2]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:23:33,998 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:23:36,002 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:23:38,004 [INFO] datadesk.live.monitors.news_monitor: [NEWS] CORZ: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:23:41,007 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:23:42,007 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:23:42,008 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 110.84. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:23:55,007 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:23:57,007 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:23:59,008 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SMH: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:24:01,129 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:24:01,632 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:24:01,633 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:24:01,633 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [06b739fa]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:24:09,635 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:24:10,136 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:24:10,138 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:24:10,138 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [a5568347]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:24:12,015 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:24:13,017 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:24:13,017 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 113.03. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:24:14,293 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:24:14,794 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:24:14,795 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:24:14,795 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [d89347dc]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:24:16,011 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:24:18,012 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:24:18,141 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:24:18,642 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:24:18,642 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:24:18,642 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [242e9bfd]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:24:20,013 [INFO] datadesk.live.monitors.news_monitor: [NEWS] BTDR: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:24:37,017 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:24:39,018 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:24:41,019 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SMH: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:24:46,807 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:24:47,309 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:24:47,311 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:24:47,312 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [9054e692]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:24:50,653 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:24:51,155 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:24:51,156 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:24:51,157 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [b83cc949]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:24:55,312 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:24:55,816 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:24:55,818 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:24:55,818 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [0e856ff0]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:24:58,024 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:24:59,158 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:24:59,660 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:24:59,662 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:24:59,662 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [d96cbfd6]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:25:00,024 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:25:02,025 [INFO] datadesk.live.monitors.news_monitor: [NEWS] BE: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:25:03,820 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:25:04,322 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:25:04,324 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:25:04,324 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [37352491]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:25:19,028 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:25:21,029 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:25:23,029 [INFO] datadesk.live.monitors.news_monitor: [NEWS] MSFT: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:25:23,032 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:25:24,033 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:25:24,033 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 109.71. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:25:40,031 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:25:42,032 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:25:44,033 [INFO] datadesk.live.monitors.news_monitor: [NEWS] BTDR: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:25:44,040 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:25:45,042 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:25:45,042 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 109.71 -> 111.81. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:26:00,347 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:26:00,887 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:26:00,897 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:26:00,897 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [b7380e86]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:26:01,040 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:26:03,043 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:26:05,043 [INFO] datadesk.live.monitors.news_monitor: [NEWS] AMD: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:26:18,402 [INFO] datadesk.live.universe: Added ^VIX to monitored universe
+2026-06-11 22:26:22,046 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:26:24,049 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:26:26,051 [INFO] datadesk.live.monitors.news_monitor: [NEWS] AVGO: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:26:35,056 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:26:36,059 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:26:36,059 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 115.48. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:26:43,053 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:26:45,055 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:26:46,060 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:26:47,056 [INFO] datadesk.live.monitors.news_monitor: [NEWS] APLD: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:26:47,062 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:26:47,062 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 115.48 -> 112.81. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:26:48,910 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:26:49,410 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:26:49,410 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:26:49,410 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [dbcc5d93]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:27:04,060 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:27:06,061 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:27:07,069 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:27:08,062 [INFO] datadesk.live.monitors.news_monitor: [NEWS] DELL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:27:08,071 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:27:08,071 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 112.66. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:27:13,420 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:27:13,921 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:27:13,923 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:27:13,924 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [7351e441]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:27:25,064 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:27:27,068 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:27:28,074 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:27:29,069 [INFO] datadesk.live.monitors.news_monitor: [NEWS] MU: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:27:29,077 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:27:29,077 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 114.92. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:27:46,071 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:27:48,073 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:27:50,074 [INFO] datadesk.live.monitors.news_monitor: [NEWS] ORCL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:28:03,730 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:28:04,231 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:28:04,232 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:28:04,233 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [4697b5c2]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:28:07,079 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:28:09,080 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:28:11,081 [INFO] datadesk.live.monitors.news_monitor: [NEWS] ORCL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:28:28,085 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:28:29,094 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:28:30,086 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:28:30,096 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:28:30,096 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 109.41. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:28:32,086 [INFO] datadesk.live.monitors.news_monitor: [NEWS] ORCL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:28:44,248 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:28:44,750 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:28:44,752 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:28:44,752 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [98a01eca]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:28:49,088 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:28:51,090 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:28:53,092 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SMH: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:28:57,969 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:28:58,470 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:28:58,470 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:28:58,470 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [ebcf33bb]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:29:00,756 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:29:01,257 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:29:01,259 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:29:01,259 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [12cd0f04]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:29:06,472 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:29:06,976 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:29:06,978 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:29:06,978 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [4a2947be]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:29:09,260 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:29:09,763 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:29:09,764 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:29:09,765 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [03cce18b]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:29:10,095 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:29:12,096 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:29:14,097 [INFO] datadesk.live.monitors.news_monitor: [NEWS] DELL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:29:22,983 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:29:23,484 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:29:23,486 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:29:23,486 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [47d5b9ad]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:29:31,099 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:29:33,103 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:29:33,806 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:29:34,326 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:29:34,340 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:29:34,342 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [4842d549]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:29:35,103 [INFO] datadesk.live.monitors.news_monitor: [NEWS] DELL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:29:50,347 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:29:50,848 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:29:50,850 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:29:50,850 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [b413ef67]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:29:52,108 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:29:54,110 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:29:56,110 [INFO] datadesk.live.monitors.news_monitor: [NEWS] ASML: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:30:03,499 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:30:04,002 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:30:04,004 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:30:04,004 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [24afd170]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:30:13,113 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:30:14,855 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:30:15,114 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:30:15,357 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:30:15,358 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:30:15,358 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [d5d0179a]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:30:17,116 [INFO] datadesk.live.monitors.news_monitor: [NEWS] BE: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:30:20,122 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:30:21,125 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:30:21,126 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 113.78. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:30:34,118 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:30:36,120 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:30:38,121 [INFO] datadesk.live.monitors.news_monitor: [NEWS] BE: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:30:41,130 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:30:42,131 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:30:42,131 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 113.78 -> 116.85. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:30:55,123 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:30:57,125 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:30:59,126 [INFO] datadesk.live.monitors.news_monitor: [NEWS] WDC: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:31:08,022 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:31:08,523 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:31:08,525 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:31:08,525 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [e76be997]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:31:11,376 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:31:11,877 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:31:11,878 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:31:11,879 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [b09afe20]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:31:16,128 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:31:18,129 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:31:19,880 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:31:20,130 [INFO] datadesk.live.monitors.news_monitor: [NEWS] CLSK: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:31:20,383 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:31:20,383 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:31:20,383 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [a1cb7a50]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:31:28,387 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:31:28,887 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:31:28,889 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:31:28,889 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [5a056190]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:31:37,133 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:31:39,136 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:31:41,136 [INFO] datadesk.live.monitors.news_monitor: [NEWS] AVGO: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:31:58,138 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:32:00,140 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:32:02,141 [INFO] datadesk.live.monitors.news_monitor: [NEWS] AAPL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:32:12,543 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:32:13,044 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:32:13,047 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:32:13,047 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [483ef5d0]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:32:17,682 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Starting event polling on truth_archive.json...
+2026-06-11 22:32:19,142 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:32:19,702 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Starting live speech & transcript polling for Jensen Huang...
+2026-06-11 22:32:21,145 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:32:22,157 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:32:23,147 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SMH: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:32:23,159 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:32:23,159 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 120.2. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:32:40,151 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:32:42,155 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:32:44,156 [INFO] datadesk.live.monitors.news_monitor: [NEWS] MU: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:32:56,950 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:32:57,454 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:32:57,455 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:32:57,456 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [4106f977]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:33:01,157 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:33:03,164 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:33:03,220 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:33:04,221 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:33:04,222 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 111.23. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:33:05,165 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SMCI: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:33:13,462 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:33:13,963 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:33:13,966 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:33:13,966 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [17ac7710]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:33:14,223 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:33:15,226 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:33:15,226 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 110.25. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:33:21,968 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:33:22,169 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:33:22,469 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:33:22,471 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:33:22,471 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [b561ee4f]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:33:24,169 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:33:25,228 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:33:26,170 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SMCI: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:33:26,230 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:33:26,230 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 116.69. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:33:33,072 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:33:33,575 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:33:33,577 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:33:33,577 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [b8054312]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:33:38,476 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:33:38,977 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:33:38,977 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:33:38,980 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [65808e7d]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:33:43,171 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:33:45,174 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:33:47,177 [INFO] datadesk.live.monitors.news_monitor: [NEWS] AAPL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:33:49,585 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:33:50,087 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:33:50,089 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:33:50,089 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [f65607e4]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:33:56,237 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:33:57,237 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:33:57,237 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 114.7. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:33:58,089 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:33:58,591 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:33:58,592 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:33:58,592 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [e647cf0d]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:34:04,180 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:34:06,181 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:34:08,182 [INFO] datadesk.live.monitors.news_monitor: [NEWS] ^VIX: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:34:17,240 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:34:18,243 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:34:18,243 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 120.01. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:34:25,183 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:34:27,185 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:34:28,246 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:34:29,186 [INFO] datadesk.live.monitors.news_monitor: [NEWS] AAPL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:34:29,247 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:34:29,247 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 120.01 -> 116.24. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:34:46,187 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:34:48,190 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:34:50,191 [INFO] datadesk.live.monitors.news_monitor: [NEWS] ^VIX: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:34:54,607 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:34:55,111 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:34:55,113 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:34:55,113 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [84f62cc5]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:34:59,252 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:35:00,255 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:35:00,255 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 117.96. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:35:07,193 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:35:09,194 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:35:11,196 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SMH: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:35:15,007 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:35:15,509 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:35:15,512 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:35:15,512 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [574cb395]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:35:19,118 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:35:19,619 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:35:19,621 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:35:19,621 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [8a0f33b5]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:35:20,259 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:35:21,261 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:35:21,261 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 117.23. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:35:28,199 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:35:30,200 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:35:31,262 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:35:31,516 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:35:32,018 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:35:32,018 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:35:32,018 [INFO] datadesk.live.oms: [Alpaca] PAPER TRADE EXECUTED [dc0d9828]: BUY TSM (Internal: TSM, Alloc: 5.0%, SL: 2.0%)
+2026-06-11 22:35:32,201 [INFO] datadesk.live.monitors.news_monitor: [NEWS] ORCL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:35:32,265 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:35:32,265 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 116.27. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:35:48,256 [INFO] datadesk.live.monitors.agent_worker: AgentWorker (Phi-3.5) started. Polling fundamental context...
+2026-06-11 22:35:48,257 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:35:49,202 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:35:49,259 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:35:49,260 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 116.27 -> 117.97. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:35:51,206 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:35:52,270 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:35:53,207 [INFO] datadesk.live.monitors.news_monitor: [NEWS] IREN: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:35:53,271 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:35:53,272 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 117.97 -> 117.83. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:35:58,919 [INFO] datadesk.live.oms: Alpaca Paper Trading Client Initialized successfully.
+2026-06-11 22:35:58,923 [INFO] datadesk.live.monitors.agent_worker: AgentWorker (Phi-3.5) started. Polling fundamental context...
+2026-06-11 22:35:58,924 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Starting event polling on truth_archive.json...
+2026-06-11 22:35:58,924 [INFO] datadesk.live.monitors.supply_chain: SupplyChainMonitor started. Polling focal stocks for lead-lag anomalies...
+2026-06-11 22:35:58,924 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Starting live speech & transcript polling for Jensen Huang...
+2026-06-11 22:35:58,926 [INFO] datadesk.live.monitors.news_monitor: NewsMonitor started. Polling global geopolitics and universe news...
+2026-06-11 22:35:58,931 [INFO] datadesk: DataDesk ops console: http://localhost:8000
+2026-06-11 22:35:58,932 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:36:01,132 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Starting event polling on truth_archive.json...
+2026-06-11 22:36:03,625 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Starting live speech & transcript polling for Jensen Huang...
+2026-06-11 22:36:10,211 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:36:12,212 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:36:14,212 [INFO] datadesk.live.monitors.news_monitor: [NEWS] AMD: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:36:23,276 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:36:24,279 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:36:24,279 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 117.83 -> 115.11. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:36:31,213 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:36:33,217 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:36:35,217 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SPY: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:36:39,534 [INFO] datadesk.live.oms: Alpaca Paper Trading Client Initialized successfully.
+2026-06-11 22:36:39,538 [INFO] datadesk.live.monitors.agent_worker: AgentWorker (Phi-3.5) started. Polling fundamental context...
+2026-06-11 22:36:39,540 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Starting event polling on truth_archive.json...
+2026-06-11 22:36:39,542 [INFO] datadesk.live.monitors.supply_chain: SupplyChainMonitor started. Polling focal stocks for lead-lag anomalies...
+2026-06-11 22:36:39,543 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Starting live speech & transcript polling for Jensen Huang...
+2026-06-11 22:36:39,544 [INFO] datadesk.live.monitors.news_monitor: NewsMonitor started. Polling global geopolitics and universe news...
+2026-06-11 22:36:39,550 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:36:39,568 [INFO] datadesk: DataDesk ops console: http://localhost:8000
+2026-06-11 22:36:41,553 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:36:43,555 [INFO] datadesk.live.monitors.news_monitor: [NEWS] BE: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:37:00,559 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:37:02,563 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:37:04,564 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SMCI: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:37:11,565 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:37:12,066 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:37:12,071 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:37:13,244 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [6ec03a29-c08e-4799-bdf8-f4d71abe2f02]: BUY TSM ($4978.43)
+2026-06-11 22:37:14,552 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Sentiment classified as POSITIVE. Firing FAST-PATH BUY TSLA.
+2026-06-11 22:37:14,552 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSLA (Weight: 8.0%)
+2026-06-11 22:37:14,768 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"available":"5","code":40310000,"existing_qty":"5","held_for_orders":"0","message":"insufficient qty available for order (requested: 19.994451139, available: 5)","symbol":"TSLA"}
+2026-06-11 22:37:19,559 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:37:20,561 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:37:20,561 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 119.17. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:37:21,568 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:37:23,571 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:37:25,574 [INFO] datadesk.live.monitors.news_monitor: [NEWS] CORZ: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:37:40,566 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:37:41,567 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:37:41,567 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 119.17 -> 115.27. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:37:42,578 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:37:44,580 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:37:46,581 [INFO] datadesk.live.monitors.news_monitor: [NEWS] CLSK: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:37:51,570 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:37:52,571 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:37:52,572 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 115.27 -> 111.64. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:38:02,573 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:38:03,574 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:38:03,574 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 111.64 -> 113.93. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:38:03,583 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:38:05,584 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:38:07,585 [INFO] datadesk.live.monitors.news_monitor: [NEWS] BTDR: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:38:13,574 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:38:14,577 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:38:14,577 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 113.93 -> 113.63. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:38:14,777 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Sentiment classified as NEGATIVE. Firing FAST-PATH SELL TSLA.
+2026-06-11 22:38:14,777 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL TSLA (Weight: 8.0%)
+2026-06-11 22:38:15,110 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":42210000,"message":"fractional orders cannot be sold short"}
+2026-06-11 22:38:24,587 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:38:25,113 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Sentiment classified as NEGATIVE. Firing FAST-PATH SELL AAPL.
+2026-06-11 22:38:25,114 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL AAPL (Weight: 8.0%)
+2026-06-11 22:38:25,315 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"available":"2","code":40310000,"existing_qty":"2","held_for_orders":"0","message":"insufficient qty available for order (requested: 26.920610764, available: 2)","symbol":"AAPL"}
+2026-06-11 22:38:26,588 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:38:28,589 [INFO] datadesk.live.monitors.news_monitor: [NEWS] ORCL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:38:33,290 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:38:33,793 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:38:33,795 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:38:34,004 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [f641f851-6728-484e-b79f-c87a0e58ce88]: BUY TSM ($4975.85)
+2026-06-11 22:38:34,587 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:38:35,588 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:38:35,588 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 117.27. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:38:40,318 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Sentiment classified as NEGATIVE. Firing FAST-PATH SELL TSLA.
+2026-06-11 22:38:40,318 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL TSLA (Weight: 8.0%)
+2026-06-11 22:38:40,498 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":42210000,"message":"fractional orders cannot be sold short"}
+2026-06-11 22:38:45,552 [INFO] datadesk.ingest.backfill: Smart backfill for AAPL starting from 2026-06-11
+2026-06-11 22:38:45,592 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:38:46,210 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:46,210 [INFO] datadesk.ingest.backfill: Smart backfill for AMD starting from 2026-06-11
+2026-06-11 22:38:46,756 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:46,756 [INFO] datadesk.ingest.backfill: Smart backfill for APLD starting from 2026-06-11
+2026-06-11 22:38:46,837 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:46,837 [INFO] datadesk.ingest.backfill: Smart backfill for ASML starting from 2026-06-11
+2026-06-11 22:38:46,962 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:46,962 [INFO] datadesk.ingest.backfill: Smart backfill for AVGO starting from 2026-06-11
+2026-06-11 22:38:47,058 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:47,059 [INFO] datadesk.ingest.backfill: Smart backfill for BE starting from 2026-06-11
+2026-06-11 22:38:47,136 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:47,137 [INFO] datadesk.ingest.backfill: Smart backfill for BTDR starting from 2026-06-11
+2026-06-11 22:38:47,231 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:47,232 [INFO] datadesk.ingest.backfill: Smart backfill for CLSK starting from 2026-06-11
+2026-06-11 22:38:47,330 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:47,330 [INFO] datadesk.ingest.backfill: Smart backfill for CORZ starting from 2026-06-11
+2026-06-11 22:38:47,453 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:47,453 [INFO] datadesk.ingest.backfill: Smart backfill for DELL starting from 2026-06-11
+2026-06-11 22:38:47,555 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:47,555 [INFO] datadesk.ingest.backfill: Smart backfill for IREN starting from 2026-06-11
+2026-06-11 22:38:47,594 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:38:47,632 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:47,645 [INFO] datadesk.ingest.backfill: Smart backfill for MSFT starting from 2026-06-11
+2026-06-11 22:38:47,775 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:47,783 [INFO] datadesk.ingest.backfill: Smart backfill for MU starting from 2026-06-11
+2026-06-11 22:38:47,906 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:47,906 [INFO] datadesk.ingest.backfill: Smart backfill for NVDA starting from 2026-06-11
+2026-06-11 22:38:48,007 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:48,007 [INFO] datadesk.ingest.backfill: Smart backfill for ORCL starting from 2026-06-11
+2026-06-11 22:38:48,137 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:48,139 [INFO] datadesk.ingest.backfill: Smart backfill for SMCI starting from 2026-06-11
+2026-06-11 22:38:48,237 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:48,238 [INFO] datadesk.ingest.backfill: Smart backfill for SMH starting from 2026-06-11
+2026-06-11 22:38:48,347 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:48,347 [INFO] datadesk.ingest.backfill: Smart backfill for SPY starting from 2026-06-11
+2026-06-11 22:38:48,487 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:48,487 [INFO] datadesk.ingest.backfill: Smart backfill for TSM starting from 2026-06-11
+2026-06-11 22:38:48,602 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:48,603 [INFO] datadesk.ingest.backfill: Smart backfill for WDC starting from 2026-06-11
+2026-06-11 22:38:48,733 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:48,733 [INFO] datadesk.ingest.backfill: Smart backfill for ^VIX starting from 2026-06-11
+2026-06-11 22:38:48,854 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:38:49,595 [INFO] datadesk.live.monitors.news_monitor: [NEWS] AAPL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:39:04,584 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Supply chain validation confirmed. Firing FAST-PATH BUY VRT.
+2026-06-11 22:39:04,584 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY VRT (Weight: 10.0%)
+2026-06-11 22:39:04,778 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [9cc3a516-6fa8-4476-83ef-eb45bbaa1e66]: BUY VRT ($9952.08)
+2026-06-11 22:39:06,596 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:39:08,599 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:39:10,599 [INFO] datadesk.live.monitors.news_monitor: [NEWS] TSM: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:39:15,610 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:39:16,612 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:39:16,612 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 117.27 -> 118.63. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:39:16,612 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for VRT...
+2026-06-11 22:39:17,613 [INFO] datadesk.live.oms: [AI REVALUATION] VRT Fair Value updated: None -> 99.92. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:39:19,121 [INFO] datadesk.live.oms: Alpaca Paper Trading Client Initialized successfully.
+2026-06-11 22:39:19,123 [INFO] datadesk.live.monitors.agent_worker: AgentWorker (Phi-3.5) started. Polling fundamental context...
+2026-06-11 22:39:19,123 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Starting event polling on truth_archive.json...
+2026-06-11 22:39:19,124 [INFO] datadesk.live.monitors.supply_chain: SupplyChainMonitor started. Polling focal stocks for lead-lag anomalies...
+2026-06-11 22:39:19,124 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Starting live speech & transcript polling for Jensen Huang...
+2026-06-11 22:39:19,124 [INFO] datadesk.live.monitors.news_monitor: NewsMonitor started. Polling global geopolitics and universe news...
+2026-06-11 22:39:19,127 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:39:19,128 [INFO] datadesk: DataDesk ops console: http://localhost:8000
+2026-06-11 22:39:27,604 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:39:29,609 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:39:30,024 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:39:30,524 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:39:30,526 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:39:30,718 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [e363608e-afdf-492c-9a52-17aa7e3b3d09]: BUY TSM ($4976.42)
+2026-06-11 22:39:31,611 [INFO] datadesk.live.monitors.news_monitor: [NEWS] CORZ: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:39:37,617 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:39:38,618 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:39:38,618 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 113.77. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:39:38,619 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for VRT...
+2026-06-11 22:39:39,620 [INFO] datadesk.live.oms: [AI REVALUATION] VRT Fair Value updated: 99.92 -> 109.97. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:39:40,518 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Sentiment classified as NEGATIVE. Firing FAST-PATH SELL AAPL.
+2026-06-11 22:39:40,519 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL AAPL (Weight: 8.0%)
+2026-06-11 22:39:40,699 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"available":"2","code":40310000,"existing_qty":"2","held_for_orders":"0","message":"insufficient qty available for order (requested: 26.927626906, available: 2)","symbol":"AAPL"}
+2026-06-11 22:39:48,616 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:39:50,617 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:39:54,084 [INFO] datadesk.live.oms: Alpaca Paper Trading Client Initialized successfully.
+2026-06-11 22:39:54,084 [INFO] datadesk.live.monitors.agent_worker: AgentWorker (Phi-3.5) started. Polling fundamental context...
+2026-06-11 22:39:54,084 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Starting event polling on truth_archive.json...
+2026-06-11 22:39:54,084 [INFO] datadesk.live.monitors.supply_chain: SupplyChainMonitor started. Polling focal stocks for lead-lag anomalies...
+2026-06-11 22:39:54,084 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Starting live speech & transcript polling for Jensen Huang...
+2026-06-11 22:39:54,084 [INFO] datadesk.live.monitors.news_monitor: NewsMonitor started. Polling global geopolitics and universe news...
+2026-06-11 22:39:54,099 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:39:54,103 [INFO] datadesk: DataDesk ops console: http://localhost:8000
+2026-06-11 22:39:56,102 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:39:58,104 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SMH: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:40:14,101 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Sentiment classified as POSITIVE. Firing FAST-PATH BUY TSLA.
+2026-06-11 22:40:14,101 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSLA (Weight: 8.0%)
+2026-06-11 22:40:15,109 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:40:15,116 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"available":"5","code":40310000,"existing_qty":"5","held_for_orders":"0","message":"insufficient qty available for order (requested: 19.993998593, available: 5)","symbol":"TSLA"}
+2026-06-11 22:40:17,111 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:40:18,104 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:40:18,605 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:40:18,608 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:40:18,804 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [377c2509-cd9e-43f2-ab06-8d4feb2486e9]: BUY TSM ($4976.5)
+2026-06-11 22:40:19,114 [INFO] datadesk.live.monitors.news_monitor: [NEWS] TSM: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:40:24,101 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Supply chain validation confirmed. Firing FAST-PATH BUY SMCI.
+2026-06-11 22:40:24,101 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY SMCI (Weight: 10.0%)
+2026-06-11 22:40:24,104 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:40:24,290 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [ec91f315-d5ea-4668-85d1-baae32e0f04d]: BUY SMCI ($9953.84)
+2026-06-11 22:40:25,105 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:40:25,105 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 110.38. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:41:48,124 [INFO] datadesk.live.oms: Alpaca Paper Trading Client Initialized successfully.
+2026-06-11 22:41:48,128 [INFO] datadesk.live.monitors.agent_worker: AgentWorker (Phi-3.5) started. Polling fundamental context...
+2026-06-11 22:41:48,128 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Starting event polling on truth_archive.json...
+2026-06-11 22:41:48,128 [INFO] datadesk.live.monitors.supply_chain: SupplyChainMonitor started. Polling focal stocks for lead-lag anomalies...
+2026-06-11 22:41:48,128 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Starting live speech & transcript polling for Jensen Huang...
+2026-06-11 22:41:48,128 [INFO] datadesk.live.monitors.news_monitor: NewsMonitor started. Polling global geopolitics and universe news...
+2026-06-11 22:41:48,132 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Sentiment classified as POSITIVE. Firing FAST-PATH BUY AAPL.
+2026-06-11 22:41:48,132 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY AAPL (Weight: 8.0%)
+2026-06-11 22:41:48,138 [INFO] datadesk: DataDesk ops console: http://localhost:8000
+2026-06-11 22:41:48,140 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:41:48,861 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [5851034f-6953-4377-b6b3-a9322c5676b3]: BUY AAPL ($7964.03)
+2026-06-11 22:41:50,142 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:41:52,144 [INFO] datadesk.live.monitors.news_monitor: [NEWS] AMD: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:41:58,134 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for AAPL...
+2026-06-11 22:41:59,137 [INFO] datadesk.live.oms: [AI REVALUATION] AAPL Fair Value updated: None -> 93.23. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:41:59,137 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] AAPL thesis broken! Liquidating.
+2026-06-11 22:41:59,137 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL AAPL (Weight: 8.0%)
+2026-06-11 22:41:59,350 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"5851034f-6953-4377-b6b3-a9322c5676b3","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:42:09,145 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:42:11,146 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:42:13,148 [INFO] datadesk.live.monitors.news_monitor: [NEWS] MU: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:42:43,387 [INFO] datadesk.live.oms: Alpaca Paper Trading Client Initialized successfully.
+2026-06-11 22:42:43,390 [INFO] datadesk.live.monitors.agent_worker: AgentWorker (Phi-3.5) started. Polling fundamental context...
+2026-06-11 22:42:43,391 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Starting event polling on truth_archive.json...
+2026-06-11 22:42:43,391 [INFO] datadesk.live.monitors.supply_chain: SupplyChainMonitor started. Polling focal stocks for lead-lag anomalies...
+2026-06-11 22:42:43,392 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Starting live speech & transcript polling for Jensen Huang...
+2026-06-11 22:42:43,392 [INFO] datadesk.live.monitors.news_monitor: NewsMonitor started. Polling global geopolitics and universe news...
+2026-06-11 22:42:43,395 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:42:43,398 [INFO] datadesk: DataDesk ops console: http://localhost:8000
+2026-06-11 22:42:45,396 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:42:47,398 [INFO] datadesk.live.monitors.news_monitor: [NEWS] AAPL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:43:03,400 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Supply chain validation confirmed. Firing FAST-PATH BUY ARM.
+2026-06-11 22:43:03,400 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY ARM (Weight: 10.0%)
+2026-06-11 22:43:03,973 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [52e7f5df-fe75-4854-b376-9528b52c6140]: BUY ARM ($9955.49)
+2026-06-11 22:43:04,401 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:43:06,403 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:43:07,403 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:43:07,905 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:43:07,907 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:43:08,091 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [fb622bd4-bfdb-43c0-b6b6-712c3dc251a1]: BUY TSM ($4977.8)
+2026-06-11 22:43:08,404 [INFO] datadesk.live.monitors.news_monitor: [NEWS] CORZ: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:43:08,982 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Supply chain validation confirmed. Firing FAST-PATH BUY VRT.
+2026-06-11 22:43:08,985 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY VRT (Weight: 10.0%)
+2026-06-11 22:43:09,177 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [7b78f525-8806-47ec-890a-6a8e7bcec298]: BUY VRT ($9955.61)
+2026-06-11 22:43:13,397 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Sentiment classified as POSITIVE. Firing FAST-PATH BUY TSLA.
+2026-06-11 22:43:13,397 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSLA (Weight: 8.0%)
+2026-06-11 22:43:13,575 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"available":"5","code":40310000,"existing_qty":"5","held_for_orders":"0","message":"insufficient qty available for order (requested: 19.992493849, available: 5)","symbol":"TSLA"}
+2026-06-11 22:43:16,103 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:43:16,604 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:43:16,604 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:43:16,796 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [e28e2123-8469-4847-b75b-2589a0542a8e]: BUY TSM ($4977.41)
+2026-06-11 22:43:23,401 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for ARM...
+2026-06-11 22:43:24,404 [INFO] datadesk.live.oms: [AI REVALUATION] ARM Fair Value updated: None -> 91.85. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:43:24,404 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] ARM thesis broken! Liquidating.
+2026-06-11 22:43:24,404 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL ARM (Weight: 10.0%)
+2026-06-11 22:43:24,589 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"52e7f5df-fe75-4854-b376-9528b52c6140","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:43:24,589 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:43:25,406 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:43:25,591 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:43:25,592 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 119.82. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:43:25,595 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for VRT...
+2026-06-11 22:43:26,596 [INFO] datadesk.live.oms: [AI REVALUATION] VRT Fair Value updated: None -> 101.74. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:43:27,409 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:43:28,590 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Sentiment classified as POSITIVE. Firing FAST-PATH BUY TSLA.
+2026-06-11 22:43:28,590 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSLA (Weight: 8.0%)
+2026-06-11 22:43:28,780 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"available":"5","code":40310000,"existing_qty":"5","held_for_orders":"0","message":"insufficient qty available for order (requested: 19.993221615, available: 5)","symbol":"TSLA"}
+2026-06-11 22:43:29,191 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Supply chain validation confirmed. Firing FAST-PATH BUY VRT.
+2026-06-11 22:43:29,191 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY VRT (Weight: 10.0%)
+2026-06-11 22:43:29,383 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [d0b283ee-048a-43ed-badf-45ea19a11c72]: BUY VRT ($9954.75)
+2026-06-11 22:43:29,411 [INFO] datadesk.live.monitors.news_monitor: [NEWS] BE: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:43:46,417 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:43:48,418 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:43:49,386 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Supply chain validation confirmed. Firing FAST-PATH BUY ARM.
+2026-06-11 22:43:49,386 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY ARM (Weight: 10.0%)
+2026-06-11 22:43:49,586 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [4012d845-dce3-41cf-82c9-d78f5d3f5bfb]: BUY ARM ($9954.82)
+2026-06-11 22:43:50,419 [INFO] datadesk.live.monitors.news_monitor: [NEWS] ORCL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:43:56,599 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for ARM...
+2026-06-11 22:43:57,601 [INFO] datadesk.live.oms: [AI REVALUATION] ARM Fair Value updated: None -> 99.98. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:43:57,603 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:43:58,604 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:43:58,606 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 119.82 -> 112.99. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:43:58,607 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for VRT...
+2026-06-11 22:43:58,790 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Sentiment classified as POSITIVE. Firing FAST-PATH BUY AAPL.
+2026-06-11 22:43:58,790 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY AAPL (Weight: 8.0%)
+2026-06-11 22:43:58,972 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [321c0b55-9158-4369-aa0e-9fc0e449a353]: BUY AAPL ($7963.8)
+2026-06-11 22:43:59,598 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Supply chain validation confirmed. Firing FAST-PATH BUY DELL.
+2026-06-11 22:43:59,598 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY DELL (Weight: 10.0%)
+2026-06-11 22:43:59,608 [INFO] datadesk.live.oms: [AI REVALUATION] VRT Fair Value updated: None -> 104.23. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:43:59,790 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [e1b3e148-0432-4723-b340-b3d63ab7daff]: BUY DELL ($9954.75)
+2026-06-11 22:44:07,424 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:44:09,426 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:44:11,427 [INFO] datadesk.live.monitors.news_monitor: [NEWS] AAPL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:44:12,810 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:44:13,312 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:44:13,318 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:44:13,535 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [af303db9-5bd4-4eb1-9ff2-3c3cf9d30cc0]: BUY TSM ($4978.22)
+2026-06-11 22:44:28,434 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:44:30,436 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:44:32,437 [INFO] datadesk.live.monitors.news_monitor: [NEWS] APLD: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:44:37,549 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:44:38,050 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:44:38,053 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:44:38,256 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [c0d9f676-a42a-446e-93dd-cbd0ca580c0a]: BUY TSM ($4978.45)
+2026-06-11 22:44:49,442 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:44:49,622 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for ARM...
+2026-06-11 22:44:49,803 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Supply chain validation confirmed. Firing FAST-PATH BUY DELL.
+2026-06-11 22:44:49,803 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY DELL (Weight: 10.0%)
+2026-06-11 22:44:49,984 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [361e8b6b-197e-4a3e-84bf-63d8201116ba]: BUY DELL ($9958.13)
+2026-06-11 22:44:50,625 [INFO] datadesk.live.oms: [AI REVALUATION] ARM Fair Value updated: 99.98 -> 86.09. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:44:50,626 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] ARM thesis broken! Liquidating.
+2026-06-11 22:44:50,626 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL ARM (Weight: 10.0%)
+2026-06-11 22:44:50,800 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"4012d845-dce3-41cf-82c9-d78f5d3f5bfb","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:44:50,800 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:44:51,443 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:44:51,815 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:44:51,816 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 114.8. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:44:51,816 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for VRT...
+2026-06-11 22:44:52,817 [INFO] datadesk.live.oms: [AI REVALUATION] VRT Fair Value updated: 104.23 -> 96.58. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:44:52,818 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for AAPL...
+2026-06-11 22:44:53,444 [INFO] datadesk.live.monitors.news_monitor: [NEWS] CORZ: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:44:53,819 [INFO] datadesk.live.oms: [AI REVALUATION] AAPL Fair Value updated: None -> 104.37. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:44:53,819 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for DELL...
+2026-06-11 22:44:54,263 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:44:54,769 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:44:54,772 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:44:54,822 [INFO] datadesk.live.oms: [AI REVALUATION] DELL Fair Value updated: None -> 102.09. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:44:54,968 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [13256176-b4cb-4b6d-94b1-549125421645]: BUY TSM ($4979.05)
+2026-06-11 22:45:02,971 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:45:03,472 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:45:03,472 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:45:03,719 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [87447208-b23a-4421-a401-eb8a2ff4c2ba]: BUY TSM ($4978.84)
+2026-06-11 22:45:04,823 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for ARM...
+2026-06-11 22:45:05,826 [INFO] datadesk.live.oms: [AI REVALUATION] ARM Fair Value updated: 86.09 -> 89.45. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:45:05,826 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] ARM thesis broken! Liquidating.
+2026-06-11 22:45:05,826 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL ARM (Weight: 10.0%)
+2026-06-11 22:45:06,015 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"4012d845-dce3-41cf-82c9-d78f5d3f5bfb","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:45:06,015 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:45:07,015 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:45:07,015 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 110.02. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:45:07,015 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for VRT...
+2026-06-11 22:45:08,018 [INFO] datadesk.live.oms: [AI REVALUATION] VRT Fair Value updated: 96.58 -> 86.66. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:45:08,019 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] VRT thesis broken! Liquidating.
+2026-06-11 22:45:08,019 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL VRT (Weight: 10.0%)
+2026-06-11 22:45:08,207 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"7b78f525-8806-47ec-890a-6a8e7bcec298","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:45:08,207 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for AAPL...
+2026-06-11 22:45:09,212 [INFO] datadesk.live.oms: [AI REVALUATION] AAPL Fair Value updated: 104.37 -> 89.31. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:45:09,212 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] AAPL thesis broken! Liquidating.
+2026-06-11 22:45:09,212 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL AAPL (Weight: 8.0%)
+2026-06-11 22:45:09,411 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"321c0b55-9158-4369-aa0e-9fc0e449a353","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:45:09,411 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for DELL...
+2026-06-11 22:45:10,412 [INFO] datadesk.live.oms: [AI REVALUATION] DELL Fair Value updated: 102.09 -> 87.68. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:45:10,412 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] DELL thesis broken! Liquidating.
+2026-06-11 22:45:10,412 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL DELL (Weight: 10.0%)
+2026-06-11 22:45:10,447 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:45:10,590 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"361e8b6b-197e-4a3e-84bf-63d8201116ba","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:45:12,449 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:45:14,450 [INFO] datadesk.live.monitors.news_monitor: [NEWS] APLD: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:45:31,451 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:45:33,453 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:45:35,454 [INFO] datadesk.live.monitors.news_monitor: [NEWS] IREN: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:45:40,599 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for ARM...
+2026-06-11 22:45:41,602 [INFO] datadesk.live.oms: [AI REVALUATION] ARM Fair Value updated: 89.45 -> 101.79. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:45:41,602 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:45:42,603 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:45:42,603 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 110.02 -> 114.57. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:45:42,603 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for VRT...
+2026-06-11 22:45:43,605 [INFO] datadesk.live.oms: [AI REVALUATION] VRT Fair Value updated: 86.66 -> 89.66. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:45:43,605 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] VRT thesis broken! Liquidating.
+2026-06-11 22:45:43,605 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL VRT (Weight: 10.0%)
+2026-06-11 22:45:43,783 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"7b78f525-8806-47ec-890a-6a8e7bcec298","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:45:43,783 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for AAPL...
+2026-06-11 22:45:44,790 [INFO] datadesk.live.oms: [AI REVALUATION] AAPL Fair Value updated: 89.31 -> 85.24. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:45:44,790 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] AAPL thesis broken! Liquidating.
+2026-06-11 22:45:44,790 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL AAPL (Weight: 8.0%)
+2026-06-11 22:45:44,986 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"321c0b55-9158-4369-aa0e-9fc0e449a353","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:45:44,986 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for DELL...
+2026-06-11 22:45:45,987 [INFO] datadesk.live.oms: [AI REVALUATION] DELL Fair Value updated: 87.68 -> 96.72. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:45:51,748 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:45:52,254 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:45:52,256 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:45:52,454 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [2ebed01e-ed9f-4e39-b866-d73e445e8ccd]: BUY TSM ($4978.54)
+2026-06-11 22:45:52,458 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:45:54,459 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:45:56,462 [INFO] datadesk.live.monitors.news_monitor: [NEWS] AAPL: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:46:05,991 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for ARM...
+2026-06-11 22:46:06,994 [INFO] datadesk.live.oms: [AI REVALUATION] ARM Fair Value updated: 101.79 -> 108.34. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:46:06,994 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:46:07,996 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:46:07,996 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 115.49. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:46:07,996 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for VRT...
+2026-06-11 22:46:09,000 [INFO] datadesk.live.oms: [AI REVALUATION] VRT Fair Value updated: 89.66 -> 100.9. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:46:09,002 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for AAPL...
+2026-06-11 22:46:10,003 [INFO] datadesk.live.oms: [AI REVALUATION] AAPL Fair Value updated: 85.24 -> 96.88. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:46:10,005 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for DELL...
+2026-06-11 22:46:11,006 [INFO] datadesk.live.oms: [AI REVALUATION] DELL Fair Value updated: 96.72 -> 85.06. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:46:11,006 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] DELL thesis broken! Liquidating.
+2026-06-11 22:46:11,006 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL DELL (Weight: 10.0%)
+2026-06-11 22:46:11,193 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"361e8b6b-197e-4a3e-84bf-63d8201116ba","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:46:13,467 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:46:15,468 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:46:17,471 [INFO] datadesk.live.monitors.news_monitor: [NEWS] CORZ: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:46:19,008 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Sentiment classified as NEGATIVE. Firing FAST-PATH SELL AAPL.
+2026-06-11 22:46:19,008 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL AAPL (Weight: 8.0%)
+2026-06-11 22:46:19,198 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"321c0b55-9158-4369-aa0e-9fc0e449a353","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:46:32,469 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:46:32,971 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:46:32,974 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:46:33,168 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [8f19af0b-cf4a-46c2-b154-ec2c7c775627]: BUY TSM ($4977.77)
+2026-06-11 22:46:34,206 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Sentiment classified as NEGATIVE. Firing FAST-PATH SELL AAPL.
+2026-06-11 22:46:34,206 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL AAPL (Weight: 8.0%)
+2026-06-11 22:46:34,382 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"321c0b55-9158-4369-aa0e-9fc0e449a353","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:46:34,474 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:46:36,475 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:46:38,477 [INFO] datadesk.live.monitors.news_monitor: [NEWS] WDC: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:46:41,171 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:46:41,672 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:46:41,673 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:46:41,882 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [703f762d-3d4c-48ee-9d66-1e7549cf0361]: BUY TSM ($4977.83)
+2026-06-11 22:46:51,204 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for ARM...
+2026-06-11 22:46:52,208 [INFO] datadesk.live.oms: [AI REVALUATION] ARM Fair Value updated: 108.34 -> 86.36. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:46:52,208 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] ARM thesis broken! Liquidating.
+2026-06-11 22:46:52,213 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL ARM (Weight: 10.0%)
+2026-06-11 22:46:52,393 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"4012d845-dce3-41cf-82c9-d78f5d3f5bfb","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:46:52,393 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:46:53,403 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:46:53,404 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 115.44. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:46:53,404 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for VRT...
+2026-06-11 22:46:54,406 [INFO] datadesk.live.oms: [AI REVALUATION] VRT Fair Value updated: 100.9 -> 96.97. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:46:54,406 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for AAPL...
+2026-06-11 22:46:55,407 [INFO] datadesk.live.oms: [AI REVALUATION] AAPL Fair Value updated: 96.88 -> 109.4. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:46:55,407 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for DELL...
+2026-06-11 22:46:55,480 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:46:56,408 [INFO] datadesk.live.oms: [AI REVALUATION] DELL Fair Value updated: 85.06 -> 103.07. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:46:57,482 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:46:57,896 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:46:58,397 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:46:58,404 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:46:58,607 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [2d4fe925-f970-4763-ac99-92c38668290f]: BUY TSM ($4977.46)
+2026-06-11 22:46:59,483 [INFO] datadesk.live.monitors.news_monitor: [NEWS] CLSK: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:47:06,415 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for ARM...
+2026-06-11 22:47:07,418 [INFO] datadesk.live.oms: [AI REVALUATION] ARM Fair Value updated: 86.36 -> 102.59. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:47:07,419 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:47:08,420 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:47:08,423 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 114.68. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:47:08,424 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for VRT...
+2026-06-11 22:47:09,425 [INFO] datadesk.live.oms: [AI REVALUATION] VRT Fair Value updated: 96.97 -> 106.94. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:47:09,425 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for AAPL...
+2026-06-11 22:47:10,426 [INFO] datadesk.live.oms: [AI REVALUATION] AAPL Fair Value updated: 109.4 -> 86.38. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:47:10,427 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] AAPL thesis broken! Liquidating.
+2026-06-11 22:47:10,427 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL AAPL (Weight: 8.0%)
+2026-06-11 22:47:10,622 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"321c0b55-9158-4369-aa0e-9fc0e449a353","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:47:10,622 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for DELL...
+2026-06-11 22:47:11,623 [INFO] datadesk.live.oms: [AI REVALUATION] DELL Fair Value updated: 103.07 -> 103.1. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:47:14,398 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Sentiment classified as NEGATIVE. Firing FAST-PATH SELL TSLA.
+2026-06-11 22:47:14,398 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL TSLA (Weight: 8.0%)
+2026-06-11 22:47:14,587 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":42210000,"message":"fractional orders cannot be sold short"}
+2026-06-11 22:47:16,488 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:47:18,489 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:47:20,032 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Supply chain validation confirmed. Firing FAST-PATH BUY SMCI.
+2026-06-11 22:47:20,032 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY SMCI (Weight: 10.0%)
+2026-06-11 22:47:20,270 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [d2b8522d-f63b-424f-82f2-a6c43346386b]: BUY SMCI ($9953.44)
+2026-06-11 22:47:20,490 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SPY: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:47:22,619 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:47:23,121 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:47:23,127 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:47:23,350 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [eb6438bc-afbb-4913-99bc-dfc09cc44107]: BUY TSM ($4976.95)
+2026-06-11 22:47:37,495 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:47:39,497 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:47:41,499 [INFO] datadesk.live.monitors.news_monitor: [NEWS] MU: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:47:47,354 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Detecting anomaly in lead stock: NVDA surging +2.5%...
+2026-06-11 22:47:47,857 [INFO] datadesk.live.monitors.supply_chain: [SUPPLY CHAIN] Matrix query: NVDA dependency 'TSM' has not moved yet.
+2026-06-11 22:47:47,862 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY TSM (Weight: 5.0%)
+2026-06-11 22:47:48,144 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [47a6b2ca-2f21-4cb5-9189-699e5f045689]: BUY TSM ($4978.02)
+2026-06-11 22:47:51,638 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for ARM...
+2026-06-11 22:47:52,640 [INFO] datadesk.live.oms: [AI REVALUATION] ARM Fair Value updated: 102.59 -> 88.0. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:47:52,641 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] ARM thesis broken! Liquidating.
+2026-06-11 22:47:52,641 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL ARM (Weight: 10.0%)
+2026-06-11 22:47:52,821 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"4012d845-dce3-41cf-82c9-d78f5d3f5bfb","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:47:52,821 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:47:53,825 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:47:53,826 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: None -> 114.27. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:47:53,826 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for VRT...
+2026-06-11 22:47:54,827 [INFO] datadesk.live.oms: [AI REVALUATION] VRT Fair Value updated: 106.94 -> 92.69. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:47:54,827 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] VRT thesis broken! Liquidating.
+2026-06-11 22:47:54,827 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL VRT (Weight: 10.0%)
+2026-06-11 22:47:55,031 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"7b78f525-8806-47ec-890a-6a8e7bcec298","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:47:55,031 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for AAPL...
+2026-06-11 22:47:55,279 [INFO] datadesk.live.monitors.jensen_monitor: [JENSEN MONITOR] Supply chain validation confirmed. Firing FAST-PATH BUY SMCI.
+2026-06-11 22:47:55,280 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY SMCI (Weight: 10.0%)
+2026-06-11 22:47:55,507 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [3533698c-5d8e-4659-958a-dbb0c6f04b41]: BUY SMCI ($9955.96)
+2026-06-11 22:47:56,032 [INFO] datadesk.live.oms: [AI REVALUATION] AAPL Fair Value updated: 86.38 -> 97.6. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:47:56,033 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for DELL...
+2026-06-11 22:47:57,034 [INFO] datadesk.live.oms: [AI REVALUATION] DELL Fair Value updated: 103.1 -> 89.99. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:47:57,034 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] DELL thesis broken! Liquidating.
+2026-06-11 22:47:57,035 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL DELL (Weight: 10.0%)
+2026-06-11 22:47:57,339 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"361e8b6b-197e-4a3e-84bf-63d8201116ba","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:47:57,340 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for SMCI...
+2026-06-11 22:47:58,341 [INFO] datadesk.live.oms: [AI REVALUATION] SMCI Fair Value updated: None -> 106.71. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:47:58,500 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:48:00,506 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:48:02,508 [INFO] datadesk.live.monitors.news_monitor: [NEWS] IREN: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:48:19,511 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:48:21,516 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:48:23,518 [INFO] datadesk.live.monitors.news_monitor: [NEWS] SMH: Q3 Earnings show massive AI infrastructure cap-ex.
+2026-06-11 22:48:24,098 [INFO] datadesk.ingest.backfill: Smart backfill for AAPL starting from 2026-06-11
+2026-06-11 22:48:24,544 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:24,544 [INFO] datadesk.ingest.backfill: Smart backfill for AMD starting from 2026-06-11
+2026-06-11 22:48:24,667 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:24,667 [INFO] datadesk.ingest.backfill: Smart backfill for APLD starting from 2026-06-11
+2026-06-11 22:48:24,802 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:24,802 [INFO] datadesk.ingest.backfill: Smart backfill for ASML starting from 2026-06-11
+2026-06-11 22:48:24,942 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:24,942 [INFO] datadesk.ingest.backfill: Smart backfill for AVGO starting from 2026-06-11
+2026-06-11 22:48:25,092 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:25,093 [INFO] datadesk.ingest.backfill: Smart backfill for BE starting from 2026-06-11
+2026-06-11 22:48:25,235 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:25,235 [INFO] datadesk.ingest.backfill: Smart backfill for BTDR starting from 2026-06-11
+2026-06-11 22:48:25,355 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:25,357 [INFO] datadesk.ingest.backfill: Smart backfill for CLSK starting from 2026-06-11
+2026-06-11 22:48:25,476 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:25,476 [INFO] datadesk.ingest.backfill: Smart backfill for CORZ starting from 2026-06-11
+2026-06-11 22:48:25,591 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:25,591 [INFO] datadesk.ingest.backfill: Smart backfill for DELL starting from 2026-06-11
+2026-06-11 22:48:25,736 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:25,736 [INFO] datadesk.ingest.backfill: Smart backfill for IREN starting from 2026-06-11
+2026-06-11 22:48:25,944 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:25,944 [INFO] datadesk.ingest.backfill: Smart backfill for MSFT starting from 2026-06-11
+2026-06-11 22:48:26,104 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:26,104 [INFO] datadesk.ingest.backfill: Smart backfill for MU starting from 2026-06-11
+2026-06-11 22:48:26,232 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:26,232 [INFO] datadesk.ingest.backfill: Smart backfill for NVDA starting from 2026-06-11
+2026-06-11 22:48:26,380 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:26,382 [INFO] datadesk.ingest.backfill: Smart backfill for ORCL starting from 2026-06-11
+2026-06-11 22:48:26,500 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:26,500 [INFO] datadesk.ingest.backfill: Smart backfill for SMCI starting from 2026-06-11
+2026-06-11 22:48:26,628 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:26,643 [INFO] datadesk.ingest.backfill: Smart backfill for SMH starting from 2026-06-11
+2026-06-11 22:48:26,755 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:26,767 [INFO] datadesk.ingest.backfill: Smart backfill for SPY starting from 2026-06-11
+2026-06-11 22:48:26,929 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:26,936 [INFO] datadesk.ingest.backfill: Smart backfill for TSM starting from 2026-06-11
+2026-06-11 22:48:27,085 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:27,087 [INFO] datadesk.ingest.backfill: Smart backfill for WDC starting from 2026-06-11
+2026-06-11 22:48:27,211 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:27,211 [INFO] datadesk.ingest.backfill: Smart backfill for ^VIX starting from 2026-06-11
+2026-06-11 22:48:27,358 [INFO] datadesk.history.store: history: wrote 1 bars from yahoo_smart_backfill
+2026-06-11 22:48:28,405 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for ARM...
+2026-06-11 22:48:29,408 [INFO] datadesk.live.oms: [AI REVALUATION] ARM Fair Value updated: 88.0 -> 91.33. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:48:29,410 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] ARM thesis broken! Liquidating.
+2026-06-11 22:48:29,410 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL ARM (Weight: 10.0%)
+2026-06-11 22:48:29,595 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"4012d845-dce3-41cf-82c9-d78f5d3f5bfb","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:48:29,596 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for TSM...
+2026-06-11 22:48:30,597 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Applying Situational Awareness override for TSM (fabrication_bottleneck)
+2026-06-11 22:48:30,597 [INFO] datadesk.live.oms: [AI REVALUATION] TSM Fair Value updated: 114.27 -> 113.76. Reason: AGI timeline compression. Structural constraint in fabrication_bottleneck.
+2026-06-11 22:48:30,598 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for VRT...
+2026-06-11 22:48:31,601 [INFO] datadesk.live.oms: [AI REVALUATION] VRT Fair Value updated: 92.69 -> 89.44. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:48:31,602 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] VRT thesis broken! Liquidating.
+2026-06-11 22:48:31,602 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL VRT (Weight: 10.0%)
+2026-06-11 22:48:31,817 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"7b78f525-8806-47ec-890a-6a8e7bcec298","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:48:31,818 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for AAPL...
+2026-06-11 22:48:32,819 [INFO] datadesk.live.oms: [AI REVALUATION] AAPL Fair Value updated: 97.6 -> 99.48. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:48:32,819 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for DELL...
+2026-06-11 22:48:33,820 [INFO] datadesk.live.oms: [AI REVALUATION] DELL Fair Value updated: 89.99 -> 87.48. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:48:33,820 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] DELL thesis broken! Liquidating.
+2026-06-11 22:48:33,820 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL DELL (Weight: 10.0%)
+2026-06-11 22:48:33,998 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"361e8b6b-197e-4a3e-84bf-63d8201116ba","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:48:33,998 [INFO] datadesk.live.monitors.agent_worker: [AGENT WORKER] Analyzing unstructured data for SMCI...
+2026-06-11 22:48:34,612 [INFO] datadesk.live.monitors.trump_monitor: [TRUMP MONITOR] Sentiment classified as POSITIVE. Firing FAST-PATH BUY AAPL.
+2026-06-11 22:48:34,612 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: BUY AAPL (Weight: 8.0%)
+2026-06-11 22:48:34,808 [INFO] datadesk.live.oms: [Alpaca LIVE PAPER] EXECUTED [70facc97-f1b3-4a75-a179-285f65e374ff]: BUY AAPL ($7963.72)
+2026-06-11 22:48:35,010 [INFO] datadesk.live.oms: [AI REVALUATION] SMCI Fair Value updated: 106.71 -> 90.51. Reason: Standard quarterly EPS and margin analysis.
+2026-06-11 22:48:35,011 [WARNING] datadesk.live.oms: [FUNDAMENTAL STOP-LOSS] SMCI thesis broken! Liquidating.
+2026-06-11 22:48:35,011 [INFO] datadesk.live.oms: OMS received FAST-PATH signal: SELL SMCI (Weight: 10.0%)
+2026-06-11 22:48:35,185 [ERROR] datadesk.live.oms: [Alpaca LIVE PAPER] Order Failed: {"code":40310000,"existing_order_id":"3533698c-5d8e-4659-958a-dbb0c6f04b41","message":"potential wash trade detected. use complex orders","reject_reason":"opposite side market/stop order exists"}
+2026-06-11 22:48:40,523 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Geopolitics: Tensions in South China Sea impacting semiconductor supply lines.
+2026-06-11 22:48:42,524 [INFO] datadesk.live.monitors.news_monitor: [NEWS] Macro: Federal Reserve hints at 50bps rate cut.
+2026-06-11 22:48:44,526 [INFO] datadesk.live.monitors.news_monitor: [NEWS] NVDA: Q3 Earnings show massive AI infrastructure cap-ex.

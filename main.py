@@ -10,14 +10,20 @@ DataDesk entry point.
 
 import argparse
 import logging
+import sys
 from typing import Literal
+
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8')
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler("error_log.txt")
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler("error_log.txt", encoding="utf-8")
     ]
 )
 logger = logging.getLogger("datadesk")
@@ -59,7 +65,21 @@ def cmd_backtest() -> None:
 
 def cmd_serve(port: int) -> None:
     import uvicorn
-
+    import subprocess
+    import time
+    
+    # Force kill anything listening on this port (Windows)
+    try:
+        out = subprocess.check_output(f"netstat -aon | findstr :{port} | findstr LISTENING", shell=True).decode()
+        for line in out.strip().split('\n'):
+            if line:
+                pid = line.strip().split()[-1]
+                logger.info(f"Killing old server process (PID: {pid}) on port {port}...")
+                subprocess.run(f"taskkill /F /PID {pid}", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                time.sleep(1)
+    except subprocess.CalledProcessError:
+        pass # No process found
+        
     from datadesk.api.app import app
 
     logger.info(f"DataDesk ops console: http://localhost:{port}")

@@ -192,7 +192,13 @@
 <div id="tab-analytics" class="tab-content">
   <div class="grid">
       <div class="panel wide">
-        <h2>Top Backtest Grid Search Combinations</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="margin: 0;">Top Backtest Grid Search Combinations</h2>
+            <div>
+                <button class="primary" onclick="window.location.reload()">Refresh UI</button>
+                <button class="primary" onclick="runBacktestSweep()" id="btn-run-sweep">Re-run Sweep</button>
+            </div>
+        </div>
         {% if runs %}
         <div class="kpis">
           {% set m = runs[0].metrics %}
@@ -446,6 +452,15 @@
               tbody.innerHTML = '<tr><td colspan="4" style="padding: 5px 0; color: var(--dim);">Cannot load positions. Check API keys.</td></tr>';
           }
       } catch (e) {}
+  }
+
+  async function runBacktestSweep() {
+      const btn = document.getElementById('btn-run-sweep');
+      btn.innerText = "Running... (Check terminal)";
+      btn.disabled = true;
+      try {
+          await fetch('/api/sweep/run', { method: 'POST' });
+      } catch (err) {}
   }
 
   setInterval(() => {

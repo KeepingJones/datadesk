@@ -61,8 +61,47 @@ class OMSFastPath:
             from alpaca.trading.client import TradingClient
             self.alpaca = TradingClient(api_key, secret_key, paper=True)
             logger.info("Alpaca Paper Trading Client Initialized successfully.")
+            self._adopt_alpaca_positions()
         else:
             logger.warning("ALPACA_API_KEY / SECRET_KEY not found in .env. Falling back to internal mock execution.")
+            
+    def _adopt_alpaca_positions(self):
+        try:
+            positions = self.alpaca.get_all_positions()
+            account = self.alpaca.get_account()
+            equity = float(account.equity)
+            for p in positions:
+                ticker = p.symbol
+                qty = float(p.qty)
+                pos_side = "BUY" if qty > 0 else "SELL"
+                current_price = float(p.current_price)
+                entry_price = float(p.avg_entry_price)
+                market_value = float(p.market_value)
+                
+                alloc = abs(market_value) / equity if equity > 0 else 0.0
+                sl_pct = self.default_trailing_stop_pct
+                
+                if pos_side == "SELL":
+                    stop_price = current_price * (1 + sl_pct)
+                else:
+                    stop_price = current_price * (1 - sl_pct)
+
+                self.active_positions[ticker] = {
+                    "id": p.asset_id,
+                    "side": pos_side,
+                    "alloc": alloc,
+                    "entry_price": entry_price,
+                    "current_price": current_price,
+                    "trailing_stop_pct": sl_pct,
+                    "stop_price": stop_price,
+                    "fundamental_fair_value": None,
+                    "broker": "Alpaca",
+                    "exec_ticker": ticker
+                }
+            if positions:
+                logger.info(f"OMS adopted {len(positions)} pre-existing Alpaca positions into internal memory.")
+        except Exception as e:
+            logger.error(f"Failed to adopt Alpaca positions: {e}")
         
     def submit_signal(self, ticker: str, side: Literal["BUY", "SELL"], weight_pct: float, stop_loss_pct: float = None):
         """Processes an intraday event signal."""
@@ -92,27 +131,36 @@ class OMSFastPath:
                 from alpaca.trading.requests import MarketOrderRequest
                 from alpaca.trading.enums import OrderSide, TimeInForce
                 
-                # Fetch live equity to calculate Notional value
-                try:
-                    account = self.alpaca.get_account()
-                    equity = float(account.equity)
-                    notional = round(equity * weight_pct, 2)
-                    
-                    alpaca_side = OrderSide.BUY if side == "BUY" else OrderSide.SELL
-                    
-                    req = MarketOrderRequest(
-                        symbol=execution_ticker,
-                        notional=notional,
-                        side=alpaca_side,
-                        time_in_force=TimeInForce.DAY
-                    )
-                    
-                    order = self.alpaca.submit_order(req)
-                    order_id = str(order.id)
-                    logger.info(f"[Alpaca LIVE PAPER] EXECUTED [{order_id}]: {side} {execution_ticker} (${notional})")
-                except Exception as e:
-                    logger.error(f"[Alpaca LIVE PAPER] Order Failed: {e}")
-                    return False
+                # Are we liquidating an existing position?
+                if side == "SELL" and ticker in self.active_positions:
+                    try:
+                        self.alpaca.close_position(symbol_or_asset_id=execution_ticker)
+                        logger.info(f"[Alpaca LIVE PAPER] EXECUTED [LIQUIDATE]: Closed position for {execution_ticker}")
+                    except Exception as e:
+                        logger.error(f"[Alpaca LIVE PAPER] Liquidate Failed: {e}")
+                        return False
+                else:
+                    # New position entry
+                    try:
+                        account = self.alpaca.get_account()
+                        equity = float(account.equity)
+                        notional = round(equity * weight_pct, 2)
+                        
+                        alpaca_side = OrderSide.BUY if side == "BUY" else OrderSide.SELL
+                        
+                        req = MarketOrderRequest(
+                            symbol=execution_ticker,
+                            notional=notional,
+                            side=alpaca_side,
+                            time_in_force=TimeInForce.DAY
+                        )
+                        
+                        order = self.alpaca.submit_order(req)
+                        order_id = str(order.id)
+                        logger.info(f"[Alpaca LIVE PAPER] EXECUTED [{order_id}]: {side} {execution_ticker} (${notional})")
+                    except Exception as e:
+                        logger.error(f"[Alpaca LIVE PAPER] Order Failed: {e}")
+                        return False
             else:
                 # Mock execution fallback
                 order_id = str(uuid.uuid4())[:8]

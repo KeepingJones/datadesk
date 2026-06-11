@@ -262,6 +262,17 @@ def api_validation():
         report = validate_universe()
     return report
 
+@app.post("/api/sweep/run")
+def api_sweep_run():
+    import subprocess
+    import os
+    # Launch sweep.py in the background
+    subprocess.Popen(
+        [".venv\\Scripts\\python", "sweep.py"], 
+        cwd=os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    )
+    return {"status": "started"}
+
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     runs = load_backtest_runs(limit=50)
