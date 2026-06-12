@@ -26,6 +26,29 @@ def apply_vix_overlay(weights: pd.DataFrame, vix: pd.Series, **kwargs) -> pd.Dat
     return weights.mul(scale, axis=0)
 
 
+def bear_only_scale(
+    index_prices: pd.Series,
+    vix: pd.Series,
+    de_risk_to: float = 0.4,
+    ma_window: int = 200,
+    vix_panic: float = 30.0,
+) -> pd.Series:
+    """
+    Bear-ONLY de-risk: full exposure (1.0) almost always; cut to `de_risk_to`
+    ONLY when the index is below its long MA AND VIX is in panic territory.
+
+    Attribution (test-and-improvement-2026-06-12) showed always-on overlays bleed
+    ~18pts of CAGR over a bull decade. This fires only in a genuine joint-stress
+    regime, so it keeps return in normal/choppy markets and only insures the tail.
+    """
+    ma = index_prices.rolling(ma_window).mean()
+    below = index_prices < ma
+    panic = vix.reindex(index_prices.index).ffill() > vix_panic
+    scale = pd.Series(1.0, index=index_prices.index)
+    scale[below & panic] = de_risk_to
+    return scale
+
+
 def compose_scales(*scales: pd.Series) -> pd.Series:
     """
     Combine de-risk overlays (trend, VIX regime, event risk, drawdown control)

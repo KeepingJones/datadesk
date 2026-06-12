@@ -104,66 +104,76 @@ def cmd_coverage() -> None:
 
 
 def cmd_holdout() -> None:
+    """Improved strategy v2 (test-and-improvement-2026-06-12): momentum-core with a
+    BEAR-ONLY overlay, always reported against the SPY benchmark on identical windows."""
+    import pandas as pd
+
+    from datadesk.backtest.costs import ALPACA_COSTS, T212_ISA_COSTS, ZERO_COSTS
     from datadesk.backtest.engine import run_backtest
     from datadesk.db import save_backtest_run
     from datadesk.history.store import coverage, load_closes
-    from datadesk.strategies.blend import inverse_volatility_blend
-    from datadesk.strategies.insider import insider_congress_follow
-    from datadesk.strategies.meanrev import mean_reversion
     from datadesk.strategies.momentum import momentum
-    from datadesk.strategies.regime import compose_scales, vix_scale
-    from datadesk.strategies.trend import trend_signal
+    from datadesk.strategies.regime import bear_only_scale
 
     cov = coverage()
-    tickers = cov[cov["rows"] > 800]["ticker"].tolist()
+    # require near-complete history so the cross-section is comparable across dates
+    tickers = cov[cov["rows"] > 2000]["ticker"].tolist()
     if not tickers:
-        print("History store is empty")
+        print("History store is empty (need tickers with >2000 bars — run backfill)")
         return
 
     prices = load_closes(tickers=tickers)
-    prices = prices.dropna(axis=0, thresh=int(len(prices.columns) * 0.5))
-    prices = prices.dropna(axis=1, thresh=int(len(prices) * 0.9)).ffill(limit=5)
+    prices = prices[prices.index >= "2016-05-24"].ffill().dropna(axis=1)
+    print(f"Universe: {prices.shape[1]} tickers, {prices.shape[0]} days")
 
-    print("Generating strategy weights...")
     w_mom = momentum(126, 10, 21)(prices)
-    w_mr = mean_reversion()(prices)
-    w_insider = insider_congress_follow()(prices)
+    if "SPY" in prices.columns and "^VIX" in prices.columns:
+        scale = bear_only_scale(prices["SPY"], prices["^VIX"])
+        w_strat = w_mom.mul(scale, axis=0)
+    else:
+        w_strat = w_mom
 
-    print("Blending portfolios...")
-    w_blend = inverse_volatility_blend([w_mom, w_mr, w_insider], prices)
-
-    if "^VIX" in prices.columns and "SPY" in prices.columns:
-        print("Applying Global Risk Overlays (Trend & VIX)...")
-        t_scale = trend_signal(prices["SPY"], 200, 0.02)
-        v_scale = vix_scale(prices["^VIX"])
-        global_scale = compose_scales(t_scale, v_scale)
-        w_blend = w_blend.mul(global_scale, axis=0)
-    elif "SPY" in prices.columns:
-        t_scale = trend_signal(prices["SPY"], 200, 0.02)
-        w_blend = w_blend.mul(t_scale, axis=0)
-
-    from datadesk.backtest.costs import ALPACA_COSTS, T212_ISA_COSTS
-
-    print("Running backtests...")
     warmup = prices.index[min(150, len(prices) - 1)]
-    # An honest holdout is the LAST 252 trading days, reported separately —
-    # the previous version labelled the full period "HOLDOUT", which it isn't
     holdout_start = prices.index[max(len(prices) - 252, 151)]
+    spy_w = pd.DataFrame({"SPY": [1.0]}, index=[prices.index[0]]) if "SPY" in prices else None
 
-    for label, costs in [("ALPACA - 0bps FX", ALPACA_COSTS), ("T212 - 15bps FX", T212_ISA_COSTS)]:
-        full = run_backtest(w_blend, prices, costs, start=str(warmup.date()))
-        holdout = run_backtest(w_blend, prices, costs, start=str(holdout_start.date()))
+    def line(tag, w, costs, start):
+        m = run_backtest(w, prices, costs, start=start).metrics
+        print(
+            f"  {tag:30s} CAGR {m['cagr']:+.3f}  Sharpe {m['sharpe']:.2f}  "
+            f"MaxDD {m['max_drawdown']:.2f}  turn {m.get('avg_annual_turnover', 0):.1f}"
+        )
+        return m
+
+    for label, costs in [("ALPACA 0bps", ALPACA_COSTS), ("T212 15bps FX", T212_ISA_COSTS)]:
         print(f"\n=== {label} ===")
-        print(f"Full period ({warmup.date()} ->): {full.metrics}")
-        print(f"HOLDOUT (last 252d, {holdout_start.date()} ->): {holdout.metrics}")
+        print(" FULL PERIOD:")
+        m_full = line("momentum-core + bear overlay", w_strat, costs, str(warmup.date()))
+        if spy_w is not None:
+            line("SPY benchmark", spy_w, ZERO_COSTS, str(warmup.date()))
+        print(" HOLDOUT (last 252d):")
+        m_hold = line("momentum-core + bear overlay", w_strat, costs, str(holdout_start.date()))
+        if spy_w is not None:
+            line("SPY benchmark", spy_w, ZERO_COSTS, str(holdout_start.date()))
         if label.startswith("ALPACA"):
-            save_backtest_run("Blended (full period, Alpaca)", {}, full.metrics, full.equity)
             save_backtest_run(
-                "Blended HOLDOUT last 252d (Alpaca)", {}, holdout.metrics, holdout.equity
+                "v2 momentum-core (full, Alpaca)",
+                {},
+                m_full,
+                run_backtest(w_strat, prices, costs, start=str(warmup.date())).equity,
             )
+            save_backtest_run(
+                "v2 momentum-core HOLDOUT 252d (Alpaca)",
+                {},
+                m_hold,
+                run_backtest(w_strat, prices, costs, start=str(holdout_start.date())).equity,
+            )
+
     print("\nSaved to platform store.")
-    print("NOTE: universe is survivorship-biased until the paid backfill lands — treat")
-    print("these numbers as plumbing verification, not evidence (docs/backtesting.md).")
+    print("GATE 1: beat SPY on Sharpe AND max-drawdown in the holdout — not an absolute CAGR.")
+    print(
+        "NOTE: universe still survivorship-biased until Tiingo backfill — levels not yet evidence."
+    )
 
 
 if __name__ == "__main__":
