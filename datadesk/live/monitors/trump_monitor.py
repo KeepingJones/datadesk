@@ -1,48 +1,93 @@
+"""
+Trump Truth Social monitor — REAL data path, no simulation.
+
+Polls the CNN archive via the existing collector (datadesk.ingest.trump), which
+only inserts posts it hasn't seen. New posts go through the deterministic
+classifier; actionable classes emit signals to the OMS, which records them to
+the shadow store (and only executes if the broker is explicitly armed).
+"""
+
 import logging
-import random
 import time
+from datetime import datetime
 from typing import TYPE_CHECKING
+
+from datadesk.ai.post_classifier import classify_post
+from datadesk.ingest.trump import collect, load_posts
 
 if TYPE_CHECKING:
     from datadesk.live.oms import OMSFastPath
 
 logger = logging.getLogger(__name__)
 
+POLL_SECONDS = 300  # archive is ~18MB; the collector is delta-aware but be polite
+EVENT_WEIGHT = 0.05  # 5% per event signal — below the 10% OMS cap
+
+
 class TrumpMonitor:
-    """
-    Polls the CNN Truth Social archive or simulates live event detection.
-    Triggers instantaneous fast-path trades.
-    """
-    def __init__(self, oms: 'OMSFastPath'):
+    def __init__(self, oms: "OMSFastPath"):
         self.oms = oms
         self.is_running = False
         self.last_run = "Never"
+        self._seen_ids: set[str] = set()
+        self._primed = False
 
     def start(self):
         self.is_running = True
-        logger.info("[TRUMP MONITOR] Starting event polling on truth_archive.json...")
-        from datetime import datetime
+        logger.info("[TRUMP MONITOR] polling CNN archive every %ss", POLL_SECONDS)
         while self.is_running:
-            if random.random() < 0.1:
+            try:
                 self.poll()
-                self.last_run = datetime.now().strftime("%H:%M:%S")
-            time.sleep(5)
+            except Exception as e:
+                logger.error(f"[TRUMP MONITOR] poll failed: {e}")
+            self.last_run = datetime.now().strftime("%H:%M:%S")
+            for _ in range(POLL_SECONDS):
+                if not self.is_running:
+                    return
+                time.sleep(1)
 
     def stop(self):
         self.is_running = False
 
-    def poll(self):
-        """Simulates polling the CNN API and finding a target keyword."""
-        # For simulation, we randomly "find" a post about AAPL or TSLA
-        tickers = ["AAPL", "TSLA"]
-        target = random.choice(tickers)
-        
-        logger.warning(f"[TRUMP MONITOR] 🚨 BREAKING: Detected mention of '{target}' in Truth Social post!")
-        
-        # Simulate simple heuristic sentiment analysis
-        sentiment = random.choice(["POSITIVE", "NEGATIVE"])
-        side = "BUY" if sentiment == "POSITIVE" else "SELL"
-        weight = 0.08  # 8% aggressive allocation for event trade
-        
-        logger.info(f"[TRUMP MONITOR] Sentiment classified as {sentiment}. Firing FAST-PATH {side} {target}.")
-        self.oms.submit_signal(target, side, weight_pct=weight)
+    def poll(self) -> int:
+        """Fetch archive, classify NEW posts only, emit signals. Returns signals fired."""
+        new_count = collect()
+        posts = load_posts()
+        if posts.empty:
+            return 0
+
+        if not self._primed:
+            # First poll: prime on existing corpus — never trade historical posts
+            self._seen_ids = set(posts["id"])
+            self._primed = True
+            logger.info(f"[TRUMP MONITOR] primed on {len(self._seen_ids)} historical posts")
+            return 0
+
+        fresh = posts[~posts["id"].isin(self._seen_ids)]
+        self._seen_ids.update(posts["id"])
+        if fresh.empty:
+            return 0
+
+        fired = 0
+        for _, post in fresh.iterrows():
+            c = classify_post(post["content"])
+            if c.impact_class == "NOISE":
+                continue
+            logger.warning(
+                f"[TRUMP MONITOR] {c.impact_class} ({c.sentiment}, conf {c.confidence}): "
+                f"{post['content'][:120]}"
+            )
+            if c.impact_class == "MACRO_COMMENTARY":
+                continue  # index/vol overlay territory, not a single-stock fast-path trade
+            side = "BUY" if c.sentiment == "POSITIVE" else "SELL"
+            for ticker in c.actionable_tickers:
+                self.oms.submit_signal(
+                    ticker,
+                    side,
+                    weight_pct=EVENT_WEIGHT,
+                    reason=f"{c.impact_class}: {post['content'][:80]}",
+                    source="trump_monitor",
+                )
+                fired += 1
+        logger.info(f"[TRUMP MONITOR] {new_count} new posts, {fired} signals")
+        return fired

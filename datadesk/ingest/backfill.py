@@ -102,6 +102,7 @@ def backfill_missing(
     logger.info(f"backfill_missing: {len(todo)} of {len(tickers)} tickers need history")
     return backfill_smart(todo, db_path=db_path)
 
+
 def backfill_smart(
     tickers: list[str],
     db_path: Path | None = None,
@@ -117,14 +118,14 @@ def backfill_smart(
         cov_dict = cov.set_index("ticker")["last"].to_dict()
 
     written: dict[str, int] = {}
-    
+
     # Group tickers by their required start date to minimize API calls
-    # Or for simplicity and robust gap filling, we can fetch individually since 
+    # Or for simplicity and robust gap filling, we can fetch individually since
     # it's just catching up.
     for ticker in tickers:
         last_date = cov_dict.get(ticker)
         start_date = last_date if pd.notna(last_date) else DEFAULT_START
-        
+
         try:
             logger.info(f"Smart backfill for {ticker} starting from {start_date}")
             raw = yf.download(
@@ -133,17 +134,17 @@ def backfill_smart(
                 auto_adjust=True,
                 progress=False,
             )
-            
+
             if raw is None or raw.empty:
                 logger.warning(f"backfill_smart: no data for {ticker}")
                 written[ticker] = 0
                 continue
-                
+
             raw = raw.dropna(how="all")
             if raw.empty:
                 written[ticker] = 0
                 continue
-                
+
             # Normalise MultiIndex columns to flat field names — yfinance returns
             # (field, ticker) for single downloads, (ticker, field) for grouped ones
             if isinstance(raw.columns, pd.MultiIndex):
@@ -170,10 +171,10 @@ def backfill_smart(
                     "volume": vol_col,
                 }
             ).dropna(subset=["close"])
-            
+
             w = save_bars(df, source="yahoo_smart_backfill", db_path=db_path)
             written[ticker] = w
-            
+
         except Exception as e:
             logger.error(f"backfill_smart failed for {ticker}: {e}")
             written[ticker] = 0

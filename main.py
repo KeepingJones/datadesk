@@ -12,18 +12,18 @@ import argparse
 import logging
 import sys
 
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8')
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     handlers=[
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler("error_log.txt", encoding="utf-8")
-    ]
+        logging.FileHandler("error_log.txt", encoding="utf-8"),
+    ],
 )
 logger = logging.getLogger("datadesk")
 
@@ -39,8 +39,10 @@ def cmd_backtest() -> None:
     cov = coverage()
     tickers = cov[cov["rows"] > 800]["ticker"].tolist()
     if not tickers:
-        print("History store is empty — run: python -m datadesk.history.migrate "
-              "or python main.py backfill <tickers>")
+        print(
+            "History store is empty — run: python -m datadesk.history.migrate "
+            "or python main.py backfill <tickers>"
+        )
         return
 
     prices = load_closes(tickers=tickers)
@@ -63,27 +65,16 @@ def cmd_backtest() -> None:
 
 
 def cmd_serve(port: int) -> None:
-    import subprocess
-    import time
-
     import uvicorn
-    
-    # Force kill anything listening on this port (Windows)
-    try:
-        out = subprocess.check_output(f"netstat -aon | findstr :{port} | findstr LISTENING", shell=True).decode()
-        for line in out.strip().split('\n'):
-            if line:
-                pid = line.strip().split()[-1]
-                logger.info(f"Killing old server process (PID: {pid}) on port {port}...")
-                subprocess.run(f"taskkill /F /PID {pid}", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                time.sleep(1)
-    except subprocess.CalledProcessError:
-        pass # No process found
-        
+
     from datadesk.api.app import app
 
     logger.info(f"DataDesk ops console: http://localhost:{port}")
-    uvicorn.run(app, host="127.0.0.1", port=port, log_level="info")
+    try:
+        uvicorn.run(app, host="127.0.0.1", port=port, log_level="info")
+    except OSError:
+        # never taskkill whatever holds the port — it may not be ours
+        logger.error(f"Port {port} is in use. Stop the other process or use --port.")
 
 
 def cmd_collect_trump() -> None:
@@ -95,9 +86,11 @@ def cmd_collect_trump() -> None:
 def cmd_backfill(tickers: list[str], source: str) -> None:
     if source == "massive":
         from datadesk.ingest.massive import backfill_massive
+
         written = backfill_massive(tickers)
     else:
         from datadesk.ingest.backfill import backfill_history
+
         written = backfill_history(tickers)
 
     for t, n in written.items():
@@ -120,7 +113,7 @@ def cmd_holdout() -> None:
     from datadesk.strategies.momentum import momentum
     from datadesk.strategies.regime import compose_scales, vix_scale
     from datadesk.strategies.trend import trend_signal
-    
+
     cov = coverage()
     tickers = cov[cov["rows"] > 800]["ticker"].tolist()
     if not tickers:
@@ -130,15 +123,15 @@ def cmd_holdout() -> None:
     prices = load_closes(tickers=tickers)
     prices = prices.dropna(axis=0, thresh=int(len(prices.columns) * 0.5))
     prices = prices.dropna(axis=1, thresh=int(len(prices) * 0.9)).ffill(limit=5)
-    
+
     print("Generating strategy weights...")
     w_mom = momentum(126, 10, 21)(prices)
     w_mr = mean_reversion()(prices)
     w_insider = insider_congress_follow()(prices)
-    
+
     print("Blending portfolios...")
     w_blend = inverse_volatility_blend([w_mom, w_mr, w_insider], prices)
-    
+
     if "^VIX" in prices.columns and "SPY" in prices.columns:
         print("Applying Global Risk Overlays (Trend & VIX)...")
         t_scale = trend_signal(prices["SPY"], 200, 0.02)
@@ -148,30 +141,29 @@ def cmd_holdout() -> None:
     elif "SPY" in prices.columns:
         t_scale = trend_signal(prices["SPY"], 200, 0.02)
         w_blend = w_blend.mul(t_scale, axis=0)
-    
+
     from datadesk.backtest.costs import ALPACA_COSTS, T212_ISA_COSTS
-    
+
     print("Running backtests...")
-    warmup = prices.index[min(150, len(prices)-1)]
-    
-    # Alpaca Run
-    res_alpaca = run_backtest(w_blend, prices, ALPACA_COSTS, start=str(warmup.date()))
-    
-    # T212 Run
-    res_t212 = run_backtest(w_blend, prices, T212_ISA_COSTS, start=str(warmup.date()))
-    
-    print("=== HOLDOUT REPORT (ALPACA - 0bps FX) ===")
-    print(f"Full period CAGR: {res_alpaca.metrics.get('cagr', 'N/A')}")
-    print(f"Full period Sharpe: {res_alpaca.metrics.get('sharpe', 'N/A')}")
-    print(f"Full period MaxDD: {res_alpaca.metrics.get('max_drawdown', 'N/A')}")
-    
-    print("\n=== HOLDOUT REPORT (T212 - 15bps FX) ===")
-    print(f"Full period CAGR: {res_t212.metrics.get('cagr', 'N/A')}")
-    print(f"Full period Sharpe: {res_t212.metrics.get('sharpe', 'N/A')}")
-    print(f"Full period MaxDD: {res_t212.metrics.get('max_drawdown', 'N/A')}")
-    
-    save_backtest_run("Blended Holdout (Alpaca Paper)", {}, res_alpaca.metrics, res_alpaca.equity)
-    print("Saved to platform store.")
+    warmup = prices.index[min(150, len(prices) - 1)]
+    # An honest holdout is the LAST 252 trading days, reported separately —
+    # the previous version labelled the full period "HOLDOUT", which it isn't
+    holdout_start = prices.index[max(len(prices) - 252, 151)]
+
+    for label, costs in [("ALPACA - 0bps FX", ALPACA_COSTS), ("T212 - 15bps FX", T212_ISA_COSTS)]:
+        full = run_backtest(w_blend, prices, costs, start=str(warmup.date()))
+        holdout = run_backtest(w_blend, prices, costs, start=str(holdout_start.date()))
+        print(f"\n=== {label} ===")
+        print(f"Full period ({warmup.date()} ->): {full.metrics}")
+        print(f"HOLDOUT (last 252d, {holdout_start.date()} ->): {holdout.metrics}")
+        if label.startswith("ALPACA"):
+            save_backtest_run("Blended (full period, Alpaca)", {}, full.metrics, full.equity)
+            save_backtest_run(
+                "Blended HOLDOUT last 252d (Alpaca)", {}, holdout.metrics, holdout.equity
+            )
+    print("\nSaved to platform store.")
+    print("NOTE: universe is survivorship-biased until the paid backfill lands — treat")
+    print("these numbers as plumbing verification, not evidence (docs/backtesting.md).")
 
 
 if __name__ == "__main__":
@@ -182,7 +174,9 @@ if __name__ == "__main__":
     p_serve.add_argument("--port", type=int, default=8000)
     sub.add_parser("collect-trump")
     p_bf = sub.add_parser("backfill")
-    p_bf.add_argument("--source", choices=["yahoo", "massive"], default="yahoo", help="Data source to use")
+    p_bf.add_argument(
+        "--source", choices=["yahoo", "massive"], default="yahoo", help="Data source to use"
+    )
     p_bf.add_argument("tickers", nargs="+")
     sub.add_parser("coverage")
     sub.add_parser("holdout")

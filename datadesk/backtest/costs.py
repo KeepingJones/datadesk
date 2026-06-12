@@ -23,10 +23,14 @@ class CostModel:
             return self.flat_bps
         tier = self.tier_by_ticker.get(ticker, self.default_tier)
         half_spread = TIER_HALF_SPREAD_BPS.get(tier, TIER_HALF_SPREAD_BPS["L2"])
-        
+
         # If fx_fee_bps is a dict, look up the ticker, else use the float value
-        fx_fee = self.fx_fee_bps.get(ticker, 15.0) if isinstance(self.fx_fee_bps, dict) else self.fx_fee_bps
-        
+        fx_fee = (
+            self.fx_fee_bps.get(ticker, 15.0)
+            if isinstance(self.fx_fee_bps, dict)
+            else self.fx_fee_bps
+        )
+
         return half_spread + self.commission_bps + fx_fee
 
     def cost_rate(self, ticker: str) -> float:

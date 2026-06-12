@@ -1,0 +1,26 @@
+{
+  "NVDA": {
+    "suppliers": ["TSM", "ASML", "MU", "SMCI", "ARM"],
+    "customers": ["MSFT", "META", "GOOGL", "AMZN"]
+  },
+  "AAPL": {
+    "suppliers": ["TSM", "QCOM", "SWKS", "CRUS", "LITE"],
+    "customers": ["BBY"]
+  },
+  "TSLA": {
+    "suppliers": ["PCRFY", "ALB", "SQM"],
+    "customers": []
+  },
+  "MSFT": {
+    "suppliers": ["NVDA", "AMD", "INTC", "CRWD"],
+    "customers": ["ACN"]
+  },
+  "AMZN": {
+    "suppliers": ["RIVN", "PLD"],
+    "customers": []
+  },
+  "AMD": {
+    "suppliers": ["TSM", "ASML"],
+    "customers": ["MSFT", "GOOGL"]
+  }
+}
