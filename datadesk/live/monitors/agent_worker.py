@@ -1,6 +1,6 @@
-import time
 import logging
 import random
+import time
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -32,8 +32,12 @@ class AgentWorker:
     def start(self):
         self.is_running = True
         logger.info("AgentWorker (Phi-3.5) started. Polling fundamental context...")
-        from datadesk.live.universe import get_active_universe
         from datetime import datetime
+
+        from datadesk.live.universe import get_active_universe
+        
+        self.validate_adopted_positions()
+        
         while self.is_running:
             focal_stocks = get_active_universe()
             # Randomly pick a stock to re-evaluate based on simulated SEC/News drops
@@ -45,6 +49,59 @@ class AgentWorker:
     def stop(self):
         self.is_running = False
 
+    def validate_adopted_positions(self):
+        """Asynchronously validates orphaned Alpaca positions against the historical universe and quantitative models."""
+        adopted_tickers = [t for t, p in self.oms.active_positions.items() if p.get("is_adopted")]
+        if not adopted_tickers:
+            return
+            
+        logger.info(f"[AGENT WORKER] Validating {len(adopted_tickers)} adopted positions...")
+        
+        from datadesk.history.store import load_closes
+        from datadesk.live.universe import add_ticker, get_active_universe
+        from datadesk.strategies.momentum import momentum
+        
+        universe = set(get_active_universe())
+        for t in adopted_tickers:
+            if t not in universe:
+                logger.info(f"[AGENT WORKER] Adopted ticker {t} not in universe. Adding and backfilling...")
+                add_ticker(t)
+                
+        # Load historical prices for the newly updated universe
+        try:
+            prices = load_closes(tickers=adopted_tickers)
+            if prices.empty:
+                logger.warning("[AGENT WORKER] Could not load historical prices for adopted positions.")
+                weights = None
+            else:
+                prices = prices.dropna(axis=1, thresh=int(len(prices) * 0.9)).ffill()
+                weights = momentum(lookback=126, top_n=10, skip=21)(prices)
+        except Exception as e:
+            logger.error(f"[AGENT WORKER] Error running quantitative validation: {e}")
+            weights = None
+            
+        for t in adopted_tickers:
+            pos = self.oms.active_positions.get(t)
+            if not pos: continue
+            
+            # 1. Reject all Short positions natively since core strategy is Long-only
+            if pos["side"] == "SELL":
+                logger.warning(f"[AGENT WORKER] Rejecting adopted SHORT position in {t} (Strategy is Long-Only). Liquidating.")
+                self.oms.submit_signal(t, "SELL", pos["alloc"])
+                continue
+                
+            # 2. Reject Longs with negative/flat quantitative momentum
+            if weights is not None and t in weights.columns:
+                current_weight = weights[t].iloc[-1]
+                if current_weight <= 0:
+                    logger.warning(f"[AGENT WORKER] Rejecting adopted LONG position in {t} (Failed Momentum check). Liquidating.")
+                    self.oms.submit_signal(t, "SELL", pos["alloc"])
+                    continue
+                    
+            # Passed! Assign a baseline fair value so it stays in the portfolio.
+            logger.info(f"[AGENT WORKER] Adopted position {t} passed quantitative validation!")
+            pos["is_adopted"] = False
+            pos["fundamental_fair_value"] = pos["current_price"] * 1.10
     def process_live_filings(self):
         """Simulates the AI parsing an incoming 10-Q or news report."""
         if not self.oms.active_positions:

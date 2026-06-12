@@ -6,11 +6,15 @@ while strictly enforcing portfolio-level risk limits (Max Position %, Max Daily 
 
 import logging
 import uuid
-import time
+from datetime import datetime
 from typing import Literal
 
 logger = logging.getLogger(__name__)
 
+# Global store for historic trades (closed positions)
+HISTORIC_TRADES = []
+
+CLOSED_POSITIONS = {}
 class TickerMapper:
     """
     Standardizes ticker mapping across platforms.
@@ -52,12 +56,21 @@ class OMSFastPath:
         self.current_nav = 100_000.0
         self.realized_pnl = 0.0
         
-        # Alpaca Client
+        # Alpaca Client — requires EXPLICIT arming (DATADESK_ARM_BROKER=1) on top of
+        # keys being present. Default is shadow mode: signals are logged, no broker
+        # calls. This is the DESIGN §6.2 shadow-first rule; monitors are experimental
+        # and must not place real (even paper) orders until Ewan arms them.
         import os
         api_key = os.getenv("ALPACA_API_KEY")
         secret_key = os.getenv("ALPACA_SECRET_KEY")
+        armed = os.getenv("DATADESK_ARM_BROKER", "0") == "1"
         self.alpaca = None
-        if api_key and secret_key:
+        if api_key and secret_key and not armed:
+            logger.warning(
+                "OMS in SHADOW MODE: Alpaca keys found but DATADESK_ARM_BROKER != 1. "
+                "Signals will be logged, not executed."
+            )
+        if api_key and secret_key and armed:
             from alpaca.trading.client import TradingClient
             self.alpaca = TradingClient(api_key, secret_key, paper=True)
             logger.info("Alpaca Paper Trading Client Initialized successfully.")
@@ -96,7 +109,8 @@ class OMSFastPath:
                     "stop_price": stop_price,
                     "fundamental_fair_value": None,
                     "broker": "Alpaca",
-                    "exec_ticker": ticker
+                    "exec_ticker": ticker,
+                    "is_adopted": True
                 }
             if positions:
                 logger.info(f"OMS adopted {len(positions)} pre-existing Alpaca positions into internal memory.")
@@ -128,14 +142,22 @@ class OMSFastPath:
         # 5. Execute Trade (Alpaca Paper or Mock)
         if self.paper_trading:
             if broker == "Alpaca" and self.alpaca:
-                from alpaca.trading.requests import MarketOrderRequest
                 from alpaca.trading.enums import OrderSide, TimeInForce
+                from alpaca.trading.requests import MarketOrderRequest
                 
                 # Are we liquidating an existing position?
                 if side == "SELL" and ticker in self.active_positions:
                     try:
+                        # Cancel any pending take-profit/stop-loss orders for this symbol first!
+                        from alpaca.trading.enums import QueryOrderStatus
+                        from alpaca.trading.requests import GetOrdersRequest
+                        req = GetOrdersRequest(status=QueryOrderStatus.OPEN, symbols=[execution_ticker])
+                        open_orders = self.alpaca.get_orders(filter=req)
+                        for o in open_orders:
+                            self.alpaca.cancel_order_by_id(o.id)
+                            
                         self.alpaca.close_position(symbol_or_asset_id=execution_ticker)
-                        logger.info(f"[Alpaca LIVE PAPER] EXECUTED [LIQUIDATE]: Closed position for {execution_ticker}")
+                        logger.info(f"[Alpaca LIVE PAPER] EXECUTED [LIQUIDATE]: Closed position and cancelled orders for {execution_ticker}")
                     except Exception as e:
                         logger.error(f"[Alpaca LIVE PAPER] Liquidate Failed: {e}")
                         return False
@@ -180,8 +202,23 @@ class OMSFastPath:
                     "broker": broker,
                     "exec_ticker": execution_ticker
                 }
+                # Record that this position is now active (override any prior closed entry)
+                CLOSED_POSITIONS.pop(ticker, None)
             elif side == "SELL" and ticker in self.active_positions:
+                # Capture trade details before removal
+                pos = self.active_positions[ticker]
+                cp = pos.get("current_price", 0.0)
+                pnl = (cp - pos.get("entry_price", 0.0)) * pos.get("alloc", 0.0)
+                HISTORIC_TRADES.append({
+                    "ticker": ticker,
+                    "side": "SELL",
+                    "close_price": cp,
+                    "pnl": pnl,
+                    "timestamp": datetime.now().isoformat(),
+                })
                 del self.active_positions[ticker]
+                # Record closure reason for UI status
+                CLOSED_POSITIONS[ticker] = "CLOSE (Stop Loss)"
                 logger.info(f"Position {ticker} liquidated via {broker}.")
                 
         return True
@@ -204,20 +241,29 @@ class OMSFastPath:
         if ticker in self.active_positions:
             pos = self.active_positions[ticker]
             pos["current_price"] = current_price
+            side = pos["side"]
             
             # Fundamental Take-Profit Check
             fair_value = pos.get("fundamental_fair_value")
-            if fair_value and current_price >= fair_value:
-                logger.info(f"[FUNDAMENTAL TAKE-PROFIT] {ticker} hit AI fair value target of {fair_value}! Liquidating.")
-                self.submit_signal(ticker, "SELL", pos["alloc"])
-                return
+            if fair_value:
+                if (side == "BUY" and current_price >= fair_value) or \
+                   (side == "SELL" and current_price <= fair_value):
+                    logger.info(f"[FUNDAMENTAL TAKE-PROFIT] {ticker} hit AI fair value target of {fair_value}! Liquidating.")
+                    self.submit_signal(ticker, "SELL", pos["alloc"])
+                    return
             
-            # Update trailing stop if price goes up
-            new_stop = current_price * (1 - pos["trailing_stop_pct"])
-            if new_stop > pos["stop_price"]:
-                pos["stop_price"] = new_stop
-                
-            # Trigger Trailing Stop Loss
-            if current_price <= pos["stop_price"]:
-                logger.warning(f"[TRAILING STOP] Triggered for {ticker} at {current_price}")
-                self.submit_signal(ticker, "SELL", pos["alloc"])
+            # Update trailing stop
+            if side == "BUY":
+                new_stop = current_price * (1 - pos["trailing_stop_pct"])
+                if new_stop > pos["stop_price"]:
+                    pos["stop_price"] = new_stop
+                if current_price <= pos["stop_price"]:
+                    logger.warning(f"[TRAILING STOP] Triggered for {ticker} at {current_price}")
+                    self.submit_signal(ticker, "SELL", pos["alloc"])
+            else: # SELL (Short)
+                new_stop = current_price * (1 + pos["trailing_stop_pct"])
+                if new_stop < pos["stop_price"]:
+                    pos["stop_price"] = new_stop
+                if current_price >= pos["stop_price"]:
+                    logger.warning(f"[TRAILING STOP] Triggered for {ticker} at {current_price}")
+                    self.submit_signal(ticker, "SELL", pos["alloc"])

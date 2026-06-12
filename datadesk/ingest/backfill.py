@@ -144,22 +144,20 @@ def backfill_smart(
                 written[ticker] = 0
                 continue
                 
-            rows = raw.reset_index()
-            # Handle multi-index columns if yf returns them for single ticker
+            # Normalise MultiIndex columns to flat field names — yfinance returns
+            # (field, ticker) for single downloads, (ticker, field) for grouped ones
             if isinstance(raw.columns, pd.MultiIndex):
-                close_col = rows[("Close", ticker)] if ("Close", ticker) in rows else rows["Close"]
-                open_col = rows[("Open", ticker)] if ("Open", ticker) in rows else rows.get("Open")
-                high_col = rows[("High", ticker)] if ("High", ticker) in rows else rows.get("High")
-                low_col = rows[("Low", ticker)] if ("Low", ticker) in rows else rows.get("Low")
-                vol_col = rows[("Volume", ticker)] if ("Volume", ticker) in rows else rows.get("Volume")
-                date_col = rows.iloc[:, 0]
-            else:
-                close_col = rows["Close"]
-                open_col = rows.get("Open")
-                high_col = rows.get("High")
-                low_col = rows.get("Low")
-                vol_col = rows.get("Volume")
-                date_col = rows.iloc[:, 0]
+                if "Close" in raw.columns.get_level_values(0):
+                    raw.columns = raw.columns.get_level_values(0)
+                else:
+                    raw = raw[ticker]
+            rows = raw.reset_index()
+            close_col = rows["Close"]
+            open_col = rows.get("Open")
+            high_col = rows.get("High")
+            low_col = rows.get("Low")
+            vol_col = rows.get("Volume")
+            date_col = rows.iloc[:, 0]
 
             df = pd.DataFrame(
                 {

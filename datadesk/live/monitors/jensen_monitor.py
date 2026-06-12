@@ -1,6 +1,6 @@
-import time
 import logging
 import random
+import time
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

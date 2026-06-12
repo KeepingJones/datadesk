@@ -1,10 +1,12 @@
 import logging
-import time
-import requests
-import pandas as pd
-from pathlib import Path
-from datadesk.history.store import save_bars
 import os
+import time
+from pathlib import Path
+
+import pandas as pd
+import requests
+
+from datadesk.history.store import save_bars
 
 logger = logging.getLogger(__name__)
 

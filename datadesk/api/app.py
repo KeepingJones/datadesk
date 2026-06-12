@@ -2,11 +2,28 @@
 
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+import pandas as pd
+from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from datadesk.config import PAPER_TRADE_MODE
+from datadesk.live.oms import CLOSED_POSITIONS, HISTORIC_TRADES
+from datadesk.live.universe import get_active_universe
+from datadesk.monte_carlo import simulation as mc_sim
+
+# Global Monte Carlo config and status
+MONTE_CARLO_CONFIG = {
+    "default_runs": 1000,
+    "models": ["bootstrap", "gbm"]
+}
+MONTE_CARLO_STATUS = {
+    "running": False,
+    "progress": 0,
+    "total": 0,
+    "result_path": None,
+    "message": "Idle"
+}
 from datadesk.db import load_backtest_runs
 from datadesk.history.store import coverage
 
@@ -27,9 +44,12 @@ def _trump_stats() -> dict:
 
 def _insider_stats() -> dict:
     try:
+        import os
         import sqlite3
+
         import pandas as pd
-        conn = sqlite3.connect(r"C:\Users\ewanj\trading-bot\alt_data.db")
+        alt_db = os.getenv("ALT_DATA_DB", r"C:\Users\ewanj\trading-bot\alt_data.db")
+        conn = sqlite3.connect(f"file:{alt_db}?mode=ro", uri=True)
         insiders = pd.read_sql("SELECT COUNT(*) as c, MAX(filing_date) as m FROM insiders", conn)
         congress = pd.read_sql("SELECT COUNT(*) as c, MAX(disclosure_date) as m FROM congress_trading", conn)
         conn.close()
@@ -76,44 +96,58 @@ def api_runs() -> list[dict]:
     return load_backtest_runs()
 
 
-import random
-import time
-from datetime import datetime, timedelta
-
 @app.get("/api/ai_feed")
 def api_ai_feed() -> list[dict]:
-    """Simulates the background Ollama Phi-3.5 agent digesting data and generating fundamental valuations."""
-    now = datetime.now()
-    feed = [
-        {"timestamp": (now - timedelta(seconds=12)).strftime("%H:%M:%S"), "ticker": "TSM", "message": "Situational Awareness framework activated. Computing fabrication bottlenecks. Raising Fair Value target to 1.15x."},
-        {"timestamp": (now - timedelta(seconds=45)).strftime("%H:%M:%S"), "ticker": "NVDA", "message": "Analyzing SEC 10-Q filing. Margins stable. Fundamental Fair Value target maintained."},
-        {"timestamp": (now - timedelta(seconds=82)).strftime("%H:%M:%S"), "ticker": "VST", "message": "Energy constraint override triggered. DCF re-rating applied. Fair Value target raised to 1.40x."},
-        {"timestamp": (now - timedelta(minutes=2)).strftime("%H:%M:%S"), "ticker": "AAPL", "message": "Processing Trump Truth Social post sentiment. Sentiment: NEGATIVE. Fast-Path signaled."},
-        {"timestamp": (now - timedelta(minutes=5)).strftime("%H:%M:%S"), "ticker": "CEG", "message": "Nuclear energy cap-ex identified. Updating fundamental target."},
-    ]
-    # Randomly shuffle or pick to simulate live feed updates
-    return feed
+    """AI worker activity feed. Returns [] until the real LLM worker emits events —
+    no fabricated entries (docs-honesty rule)."""
+    return []
 
-@app.get("/api/live_trades")
-def api_live_trades() -> list[dict]:
-    """Simulates live trades executing on the OMS Fast-Path."""
-    now = datetime.now()
-    trades = [
-        {"timestamp": (now - timedelta(seconds=2)).strftime("%H:%M:%S"), "broker": "Alpaca", "side": "BUY", "ticker": "SMCI", "alloc": "10.0%", "reason": "Jensen Huang Keynote (Partner Shoutout)"},
-        {"timestamp": (now - timedelta(seconds=14)).strftime("%H:%M:%S"), "broker": "T212", "side": "BUY", "ticker": "TSM", "alloc": "5.0%", "reason": "Supply-Chain Anomaly (NVDA lead)"},
-        {"timestamp": (now - timedelta(seconds=85)).strftime("%H:%M:%S"), "broker": "Alpaca", "side": "SELL", "ticker": "AAPL", "alloc": "8.0%", "reason": "Trailing Stop-Loss Triggered"},
-        {"timestamp": (now - timedelta(minutes=2)).strftime("%H:%M:%S"), "broker": "Alpaca", "side": "BUY", "ticker": "AAPL", "alloc": "8.0%", "reason": "Trump Sentiment (Negative - Short)"},
-    ]
-    return trades
+@app.get("/api/top_grid")
+def api_top_grid(limit: int = 10) -> list[dict]:
+    """Return top backtest runs sorted by a chosen metric (e.g., CAGR)."""
+    runs = load_backtest_runs(limit=limit)
+    # Ensure runs are sorted by CAGR descending (already sorted in index)
+    runs.sort(key=lambda r: r["metrics"].get("cagr", 0), reverse=True)
+    return runs
+
+@app.post("/api/sweep/reload")
+def api_sweep_reload() -> dict:
+    """Trigger a fresh sweep run (same as /api/sweep/run) and return status."""
+    try:
+        return api_sweep_run()
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.get("/api/daily_pnl")
+def api_daily_pnl() -> dict:
+    """Aggregate historic trade PnL by day.
+    Returns a dict with dates as keys and total pnl for that day.
+    """
+    if not HISTORIC_TRADES:
+        return {}
+    df = pd.DataFrame(HISTORIC_TRADES)
+    # Ensure timestamp is datetime
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    df['date'] = df['timestamp'].dt.date
+    daily = df.groupby('date')['pnl'].sum().reset_index()
+    # Convert to simple dict mapping date string to pnl
+    return {str(row['date']): round(row['pnl'], 4) for _, row in daily.iterrows()}
+
+@app.get("/api/historic_trades")
+def api_historic_trades() -> list[dict]:
+    """Return list of historic trades with PnL and timestamps."""
+    return HISTORIC_TRADES
 
 # --- DAEMON COMMAND & CONTROL (REAL THREADING) ---
 import threading
+
 from datadesk.live.monitors.agent_worker import AgentWorker
-from datadesk.live.monitors.trump_monitor import TrumpMonitor
-from datadesk.live.monitors.supply_chain import SupplyChainMonitor
 from datadesk.live.monitors.jensen_monitor import JensenMonitor
 from datadesk.live.monitors.news_monitor import NewsMonitor
+from datadesk.live.monitors.supply_chain import SupplyChainMonitor
+from datadesk.live.monitors.trump_monitor import TrumpMonitor
 from datadesk.live.oms import OMSFastPath
+
 
 class DaemonManager:
     def __init__(self):
@@ -154,9 +188,8 @@ class DaemonManager:
 
 daemon_mgr = DaemonManager()
 
-# Auto-start all daemons on boot
-for d_name in daemon_mgr.daemons.keys():
-    daemon_mgr.start(d_name)
+# Daemons NEVER auto-start (DESIGN §6.2: shadow-first, explicit arming only).
+# Start them deliberately via POST /api/daemons/{name}/start or the dashboard.
 
 @app.get("/api/daemons/status")
 def get_daemons_status():
@@ -224,22 +257,48 @@ def api_alpaca_positions():
         
         result = []
         for p in positions:
+            sym = p.symbol
+            side = str(p.side).split(".")[-1]
+            status_text = "HOLD"
+            pos_state = daemon_mgr.oms.active_positions.get(sym)
+            if pos_state:
+                cp = float(p.current_price) if p.current_price else 0.0
+                fv = pos_state.get("fundamental_fair_value")
+                sp = pos_state.get("stop_price")
+                if fv is None:
+                    status_text = "EVALUATING..."
+                else:
+                    if side == "BUY":
+                        if cp <= sp:
+                            status_text = "CLOSE (Stop Loss)"
+                        elif cp >= fv:
+                            status_text = "CLOSE (Take Profit)"
+                        elif fv > cp * 1.15:
+                            status_text = "BUY MORE"
+                    elif side == "SELL":
+                        if cp >= sp:
+                            status_text = "CLOSE (Stop Loss)"
+                        elif cp <= fv:
+                            status_text = "CLOSE (Take Profit)"
+            else:
+                # Use recorded closed status if available, otherwise pending
+                status_text = CLOSED_POSITIONS.get(sym, "PENDING")
+            
             result.append({
-                "symbol": p.symbol,
-                "qty": p.qty,
-                "market_value": p.market_value,
-                "unrealized_pl": p.unrealized_pl,
-                "unrealized_plpc": p.unrealized_plpc,
+                "symbol": sym, "qty": p.qty, "market_value": p.market_value,
+                "unrealized_pl": p.unrealized_pl, "unrealized_plpc": p.unrealized_plpc,
+                "side": side, "ai_status": status_text
             })
         return {"status": "ok", "positions": result}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
 
-
 from pydantic import BaseModel
-from datadesk.live.universe import get_active_universe, add_ticker
+
 from datadesk.ingest.validation import validate_universe
+from datadesk.live.universe import add_ticker
+
 
 class TickerRequest(BaseModel):
     ticker: str
@@ -264,14 +323,40 @@ def api_validation():
 
 @app.post("/api/sweep/run")
 def api_sweep_run():
-    import subprocess
     import os
+    import subprocess
     # Launch sweep.py in the background
     subprocess.Popen(
         [".venv\\Scripts\\python", "sweep.py"], 
         cwd=os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     )
     return {"status": "started"}
+
+
+@app.post("/api/monte_carlo/run")
+def api_monte_carlo_run(runs: int = 1000, model: str = "bootstrap", background_tasks: BackgroundTasks = None):
+    """Start Monte Carlo simulation in background."""
+    if model not in MONTE_CARLO_CONFIG["models"]:
+        return {"status": "error", "message": f"Model {model} not supported"}
+    MONTE_CARLO_STATUS.update({"running": True, "progress": 0, "total": runs,
+                               "result_path": None, "message": "Running"})
+    def run_sim():
+        try:
+            result_path = mc_sim.run_simulation(runs, model, status_callback=lambda p: MONTE_CARLO_STATUS.update({"progress": p}))
+            MONTE_CARLO_STATUS.update({"running": False, "progress": runs, "result_path": result_path, "message": "Completed"})
+        except Exception as e:
+            MONTE_CARLO_STATUS.update({"running": False, "message": f"Error: {e}"})
+    if background_tasks:
+        background_tasks.add_task(run_sim)
+    else:
+        run_sim()
+    return {"status": "started", "runs": runs, "model": model}
+
+
+@app.get("/api/monte_carlo/status")
+def api_monte_carlo_status():
+    """Return Monte Carlo simulation status."""
+    return MONTE_CARLO_STATUS
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):

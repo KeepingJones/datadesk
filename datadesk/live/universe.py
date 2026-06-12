@@ -1,8 +1,9 @@
-import sqlite3
-from pathlib import Path
-from datadesk.db import PLATFORM_DB
-import yfinance as yf
 import logging
+import sqlite3
+
+import yfinance as yf
+
+from datadesk.db import PLATFORM_DB
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ def _connect() -> sqlite3.Connection:
     # Pre-populate defaults if empty
     count = con.execute("SELECT COUNT(*) FROM monitored_universe").fetchone()[0]
     if count == 0:
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
         now = datetime.now(UTC).isoformat()
         defaults = [
             ("NVDA", "equity", "USD", now),
@@ -52,7 +53,7 @@ def add_ticker(ticker: str) -> dict:
     currency = info.get('currency', 'USD')
     quote_type = info.get('quoteType', 'EQUITY').lower()
     
-    from datetime import datetime, UTC
+    from datetime import UTC, datetime
     now = datetime.now(UTC).isoformat()
     
     try:

@@ -6,10 +6,11 @@ and Congressional STOCK Act purchases.
 Uses `observed_at` (disclosure/filing date) to ensure point-in-time honesty.
 """
 
-from collections.abc import Callable
 import sqlite3
+from collections.abc import Callable
+
 import pandas as pd
-import numpy as np
+
 
 def insider_congress_follow(
     insider_cluster_days: int = 14,
@@ -23,7 +24,10 @@ def insider_congress_follow(
         weights = pd.DataFrame(0.0, index=prices.index, columns=prices.columns)
         
         try:
-            conn = sqlite3.connect(r"C:\Users\ewanj\trading-bot\alt_data.db")
+            import os
+
+            alt_db = os.getenv("ALT_DATA_DB", r"C:\Users\ewanj\trading-bot\alt_data.db")
+            conn = sqlite3.connect(f"file:{alt_db}?mode=ro", uri=True)
             
             # Insiders (P = open market purchase)
             insiders = pd.read_sql(
@@ -36,7 +40,7 @@ def insider_congress_follow(
                 conn
             )
             conn.close()
-        except Exception as e:
+        except Exception:
             # If db is missing, return empty weights
             return weights
 

@@ -5,8 +5,9 @@ Inverse-volatility weighting across selector strategies, rebalanced monthly.
 Floors/caps applied to ensure diversification.
 """
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+
 
 def inverse_volatility_blend(
     strategy_weights: list[pd.DataFrame],
@@ -57,8 +58,8 @@ def inverse_volatility_blend(
     monthly_mask.iloc[month_ends] = True
     
     sleeve_weights = norm_weights[monthly_mask].reindex(norm_weights.index).ffill()
-    # Backfill the initial warmup period
-    sleeve_weights = sleeve_weights.bfill()
+    # Warmup period: equal weight — bfill would leak future vol info (lookahead)
+    sleeve_weights = sleeve_weights.fillna(1.0 / len(strategy_weights))
 
     # 4. Blend the underlying asset weights
     blended = pd.DataFrame(0.0, index=prices.index, columns=prices.columns)

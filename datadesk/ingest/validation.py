@@ -1,6 +1,8 @@
-import pandas as pd
-from datadesk.history.store import load_closes, coverage
 import logging
+
+import pandas as pd
+
+from datadesk.history.store import load_closes
 
 logger = logging.getLogger(__name__)
 

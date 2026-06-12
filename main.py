@@ -11,7 +11,6 @@ DataDesk entry point.
 import argparse
 import logging
 import sys
-from typing import Literal
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
@@ -64,9 +63,10 @@ def cmd_backtest() -> None:
 
 
 def cmd_serve(port: int) -> None:
-    import uvicorn
     import subprocess
     import time
+
+    import uvicorn
     
     # Force kill anything listening on this port (Windows)
     try:
@@ -111,16 +111,15 @@ def cmd_coverage() -> None:
 
 
 def cmd_holdout() -> None:
-    from datadesk.backtest.costs import CostModel
     from datadesk.backtest.engine import run_backtest
     from datadesk.db import save_backtest_run
     from datadesk.history.store import coverage, load_closes
-    from datadesk.strategies.momentum import momentum
-    from datadesk.strategies.trend import trend_signal
-    from datadesk.strategies.meanrev import mean_reversion
-    from datadesk.strategies.insider import insider_congress_follow
     from datadesk.strategies.blend import inverse_volatility_blend
-    from datadesk.strategies.regime import vix_scale, compose_scales
+    from datadesk.strategies.insider import insider_congress_follow
+    from datadesk.strategies.meanrev import mean_reversion
+    from datadesk.strategies.momentum import momentum
+    from datadesk.strategies.regime import compose_scales, vix_scale
+    from datadesk.strategies.trend import trend_signal
     
     cov = coverage()
     tickers = cov[cov["rows"] > 800]["ticker"].tolist()

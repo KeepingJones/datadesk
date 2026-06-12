@@ -1,6 +1,6 @@
-import time
 import logging
 import random
+import time
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -20,8 +20,9 @@ class SupplyChainMonitor:
     def start(self):
         self.is_running = True
         logger.info("SupplyChainMonitor started. Polling focal stocks for lead-lag anomalies...")
-        from datadesk.live.universe import get_active_universe
         from datetime import datetime
+
+        from datadesk.live.universe import get_active_universe
         while self.is_running:
             focal_stocks = get_active_universe()
             # Pick a random lead stock and simulate a surge

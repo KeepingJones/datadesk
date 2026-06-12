@@ -1,12 +1,13 @@
 import logging
+
 from datadesk.backtest.costs import ALPACA_COSTS
 from datadesk.backtest.engine import run_backtest
 from datadesk.db import save_backtest_run
 from datadesk.history.store import load_closes
-from datadesk.strategies.momentum import momentum
-from datadesk.strategies.meanrev import mean_reversion
-from datadesk.strategies.insider import insider_congress_follow
 from datadesk.strategies.blend import inverse_volatility_blend
+from datadesk.strategies.insider import insider_congress_follow
+from datadesk.strategies.meanrev import mean_reversion
+from datadesk.strategies.momentum import momentum
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("sweep")

@@ -136,10 +136,11 @@
                               <th>Qty</th>
                               <th>Market Value</th>
                               <th>Unrealized P&L</th>
+                              <th>AI Status</th>
                           </tr>
                       </thead>
                       <tbody id="alpaca-positions-tbody">
-                          <tr><td colspan="4" style="padding: 5px 0; color: var(--dim);">Loading positions...</td></tr>
+                          <tr><td colspan="5" style="padding: 5px 0; color: var(--dim);">Loading positions...</td></tr>
                       </tbody>
                   </table>
               </div>
@@ -199,6 +200,16 @@
                 <button class="primary" onclick="runBacktestSweep()" id="btn-run-sweep">Re-run Sweep</button>
             </div>
         </div>
+        <!-- Monte Carlo Controls -->
+        <div style="margin-top:10px; display:flex; align-items:center; gap:8px;">
+            <input type="number" id="mcRuns" placeholder="Runs" min="1" value="1000" style="width:100px;" />
+            <select id="mcModel" style="height:30px;">
+                <option value="bootstrap">Bootstrap</option>
+                <option value="gbm">GBM</option>
+            </select>
+            <button class="primary" onclick="runMonteCarlo()" id="btn-run-mc">Run Monte Carlo</button>
+            <span id="mcStatus" style="margin-left:10px; color: var(--dim);"></span>
+        </div>
         {% if runs %}
         <div class="kpis">
           {% set m = runs[0].metrics %}
@@ -242,7 +253,35 @@
           {% endfor %}
         </table>
       </div>
-
+        <div class="panel wide">
+            <h2>Historic Trades</h2>
+            <div class="table-container" style="max-height: 300px; overflow-y: auto;">
+                <table id="historicTradesTable">
+                    <thead>
+                        <tr>
+                            <th>Time</th><th>Symbol</th><th>Side</th><th>Qty</th><th>Price</th><th>P&amp;L</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="6" style="padding:5px 0;color:var(--dim);">Loading historic trades...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="panel wide">
+            <h2>Daily P&amp;L Summary</h2>
+            <div class="table-container" style="max-height: 200px; overflow-y: auto;">
+                <table id="dailyPnlTable">
+                    <thead>
+                        <tr><th>Date</th><th>P&amp;L</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="2" style="padding:5px 0;color:var(--dim);">Loading daily P&amp;L...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
       <div class="panel">
           <h2>Data Completeness Validation</h2>
           <button class="primary" onclick="runValidation()" style="margin-bottom: 12px;">Run Checks</button>
@@ -435,6 +474,8 @@
                   const pnlSign = parseFloat(p.unrealized_pl) >= 0 ? '+' : '';
                   const pct = (parseFloat(p.unrealized_plpc) * 100).toFixed(2);
                   const plStr = `${pnlSign}$${parseFloat(p.unrealized_pl).toFixed(2)} (${pnlSign}${pct}%)`;
+                  const ai_status = p.ai_status || "PENDING SERVER RESTART";
+                  const aiStatusColor = ai_status.includes('CLOSE') ? '#da3633' : (ai_status.includes('BUY') ? '#2ea043' : (ai_status.includes('HOLD') ? '#58a6ff' : '#d29922'));
                   
                   const tr = document.createElement('tr');
                   tr.style.borderBottom = '1px solid #21262d';
@@ -443,18 +484,59 @@
                       <td>${p.qty}</td>
                       <td>$${parseFloat(p.market_value).toFixed(2)}</td>
                       <td style="color: ${pnlColor};">${plStr}</td>
+                      <td style="color: ${aiStatusColor}; font-weight: bold;">${p.ai_status}</td>
                   `;
                   tbody.appendChild(tr);
               });
           } else if (posData.status === 'ok') {
-              tbody.innerHTML = '<tr><td colspan="4" style="padding: 5px 0; color: var(--dim);">No active positions.</td></tr>';
+              tbody.innerHTML = '<tr><td colspan="5" style="padding: 5px 0; color: var(--dim);">No active positions.</td></tr>';
           } else {
-              tbody.innerHTML = '<tr><td colspan="4" style="padding: 5px 0; color: var(--dim);">Cannot load positions. Check API keys.</td></tr>';
+              tbody.innerHTML = '<tr><td colspan="5" style="padding: 5px 0; color: var(--dim);">Cannot load positions. Check API keys.</td></tr>';
           }
       } catch (e) {}
   }
 
-  async function runBacktestSweep() {
+  async function fetchHistoricTrades() {
+    try {
+        const res = await fetch('/api/historic_trades');
+        const data = await res.json();
+        const tbody = document.querySelector('#historicTradesTable tbody');
+        if (Array.isArray(data) && data.length > 0) {
+            tbody.innerHTML = data.map(tr => `
+                <tr>
+                    <td>${new Date(tr.timestamp).toLocaleString()}</td>
+                    <td>${tr.ticker}</td>
+                    <td>${tr.side}</td>
+                    <td>${tr.qty !== undefined ? tr.qty : ''}</td>
+                    <td>${tr.close_price !== undefined ? tr.close_price.toFixed(2) : (tr.price !== undefined ? tr.price.toFixed(2) : '')}</td>
+                    <td class="${tr.pnl >= 0 ? 'pos' : 'neg'}">${tr.pnl !== undefined ? tr.pnl.toFixed(2) : ''}</td>
+                </tr>`).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" style="padding:5px 0;color:var(--dim);">No historic trades.</td></tr>';
+        }
+    } catch (e) {}
+}
+
+
+async function fetchDailyPnl() {
+    try {
+        const res = await fetch('/api/daily_pnl');
+        const data = await res.json();
+        const tbody = document.querySelector('#dailyPnlTable tbody');
+        const entries = Object.entries(data);
+        if (entries.length > 0) {
+            tbody.innerHTML = entries.map(([date, pnl]) => `
+                <tr>
+                    <td>${date}</td>
+                    <td class="${pnl >= 0 ? 'pos' : 'neg'}">${pnl.toFixed(2)}</td>
+                </tr>`).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="2" style="padding:5px 0;color:var(--dim);">No P&L data.</td></tr>';
+        }
+    } catch (e) {}
+}
+
+async function runBacktestSweep() {
       const btn = document.getElementById('btn-run-sweep');
       btn.innerText = "Running... (Check terminal)";
       btn.disabled = true;
@@ -463,18 +545,64 @@
       } catch (err) {}
   }
 
-  setInterval(() => {
-      fetchDaemonStatus();
-      fetchAIFeed();
-      fetchLiveTrades();
-      fetchAlpacaStatus();
-  }, 2000);
-  
-  fetchAIFeed();
-  fetchLiveTrades();
-  fetchDaemonStatus();
-  fetchAlpacaStatus();
-  fetchUniverse();
+   async function runMonteCarlo() {
+       const runs = document.getElementById('mcRuns').value;
+       const model = document.getElementById('mcModel').value;
+       const statusSpan = document.getElementById('mcStatus');
+       statusSpan.textContent = "Starting...";
+       try {
+           const res = await fetch('/api/monte_carlo/run', {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({ runs: Number(runs), model })
+           });
+           const data = await res.json();
+           if (data.status === 'started') {
+               statusSpan.textContent = `Running ${data.runs} runs (${data.model})`;
+               // start polling status
+               const poll = async () => {
+                   const statRes = await fetch('/api/monte_carlo/status');
+                   const stat = await statRes.json();
+                   if (stat.running) {
+                       statusSpan.textContent = `Progress: ${stat.progress}/${stat.total}`;
+                       setTimeout(poll, 1000);
+                   } else {
+                       statusSpan.textContent = stat.message || 'Completed';
+                   }
+               };
+               poll();
+           } else {
+               statusSpan.textContent = data.message || 'Error';
+           }
+       } catch (e) {
+           statusSpan.textContent = 'Error';
+       }
+   }
+
+    // Fast-changing data: daemon status, AI feed, live trades (every 2 seconds)
+    setInterval(() => {
+        fetchDaemonStatus();
+        fetchAIFeed();
+        fetchLiveTrades();
+    }, 2000);
+
+    // Less frequent data: Alpaca account/positions and historic trades (every 60 seconds)
+    setInterval(() => {
+        fetchAlpacaStatus();
+        fetchHistoricTrades();
+    }, 60000);
+
+    // Daily P&L summary (every 60 seconds)
+    setInterval(() => {
+        fetchDailyPnl();
+    }, 60000);
+    fetchAIFeed();
+   fetchLiveTrades();
+   fetchDaemonStatus();
+   fetchAlpacaStatus();
+   fetchUniverse();
+   fetchHistoricTrades();
+   fetchDailyPnl();
 </script>
 </body>
 </html>
