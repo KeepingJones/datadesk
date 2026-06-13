@@ -125,6 +125,32 @@
       </div>
 
       <div class="panel wide">
+          <h2>Portfolio Phase Intelligence</h2>
+          <div style="display:flex; gap:12px; align-items:flex-end; margin-bottom:14px; flex-wrap:wrap;">
+              <div>
+                  <div style="font-size:11px;color:var(--dim);margin-bottom:4px;">Current NAV (£)</div>
+                  <input type="number" id="phaseNavInput" value="500" min="0" step="100" style="width:120px;" />
+              </div>
+              <div>
+                  <div style="font-size:11px;color:var(--dim);margin-bottom:4px;">Monthly contrib (£)</div>
+                  <input type="number" id="phaseMonthlyInput" value="500" min="0" step="100" style="width:100px;" />
+              </div>
+              <div>
+                  <div style="font-size:11px;color:var(--dim);margin-bottom:4px;">Assumed CAGR</div>
+                  <select id="phaseCagrInput" style="height:30px;">
+                      <option value="0.15">15%</option>
+                      <option value="0.20" selected>20%</option>
+                      <option value="0.25">25%</option>
+                      <option value="0.30">30%</option>
+                  </select>
+              </div>
+              <button class="primary" onclick="loadPhase()">Calculate</button>
+          </div>
+          <div id="phase-current" style="margin-bottom:12px;"></div>
+          <div id="phase-projection" style="font-family:Consolas,monospace;font-size:12px;color:var(--dim);max-height:200px;overflow-y:auto;"></div>
+      </div>
+
+      <div class="panel wide">
           <h2>Live Trading Status (Alpaca Paper)</h2>
           <div id="alpaca-status-panel" style="background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 15px;">
               <div style="display: flex; gap: 40px;">
@@ -635,6 +661,49 @@ function showTab(tabId) {
           if (note) note.textContent = `${data.length} tickers — click column headers to sort`;
       } catch(e) {
           if (note) note.textContent = `Error: ${e}`;
+      }
+  }
+
+  // ── Portfolio Phase Intelligence ───────────────────────────────────────────
+  async function loadPhase() {
+      const nav     = parseFloat(document.getElementById('phaseNavInput').value) || 0;
+      const monthly = parseFloat(document.getElementById('phaseMonthlyInput').value) || 500;
+      const cagr    = parseFloat(document.getElementById('phaseCagrInput').value) || 0.20;
+      try {
+          const res = await fetch(`/api/phase?nav=${nav}&monthly=${monthly}&cagr=${cagr}&years=15`);
+          const d = await res.json();
+          const p = d.phase;
+          const phaseColors = { 1: '#58a6ff', 2: '#d29922', 3: '#3fb950', 4: '#f78166' };
+          const phaseNum = parseInt(p.label.match(/\d/)?.[0] || '1');
+          const col = phaseColors[phaseNum] || '#c9d1d9';
+          const toNext = d.months_to_next_phase
+              ? `<span style="color:var(--dim);font-size:12px;"> → next phase in ~${d.months_to_next_phase} months (£${(d.next_threshold_gbp||0).toLocaleString()})</span>`
+              : '<span style="color:var(--dim);font-size:12px;"> — maximum phase</span>';
+          document.getElementById('phase-current').innerHTML = `
+              <div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;">
+                  <div style="font-size:20px;font-weight:700;color:${col};">${p.label}</div>
+                  <div style="font-size:14px;">top-<strong>${p.top_n}</strong> positions &nbsp;|&nbsp; min position £${p.min_position_gbp.toLocaleString()}</div>
+                  ${toNext}
+              </div>
+              <div style="font-size:12px;color:var(--dim);margin-top:4px;">${p.description}</div>
+          `;
+          // Render projection milestones (phase transitions + annual checkpoints)
+          const rows = d.projection;
+          let html = '<table style="width:100%;border-collapse:collapse;"><tr><th style="text-align:left;padding:2px 8px;color:var(--dim);">Yr</th><th style="text-align:right;padding:2px 8px;color:var(--dim);">NAV</th><th style="padding:2px 8px;color:var(--dim);">Phase</th></tr>';
+          let lastPhase = '', lastYear = -1;
+          rows.forEach(r => {
+              const yr = Math.ceil(r.month / 12);
+              if (r.phase !== lastPhase || yr !== lastYear) {
+                  const change = r.phase !== lastPhase ? '★ ' : '';
+                  html += `<tr><td style="padding:1px 8px;">${yr}</td><td style="text-align:right;padding:1px 8px;">£${Math.round(r.nav_gbp).toLocaleString()}</td><td style="padding:1px 8px;">${change}${r.phase}</td></tr>`;
+                  lastPhase = r.phase;
+                  lastYear = yr;
+              }
+          });
+          html += '</table>';
+          document.getElementById('phase-projection').innerHTML = html;
+      } catch(e) {
+          document.getElementById('phase-current').innerHTML = `<span style="color:var(--red)">Error: ${e}</span>`;
       }
   }
 

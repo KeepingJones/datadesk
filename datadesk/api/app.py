@@ -770,6 +770,49 @@ def api_fundamentals(ticker: str | None = None):
             pass
 
 
+@app.get("/api/phase")
+def api_phase(nav: float = 0.0, monthly: float = 500.0, cagr: float = 0.20, years: int = 15):
+    """
+    Return current portfolio phase + NAV projection.
+
+    ?nav=5000       current portfolio NAV in GBP
+    ?monthly=500    monthly contribution
+    ?cagr=0.20      assumed annual CAGR for projection
+    ?years=15       projection horizon
+    """
+    from datadesk.strategies.phase import (
+        PHASES, _THRESHOLDS, portfolio_phase, simulate_nav_series
+    )
+    phase = portfolio_phase(nav)
+    phase_idx = PHASES.index(phase)
+    next_threshold = _THRESHOLDS[phase_idx] if phase_idx < len(_THRESHOLDS) else None
+
+    projection = simulate_nav_series(monthly, max(nav, monthly), cagr, years)
+    months_to_next = None
+    if next_threshold:
+        for month, pnav, _ in projection:
+            if pnav >= next_threshold:
+                months_to_next = month
+                break
+
+    return {
+        "nav_gbp": nav,
+        "phase": {
+            "label": phase.label,
+            "top_n": phase.top_n,
+            "rebal_freq": phase.rebal_freq,
+            "min_position_gbp": phase.min_position_gbp,
+            "description": phase.description,
+        },
+        "next_threshold_gbp": next_threshold,
+        "months_to_next_phase": months_to_next,
+        "projection": [
+            {"month": m, "nav_gbp": n, "phase": p} for m, n, p in projection
+        ],
+        "thresholds": _THRESHOLDS,
+    }
+
+
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     runs = load_backtest_runs(limit=50)

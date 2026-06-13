@@ -203,12 +203,17 @@ def cmd_holdout() -> None:
     print(f"Universe: {prices.shape[1]} tickers, {prices.shape[0]} days "
           f"| quality filter excluded {len(excluded)} micro-caps → {len(eligible)} eligible")
 
-    w_mom = momentum(126, 10, 21, quality_universe=eligible)(prices)
-    if "SPY" in prices.columns and "^VIX" in prices.columns:
-        scale = bear_only_scale(prices["SPY"], prices["^VIX"])
-        w_strat = w_mom.mul(scale, axis=0)
-    else:
-        w_strat = w_mom
+    w_eq   = momentum(126, 10, 21, quality_universe=eligible)(prices)
+    w_vol  = momentum(126, 10, 21, quality_universe=eligible, vol_weight=True)(prices)
+
+    def apply_bear(w):
+        if "SPY" in prices.columns and "^VIX" in prices.columns:
+            scale = bear_only_scale(prices["SPY"], prices["^VIX"])
+            return w.mul(scale, axis=0)
+        return w
+
+    w_strat     = apply_bear(w_eq)
+    w_strat_vol = apply_bear(w_vol)
 
     warmup = prices.index[min(150, len(prices) - 1)]
     holdout_start = prices.index[max(len(prices) - 252, 151)]
@@ -217,7 +222,7 @@ def cmd_holdout() -> None:
     def line(tag, w, costs, start):
         m = run_backtest(w, prices, costs, start=start).metrics
         print(
-            f"  {tag:30s} CAGR {m['cagr']:+.3f}  Sharpe {m['sharpe']:.2f}  "
+            f"  {tag:35s} CAGR {m['cagr']:+.3f}  Sharpe {m['sharpe']:.2f}  "
             f"MaxDD {m['max_drawdown']:.2f}  turn {m.get('avg_annual_turnover', 0):.1f}"
         )
         return m
@@ -225,29 +230,35 @@ def cmd_holdout() -> None:
     for label, costs in [("ALPACA 0bps", ALPACA_COSTS), ("T212 15bps FX", T212_ISA_COSTS)]:
         print(f"\n=== {label} ===")
         print(" FULL PERIOD:")
-        m_full = line("momentum-core + bear overlay", w_strat, costs, str(warmup.date()))
+        m_full     = line("equal-weight + bear overlay      ", w_strat, costs, str(warmup.date()))
+        m_full_vol = line("inv-vol-weight + bear overlay    ", w_strat_vol, costs, str(warmup.date()))
         if spy_w is not None:
-            line("SPY benchmark", spy_w, ZERO_COSTS, str(warmup.date()))
+            line("SPY benchmark                    ", spy_w, ZERO_COSTS, str(warmup.date()))
         print(" HOLDOUT (last 252d):")
-        m_hold = line("momentum-core + bear overlay", w_strat, costs, str(holdout_start.date()))
+        m_hold     = line("equal-weight + bear overlay      ", w_strat, costs, str(holdout_start.date()))
+        m_hold_vol = line("inv-vol-weight + bear overlay    ", w_strat_vol, costs, str(holdout_start.date()))
         if spy_w is not None:
-            line("SPY benchmark", spy_w, ZERO_COSTS, str(holdout_start.date()))
+            line("SPY benchmark                    ", spy_w, ZERO_COSTS, str(holdout_start.date()))
         if label.startswith("ALPACA"):
-            save_backtest_run(
-                "v2 momentum-core (full, Alpaca)",
-                {},
-                m_full,
-                run_backtest(w_strat, prices, costs, start=str(warmup.date())).equity,
-            )
-            save_backtest_run(
-                "v2 momentum-core HOLDOUT 252d (Alpaca)",
-                {},
-                m_hold,
-                run_backtest(w_strat, prices, costs, start=str(holdout_start.date())).equity,
-            )
+            for name, w, m_f, m_h in [
+                ("v2 equal-weight", w_strat, m_full, m_hold),
+                ("v2 inv-vol-weight", w_strat_vol, m_full_vol, m_hold_vol),
+            ]:
+                save_backtest_run(
+                    f"{name} (full)",
+                    {},
+                    m_f,
+                    run_backtest(w, prices, costs, start=str(warmup.date())).equity,
+                )
+                save_backtest_run(
+                    f"{name} HOLDOUT 252d",
+                    {},
+                    m_h,
+                    run_backtest(w, prices, costs, start=str(holdout_start.date())).equity,
+                )
 
     print("\nSaved to platform store.")
-    print("GATE 1: beat SPY on Sharpe AND max-drawdown in the holdout — not an absolute CAGR.")
+    print("GATE 1: beat SPY on Sharpe AND max-drawdown in the holdout.")
     print(
         "NOTE: universe still survivorship-biased until Tiingo backfill — levels not yet evidence."
     )
@@ -323,6 +334,46 @@ def cmd_tax_compare() -> None:
     print("NOTE: Universe is survivorship-biased — levels are indicative, not evidence.")
 
 
+def cmd_phase_projection(
+    monthly_gbp: float = 500.0,
+    initial_gbp: float = 500.0,
+    cagr: float = 0.20,
+    years: int = 15,
+) -> None:
+    """
+    Project portfolio phase transitions under assumed CAGR + monthly contributions.
+
+    Shows when the strategy shifts from concentrated (Phase 1, top-3)
+    through to the full cross-sectional portfolio (Phase 4, top-15).
+    """
+    from datadesk.strategies.phase import PHASES, _THRESHOLDS, simulate_nav_series
+
+    rows = simulate_nav_series(monthly_gbp, initial_gbp, cagr, years)
+
+    print(f"\nPhase projection — £{initial_gbp:,.0f} start, £{monthly_gbp:,.0f}/mo, {cagr:.0%} CAGR")
+    print(f"\n{'Month':>6}  {'NAV':>10}  {'Phase':<35}  top_n")
+    print("─" * 65)
+
+    current_phase = None
+    last_year = -1
+    for month, nav, phase_label in rows:
+        year = (month - 1) // 12 + 1
+        if phase_label != current_phase or month == 1:
+            if phase_label != current_phase:
+                print(f"{'':>6}  {'':>10}  *** PHASE CHANGE ***")
+            current_phase = phase_label
+        if year != last_year or phase_label != current_phase:
+            from datadesk.strategies.phase import portfolio_phase
+            p = portfolio_phase(nav)
+            print(f"  Yr {year:>2}  £{nav:>9,.0f}  {phase_label:<35}  {p.top_n}")
+            last_year = year
+
+    print(f"\nPhase thresholds: {[f'£{t:,}' for t in _THRESHOLDS]}")
+    print("Phase 1: top-3  |  Phase 2: top-6  |  Phase 3: top-10  |  Phase 4: top-15")
+    print("\nTo simulate a different scenario:")
+    print("  python main.py phase-projection --monthly 1000 --cagr 0.30 --years 10")
+
+
 def cmd_universe() -> None:
     """Print platform availability breakdown for all tickers in the history store."""
     from datadesk.history.store import coverage
@@ -370,6 +421,11 @@ if __name__ == "__main__":
     p_enrich = sub.add_parser("enrich")
     p_enrich.add_argument("tickers", nargs="*", help="Tickers to enrich (default: all in store)")
     sub.add_parser("weekly-update")
+    p_phase = sub.add_parser("phase-projection")
+    p_phase.add_argument("--monthly", type=float, default=500.0, help="Monthly contribution (£)")
+    p_phase.add_argument("--initial", type=float, default=500.0, help="Starting NAV (£)")
+    p_phase.add_argument("--cagr", type=float, default=0.20, help="Assumed annual CAGR (e.g. 0.20)")
+    p_phase.add_argument("--years", type=int, default=15, help="Projection horizon (years)")
     args = parser.parse_args()
 
     if args.command == "backtest":
@@ -390,5 +446,7 @@ if __name__ == "__main__":
         cmd_holdout()
     elif args.command == "tax-compare":
         cmd_tax_compare()
+    elif args.command == "phase-projection":
+        cmd_phase_projection(args.monthly, args.initial, args.cagr, args.years)
     elif args.command == "universe":
         cmd_universe()
