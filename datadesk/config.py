@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DB_PATH = Path(os.getenv("DATADESK_DB_PATH", "datadesk.db"))
+ALTDATA_DB = Path(os.getenv("ALTDATA_DB_PATH", "altdata.db"))
 FUND_BASE_CURRENCY = os.getenv("FUND_BASE_CURRENCY", "GBP")
 FRED_API_KEY = os.getenv("FRED_API_KEY", "")
 

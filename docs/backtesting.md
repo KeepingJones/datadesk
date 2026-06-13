@@ -37,16 +37,21 @@ Vectorised daily-bar engine ([engine.py](../datadesk/backtest/engine.py)):
 - A strategy that only works at one parameter point is rejected, not tuned.
 - Costs are never optional. There is no "gross of costs" headline number.
 
-## Current status (2026-06-11 smoke test, migrated legacy data)
+## Current status (2026-06-13, strategy v2)
 
-Universe: **18 tickers with full 5y history** — far too small for cross-sectional
-momentum to mean much (top-10 of 18 is barely selection). Until the Stooq/Alpaca
-backfill widens the universe and extends history past one market regime, every
-number below is plumbing-verification, not evidence:
+Universe: **25 tickers** (survivorship-biased — absolute levels inflated until
+Tiingo/broader backfill). Strategy: momentum-core + bear_only_scale overlay
+(de-risk to 0.4 only when SPY < 200dMA AND VIX > 30). Mean reversion and
+insider overlays dropped from the live blend after attribution showed they dragged.
 
-- Momentum walk-forward OOS (2024-01 → 2026-04): CAGR 16.9%, Sharpe 0.68,
-  max DD −30.4%, param stability 0.4 (unstable — expected on this universe)
-- Momentum + 200d trend filter (fixed params, 2022-06 →): CAGR 11.2%, Sharpe 0.63
-- SPY buy-and-hold, same window: CAGR 15.1%, Sharpe 0.91 — **the benchmark
-  currently wins**; the system has work to do, and saying so is the point of
-  this document.
+Full period results:
+- momentum-core + bear overlay: CAGR +46.8%, Sharpe 1.61, MaxDD -26%, turn 6.9x
+- SPY benchmark: CAGR +15.2%, Sharpe 0.87, MaxDD -34%
+
+Holdout (last 252d, untouched until now):
+- Strategy: CAGR +57.3%, Sharpe 1.96, MaxDD -16%
+- SPY: CAGR +22.9%, Sharpe 1.73, MaxDD -9%
+
+**Gate 1 verdict:** Sharpe ✓ (1.96 vs 1.73) — MaxDD ✗ (−16% vs −9%). Gate not
+met on the drawdown leg in the holdout. Next step: widen universe via paid backfill
+(Tiingo decision pending) before re-evaluating.

@@ -66,7 +66,7 @@
 </header>
 
 <div class="tabs">
-  <button class="tab-btn active" onclick="showTab('tab-cc')">Command & Control</button>
+  <button class="tab-btn" onclick="showTab('tab-cc')">Command & Control</button>
   <button class="tab-btn" onclick="showTab('tab-universe')">Universe & Discovery</button>
   <button class="tab-btn" onclick="showTab('tab-analytics')">Analytics & Validation</button>
 </div>
@@ -145,6 +145,25 @@
                   </table>
               </div>
           </div>
+      </div>
+
+      <div class="panel wide" id="pnl-panel">
+        <h2>Strategy P&amp;L — <span id="pnl-run-name" style="color:var(--dim);font-weight:normal;text-transform:none;letter-spacing:0">loading…</span></h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+          <div>
+            <div style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Daily</div>
+            <table id="pnl-daily"><thead><tr><th>Date</th><th class="num">Return</th></tr></thead><tbody></tbody></table>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Weekly</div>
+            <table id="pnl-weekly"><thead><tr><th>Week</th><th class="num">Return</th></tr></thead><tbody></tbody></table>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Monthly</div>
+            <table id="pnl-monthly"><thead><tr><th>Month</th><th class="num">Return</th></tr></thead><tbody></tbody></table>
+          </div>
+        </div>
+        <div class="note">Derived from backtest equity curve — paper mode, not live account P&amp;L.</div>
       </div>
 
       <div class="panel">
@@ -292,13 +311,18 @@
   </div>
 </div>
 
+<script src="/static/utils.js"></script>
 <script>
-  function showTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      event.currentTarget.classList.add('active');
-  }
+
+function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    const btn = document.querySelector(`.tab-btn[onclick*='${tabId}']`);
+    if (btn) btn.classList.add('active');
+}
+
+
 
   {% if runs %}
   const datasets = [];
@@ -420,7 +444,7 @@
       fetchDaemonStatus();
   }
 
-  async function fetchDaemonStatus() {
+   async function fetchDaemonStatus() {
       try {
           const res = await fetch('/api/daemons/status');
           const status = await res.json();
@@ -428,13 +452,12 @@
               const btnStart = document.getElementById(`btn-${name}-start`);
               const btnStop = document.getElementById(`btn-${name}-stop`);
               const spanStatus = document.getElementById(`status-${name}`);
-              
               if (btnStart && btnStop) {
                   const isRunning = info.running;
                   btnStart.style.backgroundColor = isRunning ? "#238636" : "#21262d";
                   btnStart.style.color = isRunning ? "#fff" : "#c9d1d9";
                   btnStop.style.backgroundColor = isRunning ? "#21262d" : "#da3633";
-                  btnStop.style.color = isRunning ? "#c9d1d9" : "#fff";
+                  btnStop.style.color = isRunning ? "#fff" : "#c9d1d9";
               }
               if (spanStatus) {
                   spanStatus.innerText = `Last run: ${info.last_run}`;
@@ -444,79 +467,84 @@
   }
 
   async function fetchAlpacaStatus() {
-      try {
-          const accRes = await fetch('/api/alpaca/account');
-          const accData = await accRes.json();
-          
-          if (accData.status === 'ok') {
-              document.getElementById('alpaca-equity').innerText = `$${accData.equity.toLocaleString()}`;
-              document.getElementById('alpaca-bp').innerText = `$${accData.buying_power.toLocaleString()}`;
-              
-              const pnlColor = accData.pnl_dollar >= 0 ? '#2ea043' : '#da3633';
-              const pnlSign = accData.pnl_dollar >= 0 ? '+' : '';
-              document.getElementById('alpaca-pnl').innerText = `${pnlSign}$${accData.pnl_dollar.toLocaleString()} (${pnlSign}${accData.pnl_pct}%)`;
-              document.getElementById('alpaca-pnl').style.color = pnlColor;
-          } else {
-              document.getElementById('alpaca-equity').innerText = 'Keys Missing';
-              document.getElementById('alpaca-bp').innerText = '---';
-              document.getElementById('alpaca-pnl').innerText = '---';
-              document.getElementById('alpaca-pnl').style.color = 'var(--dim)';
-          }
+       try {
+            const accData = await fetchWithCache('/api/alpaca/account', 5 * 60 * 1000);
+            const posData = await fetchWithCache('/api/alpaca/positions', 5 * 60 * 1000);
 
-          const posRes = await fetch('/api/alpaca/positions');
-          const posData = await posRes.json();
-          const tbody = document.getElementById('alpaca-positions-tbody');
-          
-          if (posData.status === 'ok' && posData.positions.length > 0) {
-              tbody.innerHTML = '';
-              posData.positions.forEach(p => {
-                  const pnlColor = parseFloat(p.unrealized_pl) >= 0 ? '#2ea043' : '#da3633';
-                  const pnlSign = parseFloat(p.unrealized_pl) >= 0 ? '+' : '';
-                  const pct = (parseFloat(p.unrealized_plpc) * 100).toFixed(2);
-                  const plStr = `${pnlSign}$${parseFloat(p.unrealized_pl).toFixed(2)} (${pnlSign}${pct}%)`;
-                  const ai_status = p.ai_status || "PENDING SERVER RESTART";
-                  const aiStatusColor = ai_status.includes('CLOSE') ? '#da3633' : (ai_status.includes('BUY') ? '#2ea043' : (ai_status.includes('HOLD') ? '#58a6ff' : '#d29922'));
-                  
-                  const tr = document.createElement('tr');
-                  tr.style.borderBottom = '1px solid #21262d';
-                  tr.innerHTML = `
-                      <td style="padding: 8px 0; font-weight: bold;">${p.symbol}</td>
-                      <td>${p.qty}</td>
-                      <td>$${parseFloat(p.market_value).toFixed(2)}</td>
-                      <td style="color: ${pnlColor};">${plStr}</td>
-                      <td style="color: ${aiStatusColor}; font-weight: bold;">${p.ai_status}</td>
-                  `;
-                  tbody.appendChild(tr);
-              });
-          } else if (posData.status === 'ok') {
-              tbody.innerHTML = '<tr><td colspan="5" style="padding: 5px 0; color: var(--dim);">No active positions.</td></tr>';
-          } else {
-              tbody.innerHTML = '<tr><td colspan="5" style="padding: 5px 0; color: var(--dim);">Cannot load positions. Check API keys.</td></tr>';
-          }
-      } catch (e) {}
+           // Combine relevant data for caching
+           const combined = { account: accData, positions: posData };
+
+           updateIfChanged('alpacaStatus', combined, () => {
+               // Update account summary UI
+                if (accData && accData.status === 'ok') {
+    document.getElementById('alpaca-equity').innerText = `$${accData.equity.toLocaleString()}`;
+    const pnlColor = accData.pnl_dollar >= 0 ? '#2ea043' : '#da3633';
+    const pnlSign = accData.pnl_dollar >= 0 ? '+' : '';
+    document.getElementById('alpaca-pnl').innerText = `${pnlSign}$${accData.pnl_dollar.toLocaleString()} (${pnlSign}${accData.pnl_pct}%)`;
+    document.getElementById('alpaca-pnl').style.color = pnlColor;
+    // Update buying power display
+    document.getElementById('alpaca-bp').innerText = `$${accData.buying_power.toLocaleString()}`;
+                } else {
+                   document.getElementById('alpaca-equity').innerText = 'Keys Missing';
+                   document.getElementById('alpaca-bp').innerText = '---';
+                   document.getElementById('alpaca-pnl').innerText = '---';
+                   document.getElementById('alpaca-pnl').style.color = 'var(--dim)';
+               }
+
+               // Update positions table UI
+               const tbody = document.getElementById('alpaca-positions-tbody');
+               if (posData.status === 'ok' && posData.positions.length > 0) {
+                   tbody.innerHTML = '';
+                   posData.positions.forEach(p => {
+                       const pnlColor = parseFloat(p.unrealized_pl) >= 0 ? '#2ea043' : '#da3633';
+                       const pnlSign = parseFloat(p.unrealized_pl) >= 0 ? '+' : '';
+                       const pct = (parseFloat(p.unrealized_plpc) * 100).toFixed(2);
+                       const plStr = `${pnlSign}$${parseFloat(p.unrealized_pl).toFixed(2)} (${pnlSign}${pct}%)`;
+                       const ai_status = p.ai_status || "PENDING SERVER RESTART";
+                       const aiStatusColor = ai_status.includes('CLOSE') ? '#da3633' : (ai_status.includes('BUY') ? '#2ea043' : (ai_status.includes('HOLD') ? '#58a6ff' : '#d29922'));
+
+                       const tr = document.createElement('tr');
+                       tr.style.borderBottom = '1px solid #21262d';
+                       tr.innerHTML = `
+                           <td style="padding: 8px 0; font-weight: bold;">${p.symbol}</td>
+                           <td>${p.qty}</td>
+                           <td>$${parseFloat(p.market_value).toFixed(2)}</td>
+                           <td style="color: ${pnlColor};">${plStr}</td>
+                           <td style="color: ${aiStatusColor}; font-weight: bold;">${p.ai_status}</td>
+                       `;
+                       tbody.appendChild(tr);
+                   });
+               } else if (posData.status === 'ok') {
+                   tbody.innerHTML = '<tr><td colspan="5" style="padding: 5px 0; color: var(--dim);">No active positions.</td></tr>';
+               } else {
+                   tbody.innerHTML = '<tr><td colspan="5" style="padding: 5px 0; color: var(--dim);">Cannot load positions. Check API keys.</td></tr>';
+               }
+           });
+       } catch (e) {}
   }
 
   async function fetchHistoricTrades() {
     try {
         const res = await fetch('/api/historic_trades');
         const data = await res.json();
-        const tbody = document.querySelector('#historicTradesTable tbody');
-        if (Array.isArray(data) && data.length > 0) {
-            tbody.innerHTML = data.map(tr => `
-                <tr>
-                    <td>${new Date(tr.timestamp).toLocaleString()}</td>
-                    <td>${tr.ticker}</td>
-                    <td>${tr.side}</td>
-                    <td>${tr.qty !== undefined ? tr.qty : ''}</td>
-                    <td>${tr.close_price !== undefined ? tr.close_price.toFixed(2) : (tr.price !== undefined ? tr.price.toFixed(2) : '')}</td>
-                    <td class="${tr.pnl >= 0 ? 'pos' : 'neg'}">${tr.pnl !== undefined ? tr.pnl.toFixed(2) : ''}</td>
-                </tr>`).join('');
-        } else {
-            tbody.innerHTML = '<tr><td colspan="6" style="padding:5px 0;color:var(--dim);">No historic trades.</td></tr>';
-        }
+        updateIfChanged('historicTrades', data, () => {
+            const tbody = document.querySelector('#historicTradesTable tbody');
+            if (Array.isArray(data) && data.length > 0) {
+                tbody.innerHTML = data.map(tr => `
+                    <tr>
+                        <td>${new Date(tr.timestamp).toLocaleString()}</td>
+                        <td>${tr.ticker}</td>
+                        <td>${tr.side}</td>
+                        <td>${tr.qty !== undefined ? tr.qty : ''}</td>
+                        <td>${tr.close_price !== undefined ? tr.close_price.toFixed(2) : (tr.price !== undefined ? tr.price.toFixed(2) : '')}</td>
+                        <td class="${tr.pnl >= 0 ? 'pos' : 'neg'}">${tr.pnl !== undefined ? tr.pnl.toFixed(2) : ''}</td>
+                    </tr>`).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" style="padding:5px 0;color:var(--dim);">No historic trades.</td></tr>';
+            }
+        });
     } catch (e) {}
 }
-
 
 async function fetchDailyPnl() {
     try {
@@ -586,23 +614,50 @@ async function runBacktestSweep() {
         fetchLiveTrades();
     }, 2000);
 
-    // Less frequent data: Alpaca account/positions and historic trades (every 60 seconds)
+    // Less frequent data: Alpaca account/positions and historic trades (every 5 minutes)
     setInterval(() => {
-        fetchAlpacaStatus();
-        fetchHistoricTrades();
-    }, 60000);
+    fetchAlpacaStatus();
+    fetchHistoricTrades();
+}, 300000);
 
     // Daily P&L summary (every 60 seconds)
     setInterval(() => {
         fetchDailyPnl();
     }, 60000);
-    fetchAIFeed();
+    
+  async function fetchPnlSummary() {
+      try {
+          const res = await fetch('/api/pnl_summary');
+          const data = await res.json();
+          document.getElementById('pnl-run-name').innerText = data.run_name || '';
+
+          function pnlRow(row) {
+              const cls = row.pct >= 0 ? 'pos' : 'neg';
+              const sign = row.pct >= 0 ? '+' : '';
+              return `<tr><td>${row.period}</td><td class="num ${cls}">${sign}${row.pct}%</td></tr>`;
+          }
+
+          const daily = data.daily || [];
+          const weekly = data.weekly || [];
+          const monthly = data.monthly || [];
+
+          document.querySelector('#pnl-daily tbody').innerHTML =
+              daily.length ? daily.map(pnlRow).join('') : '<tr><td colspan="2" style="color:var(--dim)">No data</td></tr>';
+          document.querySelector('#pnl-weekly tbody').innerHTML =
+              weekly.length ? weekly.map(pnlRow).join('') : '<tr><td colspan="2" style="color:var(--dim)">No data</td></tr>';
+          document.querySelector('#pnl-monthly tbody').innerHTML =
+              monthly.length ? monthly.map(pnlRow).join('') : '<tr><td colspan="2" style="color:var(--dim)">No data</td></tr>';
+      } catch (e) {}
+  }
+
+   fetchAIFeed();
    fetchLiveTrades();
    fetchDaemonStatus();
    fetchAlpacaStatus();
    fetchUniverse();
    fetchHistoricTrades();
    fetchDailyPnl();
+   fetchPnlSummary();
 </script>
 </body>
 </html>

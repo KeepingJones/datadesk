@@ -6,6 +6,15 @@ import pandas as pd
 from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+import logging
+
+# Import logging configuration
+from datadesk.logging_config import setup_logging
+
+# Initialize logging
+setup_logging()
+logger = logging.getLogger(__name__)
 
 from datadesk.config import PAPER_TRADE_MODE
 from datadesk.live.oms import CLOSED_POSITIONS, HISTORIC_TRADES
@@ -26,6 +35,8 @@ from datadesk.history.store import coverage
 
 app = FastAPI(title="DataDesk")
 templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "dashboard"))
+# Serve static assets (utils.js, CSS, images) under /static
+app.mount("/static", StaticFiles(directory=str(Path(__file__).parent.parent / "dashboard")), name="static")
 
 
 def _trump_stats() -> dict:
@@ -47,8 +58,8 @@ def _insider_stats() -> dict:
 
         import pandas as pd
 
-        alt_db = os.getenv("ALT_DATA_DB", r"C:\Users\ewanj\trading-bot\alt_data.db")
-        conn = sqlite3.connect(f"file:{alt_db}?mode=ro", uri=True)
+        from datadesk.config import ALTDATA_DB
+        conn = sqlite3.connect(f"file:{ALTDATA_DB}?mode=ro", uri=True)
         insiders = pd.read_sql("SELECT COUNT(*) as c, MAX(filing_date) as m FROM insiders", conn)
         congress = pd.read_sql(
             "SELECT COUNT(*) as c, MAX(disclosure_date) as m FROM congress_trading", conn
@@ -100,6 +111,76 @@ def api_coverage() -> dict:
 @app.get("/api/runs")
 def api_runs() -> list[dict]:
     return load_backtest_runs()
+
+
+@app.get("/api/pnl_summary")
+def api_pnl_summary() -> dict:
+    """Derive daily/weekly/monthly PnL from the most recent backtest equity curve."""
+    runs = load_backtest_runs(limit=50)
+    if not runs:
+        return {"daily": [], "weekly": [], "monthly": []}
+
+    # Prefer the blended/holdout run; fall back to highest-CAGR run
+    run = next((r for r in runs if "blended" in r["name"].lower()), None) or \
+          max(runs, key=lambda r: r["metrics"].get("cagr", 0))
+
+    equity = run["equity"]  # [[date_str, value], ...]
+    if len(equity) < 2:
+        return {"daily": [], "weekly": [], "monthly": []}
+
+    df = pd.DataFrame(equity, columns=["date", "value"])
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.set_index("date").sort_index()
+
+    def _pct(new, old):
+        if old == 0:
+            return 0.0
+        return round((new - old) / old * 100, 2)
+
+    # Daily: last 20 trading days
+    daily = []
+    vals = df["value"].tolist()
+    dates = df.index.tolist()
+    for i in range(max(1, len(vals) - 20), len(vals)):
+        daily.append({
+            "period": dates[i].strftime("%b %d"),
+            "pct": _pct(vals[i], vals[i - 1]),
+            "value": round(vals[i], 4),
+        })
+    daily.reverse()
+
+    # Weekly: resample to week-end, last 12 weeks
+    weekly_df = df["value"].resample("W").last().dropna()
+    weekly = []
+    wvals = weekly_df.tolist()
+    wdates = weekly_df.index.tolist()
+    for i in range(max(1, len(wvals) - 12), len(wvals)):
+        weekly.append({
+            "period": f"W/E {wdates[i].strftime('%b %d')}",
+            "pct": _pct(wvals[i], wvals[i - 1]),
+            "value": round(wvals[i], 4),
+        })
+    weekly.reverse()
+
+    # Monthly: resample to month-end, last 12 months
+    monthly_df = df["value"].resample("ME").last().dropna()
+    monthly = []
+    mvals = monthly_df.tolist()
+    mdates = monthly_df.index.tolist()
+    for i in range(max(1, len(mvals) - 12), len(mvals)):
+        monthly.append({
+            "period": mdates[i].strftime("%b %Y"),
+            "pct": _pct(mvals[i], mvals[i - 1]),
+            "value": round(mvals[i], 4),
+        })
+    monthly.reverse()
+
+    return {
+        "run_name": run["name"],
+        "daily": daily,
+        "weekly": weekly,
+        "monthly": monthly,
+    }
 
 
 @app.get("/api/ai_feed")
@@ -166,6 +247,30 @@ def api_historic_trades() -> list[dict]:
     return HISTORIC_TRADES
 
 
+@app.get("/api/live_trades")
+def api_live_trades() -> list[dict]:
+    """Return list of live OMS fast-path trades."""
+    from datadesk.live import shadow
+    try:
+        df = shadow.load_signals(limit=20)
+        if df.empty:
+            return []
+        # Return trades in the format expected by the frontend
+        return [
+            {
+                "timestamp": str(r["ts"])[11:19],
+                "broker": "Trading212" if r["ticker"].endswith(".L") else "Alpaca",
+                "side": r["side"],
+                "ticker": r["ticker"],
+                "reason": r["reason"] or "signal"
+            }
+            for _, r in df.iterrows()
+            if r["executed"] # Only show executed trades in live fast-path
+        ]
+    except Exception:
+        return []
+
+
 # --- DAEMON COMMAND & CONTROL (REAL THREADING) ---
 import threading
 
@@ -228,15 +333,21 @@ def get_daemons_status():
 
 @app.post("/api/daemons/{daemon_name}/start")
 def start_daemon(daemon_name: str):
+    logger.info(f"Start daemon request: {daemon_name}")
     if daemon_mgr.start(daemon_name):
+        logger.info(f"Daemon {daemon_name} started")
         return {"status": "started", "daemon": daemon_name}
+    logger.warning(f"Attempted to start unknown daemon: {daemon_name}")
     return {"error": "unknown daemon"}
 
 
 @app.post("/api/daemons/{daemon_name}/stop")
 def stop_daemon(daemon_name: str):
+    logger.info(f"Stop daemon request: {daemon_name}")
     if daemon_mgr.stop(daemon_name):
+        logger.info(f"Daemon {daemon_name} stopped")
         return {"status": "stopped", "daemon": daemon_name}
+    logger.warning(f"Attempted to stop unknown daemon: {daemon_name}")
     return {"error": "unknown daemon"}
 
 
@@ -355,7 +466,10 @@ def api_universe_list():
 
 @app.post("/api/universe/add")
 def api_universe_add(req: TickerRequest):
-    return add_ticker(req.ticker)
+    logger.info(f"Add ticker request: {req.ticker}")
+    result = add_ticker(req.ticker)
+    logger.info(f"Add ticker result: {result}")
+    return result
 
 
 @app.get("/api/validation")
@@ -388,7 +502,9 @@ def api_monte_carlo_run(
     runs: int = 1000, model: str = "bootstrap", background_tasks: BackgroundTasks = None
 ):
     """Start Monte Carlo simulation in background."""
+    logger.info(f"Monte Carlo run requested: runs={runs}, model={model}")
     if model not in MONTE_CARLO_CONFIG["models"]:
+        logger.error(f"Unsupported Monte Carlo model: {model}")
         return {"status": "error", "message": f"Model {model} not supported"}
     MONTE_CARLO_STATUS.update(
         {"running": True, "progress": 0, "total": runs, "result_path": None, "message": "Running"}
@@ -407,7 +523,9 @@ def api_monte_carlo_run(
                     "message": "Completed",
                 }
             )
+            logger.info("Monte Carlo simulation completed")
         except Exception as e:
+            logger.exception("Monte Carlo simulation error")
             MONTE_CARLO_STATUS.update({"running": False, "message": f"Error: {e}"})
 
     if background_tasks:

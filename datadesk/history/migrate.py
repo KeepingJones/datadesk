@@ -3,6 +3,7 @@ One-off migration: import daily bars from the legacy trading-bot store
 (alt_data.db price_history) into the canonical history store.
 
 Run:  python -m datadesk.history.migrate [path-to-alt_data.db]
+Migration already completed 2026-06-11; this is kept for reruns against a fresh DB.
 """
 
 import logging
@@ -16,7 +17,7 @@ from datadesk.history.store import save_bars
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_LEGACY = Path(r"C:\Users\ewanj\trading-bot\alt_data.db")
+DEFAULT_LEGACY = Path("altdata.db")  # consolidated 2026-06-13; price_history kept for migration reruns
 
 
 def migrate_price_history(legacy_db: Path = DEFAULT_LEGACY) -> int:

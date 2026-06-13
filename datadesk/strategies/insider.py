@@ -24,10 +24,8 @@ def insider_congress_follow(
         weights = pd.DataFrame(0.0, index=prices.index, columns=prices.columns)
 
         try:
-            import os
-
-            alt_db = os.getenv("ALT_DATA_DB", r"C:\Users\ewanj\trading-bot\alt_data.db")
-            conn = sqlite3.connect(f"file:{alt_db}?mode=ro", uri=True)
+            from datadesk.config import ALTDATA_DB
+            conn = sqlite3.connect(f"file:{ALTDATA_DB}?mode=ro", uri=True)
 
             # Insiders (P = open market purchase)
             insiders = pd.read_sql(
