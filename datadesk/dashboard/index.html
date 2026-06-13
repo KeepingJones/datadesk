@@ -111,6 +111,20 @@
       </div>
 
       <div class="panel wide">
+          <h2>Universe Maintenance</h2>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 10px;">
+              <button id="btn-weekly-update" onclick="triggerJob('weekly-update')" style="background:#238636;border:none;color:#fff;padding:7px 16px;border-radius:6px;cursor:pointer;font-size:13px;">Weekly Update</button>
+              <button id="btn-enrich" onclick="triggerJob('enrich')" style="background:#1f6feb;border:none;color:#fff;padding:7px 16px;border-radius:6px;cursor:pointer;font-size:13px;">Refresh Fundamentals</button>
+              <span id="job-status-line" style="font-size:12px;color:var(--dim);margin-left:6px;">—</span>
+          </div>
+          <div style="font-size:11px;color:var(--dim);">
+              <strong>Weekly Update</strong>: gap-fills all price history + refreshes fundamentals &gt;7 days stale.<br>
+              <strong>Refresh Fundamentals</strong>: re-fetches PE, P/B, revenue, margins, balance sheet for all tickers.<br>
+              Auto-runs every Sunday 07:00 UTC (server time).
+          </div>
+      </div>
+
+      <div class="panel wide">
           <h2>Live Trading Status (Alpaca Paper)</h2>
           <div id="alpaca-status-panel" style="background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 15px;">
               <div style="display: flex; gap: 40px;">
@@ -473,6 +487,42 @@ function showTab(tabId) {
       const action = start ? 'start' : 'stop';
       await fetch(`/api/daemons/${name}/${action}`, { method: 'POST' });
       fetchDaemonStatus();
+  }
+
+  async function triggerJob(jobType) {
+      const btn = document.getElementById('btn-' + jobType);
+      const statusLine = document.getElementById('job-status-line');
+      if (btn) { btn.disabled = true; btn.textContent = 'Running…'; }
+      statusLine.textContent = `${jobType} triggered…`;
+      statusLine.style.color = '#e3b341';
+      try {
+          const res = await fetch(`/api/trigger/${jobType}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+          const data = await res.json();
+          const jobId = data.job_id;
+          // Poll for completion
+          const poll = setInterval(async () => {
+              try {
+                  const sr = await fetch('/api/jobs/status');
+                  const jobs = await sr.json();
+                  const job = jobs[jobId];
+                  if (job && job.status === 'done') {
+                      clearInterval(poll);
+                      if (btn) { btn.disabled = false; btn.textContent = jobType === 'weekly-update' ? 'Weekly Update' : 'Refresh Fundamentals'; }
+                      statusLine.textContent = `${jobType} complete`;
+                      statusLine.style.color = '#3fb950';
+                  } else if (job && job.status === 'error') {
+                      clearInterval(poll);
+                      if (btn) { btn.disabled = false; btn.textContent = jobType === 'weekly-update' ? 'Weekly Update' : 'Refresh Fundamentals'; }
+                      statusLine.textContent = `Error: ${job.error}`;
+                      statusLine.style.color = '#f85149';
+                  }
+              } catch(e) {}
+          }, 3000);
+      } catch(e) {
+          if (btn) { btn.disabled = false; }
+          statusLine.textContent = `Failed: ${e}`;
+          statusLine.style.color = '#f85149';
+      }
   }
 
    async function fetchDaemonStatus() {

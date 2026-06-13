@@ -1,6 +1,9 @@
 """DataDesk ops console — FastAPI + Jinja2, no build chain."""
 
 from pathlib import Path
+import threading as _threading
+import datetime as _dt
+import time as _time
 
 import pandas as pd
 from fastapi import BackgroundTasks, FastAPI, Request
@@ -35,8 +38,48 @@ from datadesk.history.store import coverage
 
 app = FastAPI(title="DataDesk")
 templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "dashboard"))
-# Serve static assets (utils.js, CSS, images) under /static
 app.mount("/static", StaticFiles(directory=str(Path(__file__).parent.parent / "dashboard")), name="static")
+
+_last_weekly_run: _dt.date | None = None
+
+
+def _weekly_scheduler_loop() -> None:
+    """Background thread: runs weekly-update every Sunday between 07:00–07:59 UTC."""
+    global _last_weekly_run
+    while True:
+        _time.sleep(3600)  # check every hour
+        now = _dt.datetime.utcnow()
+        if now.weekday() == 6 and now.hour == 7 and _last_weekly_run != now.date():
+            logger.info("scheduler: running weekly update")
+            try:
+                from datadesk.config import ALTDATA_DB
+                from datadesk.history.store import coverage
+                from datadesk.ingest.backfill import backfill_smart
+                from datadesk.ingest.fundamentals import fetch_fundamentals
+                import sqlite3
+
+                cov = coverage()
+                tradeable = [t for t in cov["ticker"].tolist() if not t.startswith("^")]
+                backfill_smart(tradeable)
+                stale_cut = (now - _dt.timedelta(days=7)).isoformat(timespec="seconds")
+                con = sqlite3.connect(ALTDATA_DB)
+                fresh = {r[0] for r in con.execute(
+                    "SELECT ticker FROM equity_ratios WHERE fetched_at > ? GROUP BY ticker", (stale_cut,)
+                )}
+                con.close()
+                stale = [t for t in tradeable if t not in fresh]
+                fetch_fundamentals(stale, verbose=False)
+                _last_weekly_run = now.date()
+                logger.info("scheduler: weekly update complete")
+            except Exception as e:
+                logger.error(f"scheduler: weekly update failed: {e}")
+
+
+@app.on_event("startup")
+def _start_scheduler() -> None:
+    t = _threading.Thread(target=_weekly_scheduler_loop, daemon=True, name="weekly-scheduler")
+    t.start()
+    logger.info("weekly scheduler started (fires Sundays 07:00 UTC)")
 
 
 def _trump_stats() -> dict:
@@ -587,6 +630,139 @@ def api_monte_carlo_run(
 def api_monte_carlo_status():
     """Return Monte Carlo simulation status."""
     return MONTE_CARLO_STATUS
+
+
+# ── Maintenance triggers ──────────────────────────────────────────────────────
+
+_job_status: dict[str, dict] = {}
+_job_lock = _threading.Lock()
+
+
+def _run_job(job_id: str, fn, *args, **kwargs):
+    with _job_lock:
+        _job_status[job_id] = {"status": "running", "started_at": __import__("datetime").datetime.utcnow().isoformat()}
+    try:
+        result = fn(*args, **kwargs)
+        with _job_lock:
+            _job_status[job_id].update({"status": "done", "result": str(result)[:500]})
+    except Exception as e:
+        with _job_lock:
+            _job_status[job_id].update({"status": "error", "error": str(e)[:200]})
+
+
+@app.get("/api/jobs/status")
+def api_jobs_status():
+    with _job_lock:
+        return dict(_job_status)
+
+
+@app.post("/api/trigger/weekly-update")
+def api_trigger_weekly_update(background_tasks: BackgroundTasks):
+    """Trigger weekly maintenance: price gap-fill + fundamentals refresh."""
+    from datadesk.config import ALTDATA_DB
+    from datadesk.history.store import coverage
+    from datadesk.ingest.backfill import backfill_smart
+    from datadesk.ingest.fundamentals import fetch_fundamentals
+    import sqlite3
+    from datetime import datetime, timedelta
+
+    def _weekly():
+        cov = coverage()
+        tradeable = [t for t in cov["ticker"].tolist() if not t.startswith("^")]
+        written = backfill_smart(tradeable)
+        stale_cutoff = (datetime.utcnow() - timedelta(days=7)).isoformat(timespec="seconds")
+        try:
+            con = sqlite3.connect(ALTDATA_DB)
+            fresh = {r[0] for r in con.execute(
+                "SELECT ticker FROM equity_ratios WHERE fetched_at > ? GROUP BY ticker", (stale_cutoff,)
+            )}
+            con.close()
+        except Exception:
+            fresh = set()
+        stale = [t for t in tradeable if t not in fresh]
+        fetch_fundamentals(stale, verbose=False)
+        return {"prices": sum(written.values()), "fundamentals_refreshed": len(stale)}
+
+    job_id = f"weekly-{__import__('time').time():.0f}"
+    background_tasks.add_task(_run_job, job_id, _weekly)
+    return {"job_id": job_id, "status": "queued"}
+
+
+@app.post("/api/trigger/enrich")
+def api_trigger_enrich(background_tasks: BackgroundTasks, tickers: list[str] | None = None):
+    """Fetch/refresh fundamentals for given tickers (or all in universe)."""
+    from datadesk.history.store import coverage
+    from datadesk.ingest.fundamentals import fetch_fundamentals
+
+    def _enrich():
+        t_list = tickers or [t for t in coverage()["ticker"].tolist() if not t.startswith("^")]
+        return fetch_fundamentals(t_list, verbose=False)
+
+    job_id = f"enrich-{__import__('time').time():.0f}"
+    background_tasks.add_task(_run_job, job_id, _enrich)
+    return {"job_id": job_id, "status": "queued"}
+
+
+@app.post("/api/trigger/backfill")
+def api_trigger_backfill(tickers: list[str], background_tasks: BackgroundTasks):
+    """Backfill price history + fundamentals for given tickers."""
+    from datadesk.ingest.backfill import backfill_history
+    from datadesk.ingest.fundamentals import fetch_fundamentals
+
+    def _backfill():
+        written = backfill_history(tickers)
+        fetch_fundamentals(tickers, verbose=False)
+        return written
+
+    job_id = f"backfill-{__import__('time').time():.0f}"
+    background_tasks.add_task(_run_job, job_id, _backfill)
+    return {"job_id": job_id, "status": "queued"}
+
+
+@app.get("/api/fundamentals")
+def api_fundamentals(ticker: str | None = None):
+    """Return stored fundamentals. Pass ?ticker=AAPL for one ticker, else returns all."""
+    import sqlite3
+    from datadesk.config import ALTDATA_DB
+    try:
+        con = sqlite3.connect(ALTDATA_DB)
+        con.row_factory = sqlite3.Row
+        if ticker:
+            info_row = con.execute("SELECT * FROM equity_info WHERE ticker=?", (ticker,)).fetchone()
+            ratios_row = con.execute(
+                "SELECT * FROM equity_ratios WHERE ticker=? ORDER BY fetched_at DESC LIMIT 1", (ticker,)
+            ).fetchone()
+            fins = con.execute(
+                "SELECT * FROM equity_financials WHERE ticker=? ORDER BY fiscal_year DESC LIMIT 5", (ticker,)
+            ).fetchall()
+            bal = con.execute(
+                "SELECT * FROM equity_balance WHERE ticker=? ORDER BY fiscal_year DESC LIMIT 5", (ticker,)
+            ).fetchall()
+            return {
+                "info": dict(info_row) if info_row else None,
+                "ratios": dict(ratios_row) if ratios_row else None,
+                "financials": [dict(r) for r in fins],
+                "balance": [dict(r) for r in bal],
+            }
+        else:
+            rows = con.execute("""
+                SELECT r.ticker, i.name, i.sector, i.industry, i.country,
+                       r.market_cap, r.trailing_pe, r.forward_pe, r.price_to_book,
+                       r.dividend_yield, r.revenue_growth, r.gross_margin, r.roe,
+                       r.debt_to_equity, r.beta, r.week52_change, r.fetched_at
+                FROM equity_ratios r
+                LEFT JOIN equity_info i ON r.ticker=i.ticker
+                WHERE r.id IN (SELECT MAX(id) FROM equity_ratios GROUP BY ticker)
+                ORDER BY r.market_cap DESC NULLS LAST
+            """).fetchall()
+            return [dict(r) for r in rows]
+    except Exception as e:
+        return {"error": str(e)}
+    finally:
+        try:
+            con.close()
+        except Exception:
+            pass
 
 
 @app.get("/", response_class=HTMLResponse)
