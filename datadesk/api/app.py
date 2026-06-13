@@ -351,6 +351,54 @@ def stop_daemon(daemon_name: str):
     return {"error": "unknown daemon"}
 
 
+@app.get("/api/t212/account")
+def api_t212_account():
+    """Cash summary from T212 (demo or live, based on T212_MODE)."""
+    try:
+        from datadesk.ingest.t212_client import T212Client
+        client = T212Client()
+        cash = client.get_cash()
+        return {
+            "status": "ok",
+            "mode": client.mode,
+            "free": round(cash.free, 2),
+            "invested": round(cash.invested, 2),
+            "ppl": round(cash.ppl, 2),
+            "result": round(cash.result, 2),
+            "total": round(cash.total, 2),
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@app.get("/api/t212/positions")
+def api_t212_positions():
+    """Open positions from T212."""
+    try:
+        from datadesk.ingest.t212_client import T212Client
+        client = T212Client()
+        positions = client.get_portfolio()
+        return {
+            "status": "ok",
+            "positions": [
+                {
+                    "ticker": p.ticker,
+                    "quantity": p.quantity,
+                    "avg_price": p.avg_price,
+                    "current_price": p.current_price,
+                    "ppl": round(p.ppl, 2),
+                    "fx_ppl": round(p.fx_ppl, 2) if p.fx_ppl is not None else None,
+                    "market_value": round(p.quantity * p.current_price, 2),
+                    "ppl_pct": round(p.ppl / (p.quantity * p.avg_price) * 100, 2)
+                    if p.avg_price and p.quantity else 0.0,
+                }
+                for p in positions
+            ],
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
 @app.get("/api/alpaca/account")
 def api_alpaca_account():
     """Returns live paper trading balance and daily performance from Alpaca."""

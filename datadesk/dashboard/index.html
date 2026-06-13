@@ -147,6 +147,37 @@
           </div>
       </div>
 
+      <div class="panel wide">
+          <h2>T212 ISA Account — <span id="t212-mode-badge" style="color:var(--amber);font-weight:normal;text-transform:none;letter-spacing:0">loading…</span></h2>
+          <div style="display:flex;gap:40px;margin-bottom:16px">
+              <div>
+                  <div style="font-size:12px;color:var(--dim);">Total Value</div>
+                  <div id="t212-total" style="font-size:24px;font-weight:bold">---</div>
+              </div>
+              <div>
+                  <div style="font-size:12px;color:var(--dim);">Invested</div>
+                  <div id="t212-invested" style="font-size:24px;font-weight:bold">---</div>
+              </div>
+              <div>
+                  <div style="font-size:12px;color:var(--dim);">Unrealised P&amp;L</div>
+                  <div id="t212-ppl" style="font-size:24px;font-weight:bold">---</div>
+              </div>
+              <div>
+                  <div style="font-size:12px;color:var(--dim);">Result (realised)</div>
+                  <div id="t212-result" style="font-size:24px;font-weight:bold">---</div>
+              </div>
+              <div>
+                  <div style="font-size:12px;color:var(--dim);">Free Cash</div>
+                  <div id="t212-free" style="font-size:24px;font-weight:bold">---</div>
+              </div>
+          </div>
+          <h4 style="margin:0 0 6px;font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:1px">Positions</h4>
+          <table id="t212-positions-table">
+              <thead><tr><th>Ticker</th><th class="num">Qty</th><th class="num">Avg Price</th><th class="num">Current</th><th class="num">Market Value</th><th class="num">P&amp;L</th><th class="num">P&amp;L %</th></tr></thead>
+              <tbody><tr><td colspan="7" style="color:var(--dim)">Loading…</td></tr></tbody>
+          </table>
+      </div>
+
       <div class="panel wide" id="pnl-panel">
         <h2>Strategy P&amp;L — <span id="pnl-run-name" style="color:var(--dim);font-weight:normal;text-transform:none;letter-spacing:0">loading…</span></h2>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
@@ -614,17 +645,71 @@ async function runBacktestSweep() {
         fetchLiveTrades();
     }, 2000);
 
-    // Less frequent data: Alpaca account/positions and historic trades (every 5 minutes)
+    // Less frequent data: Alpaca + T212 account/positions and historic trades (every 5 minutes)
     setInterval(() => {
-    fetchAlpacaStatus();
-    fetchHistoricTrades();
-}, 300000);
+        fetchAlpacaStatus();
+        fetchT212Status();
+        fetchHistoricTrades();
+    }, 300000);
 
     // Daily P&L summary (every 60 seconds)
     setInterval(() => {
         fetchDailyPnl();
     }, 60000);
     
+  async function fetchT212Status() {
+      try {
+          const [accData, posData] = await Promise.all([
+              fetch('/api/t212/account').then(r => r.json()),
+              fetch('/api/t212/positions').then(r => r.json()),
+          ]);
+
+          if (accData.status === 'ok') {
+              const mode = accData.mode === 'live' ? 'LIVE' : 'DEMO';
+              const modeColor = accData.mode === 'live' ? 'var(--red)' : 'var(--amber)';
+              document.getElementById('t212-mode-badge').innerText = mode;
+              document.getElementById('t212-mode-badge').style.color = modeColor;
+
+              const pplColor = accData.ppl >= 0 ? 'var(--green)' : 'var(--red)';
+              const resColor = accData.result >= 0 ? 'var(--green)' : 'var(--red)';
+              const sign = v => v >= 0 ? '+' : '';
+
+              document.getElementById('t212-total').innerText = `£${accData.total.toLocaleString('en-GB', {minimumFractionDigits:2})}`;
+              document.getElementById('t212-invested').innerText = `£${accData.invested.toLocaleString('en-GB', {minimumFractionDigits:2})}`;
+              document.getElementById('t212-ppl').innerHTML = `<span style="color:${pplColor}">${sign(accData.ppl)}£${Math.abs(accData.ppl).toLocaleString('en-GB', {minimumFractionDigits:2})}</span>`;
+              document.getElementById('t212-result').innerHTML = `<span style="color:${resColor}">${sign(accData.result)}£${Math.abs(accData.result).toLocaleString('en-GB', {minimumFractionDigits:2})}</span>`;
+              document.getElementById('t212-free').innerText = `£${accData.free.toLocaleString('en-GB', {minimumFractionDigits:2})}`;
+          } else {
+              document.getElementById('t212-mode-badge').innerText = 'ERROR';
+              document.getElementById('t212-mode-badge').style.color = 'var(--red)';
+          }
+
+          const tbody = document.querySelector('#t212-positions-table tbody');
+          if (posData.status === 'ok' && posData.positions.length > 0) {
+              tbody.innerHTML = posData.positions.map(p => {
+                  const pplColor = p.ppl >= 0 ? 'var(--green)' : 'var(--red)';
+                  const pplPctColor = p.ppl_pct >= 0 ? 'var(--green)' : 'var(--red)';
+                  const sign = v => v >= 0 ? '+' : '';
+                  return `<tr>
+                      <td><strong>${p.ticker}</strong></td>
+                      <td class="num">${p.quantity}</td>
+                      <td class="num">£${p.avg_price.toFixed(2)}</td>
+                      <td class="num">£${p.current_price.toFixed(2)}</td>
+                      <td class="num">£${p.market_value.toLocaleString('en-GB', {minimumFractionDigits:2})}</td>
+                      <td class="num" style="color:${pplColor}">${sign(p.ppl)}£${Math.abs(p.ppl).toFixed(2)}</td>
+                      <td class="num" style="color:${pplPctColor}">${sign(p.ppl_pct)}${p.ppl_pct.toFixed(2)}%</td>
+                  </tr>`;
+              }).join('');
+          } else if (posData.status === 'ok') {
+              tbody.innerHTML = '<tr><td colspan="7" style="color:var(--dim)">No open positions.</td></tr>';
+          } else {
+              tbody.innerHTML = `<tr><td colspan="7" style="color:var(--red)">${posData.message || 'Error loading positions'}</td></tr>`;
+          }
+      } catch (e) {
+          document.getElementById('t212-mode-badge').innerText = 'OFFLINE';
+      }
+  }
+
   async function fetchPnlSummary() {
       try {
           const res = await fetch('/api/pnl_summary');
@@ -654,6 +739,7 @@ async function runBacktestSweep() {
    fetchLiveTrades();
    fetchDaemonStatus();
    fetchAlpacaStatus();
+   fetchT212Status();
    fetchUniverse();
    fetchHistoricTrades();
    fetchDailyPnl();
