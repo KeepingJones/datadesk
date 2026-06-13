@@ -69,6 +69,7 @@
   <button class="tab-btn" onclick="showTab('tab-cc')">Command & Control</button>
   <button class="tab-btn" onclick="showTab('tab-universe')">Universe & Discovery</button>
   <button class="tab-btn" onclick="showTab('tab-analytics')">Analytics & Validation</button>
+  <button class="tab-btn" onclick="showTab('tab-research')">Research & Signals</button>
 </div>
 
 <!-- TAB: COMMAND & CONTROL -->
@@ -439,6 +440,61 @@
   </div>
 </div>
 
+<!-- TAB: RESEARCH & SIGNALS -->
+<div id="tab-research" class="tab-content">
+  <div class="grid">
+
+    <!-- Ticker Thesis -->
+    <div class="panel wide">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h2 style="margin:0;">Investment Thesis</h2>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="thesisTickerInput" placeholder="Ticker (e.g. NVDA)" style="width:140px;" />
+          <button class="primary" onclick="loadThesis()">Generate</button>
+        </div>
+      </div>
+      <div id="thesis-output" style="font-size:13px;line-height:1.7;">
+        <div style="color:var(--dim);">Enter a ticker and click Generate to produce a fundamentals-based investment thesis.</div>
+      </div>
+    </div>
+
+    <!-- Congress Event Study -->
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h2 style="margin:0;">Congress Trading Signal</h2>
+        <button class="primary" id="btn-congress" onclick="loadCongressStudy()">Run Study</button>
+      </div>
+      <div id="congress-summary" style="color:var(--dim);font-size:12px;">Click Run to compute forward returns after congressional disclosures.</div>
+      <div id="congress-table" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- Trump Event Study -->
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h2 style="margin:0;">Trump Post Signal</h2>
+        <button class="primary" id="btn-trump" onclick="loadTrumpStudy()">Run Study</button>
+      </div>
+      <div id="trump-summary" style="color:var(--dim);font-size:12px;">Click Run to measure SPY abnormal return by post category.</div>
+      <div id="trump-table" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- Top Congress Tickers -->
+    <div class="panel">
+      <h2>Top Congressional Buy Targets</h2>
+      <div class="note" style="margin-bottom:8px;">Avg abnormal 20d return vs SPY, minimum 2 disclosures.</div>
+      <div id="congress-top-tickers"></div>
+    </div>
+
+    <!-- Top Legislators -->
+    <div class="panel">
+      <h2>Top Legislators by Alpha</h2>
+      <div class="note" style="margin-bottom:8px;">Avg abnormal 20d return on buy disclosures, min 3 trades.</div>
+      <div id="congress-top-legs"></div>
+    </div>
+
+  </div>
+</div>
+
 <script src="/static/utils.js"></script>
 <script>
 
@@ -449,6 +505,10 @@ function showTab(tabId) {
     const btn = document.querySelector(`.tab-btn[onclick*='${tabId}']`);
     if (btn) btn.classList.add('active');
     if (tabId === 'tab-universe' && _screenerData.length === 0) loadScreener();
+    if (tabId === 'tab-research') {
+        if (typeof loadCongressStudy === 'function' && document.getElementById('congress-top-tickers').innerHTML === '')
+            loadCongressStudy();
+    }
 }
 
 
@@ -1054,6 +1114,134 @@ async function runBacktestSweep() {
    fetchHistoricTrades();
    fetchDailyPnl();
    fetchPnlSummary();
+
+  // ── Research & Signals ─────────────────────────────────────────────────────
+
+  async function loadThesis() {
+      const ticker = document.getElementById('thesisTickerInput').value.trim().toUpperCase();
+      const out = document.getElementById('thesis-output');
+      if (!ticker) { out.innerHTML = '<span style="color:var(--amber)">Enter a ticker first.</span>'; return; }
+      out.innerHTML = '<span style="color:var(--dim)">Generating…</span>';
+      try {
+          const res = await fetch(`/api/thesis?ticker=${encodeURIComponent(ticker)}`);
+          const d = await res.json();
+          if (d.error) { out.innerHTML = `<span style="color:var(--red)">${d.error}</span>`; return; }
+          const badge = d.data_quality === 'ok'
+              ? '<span style="background:#238636;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;">DATA OK</span>'
+              : d.data_quality === 'sparse'
+              ? '<span style="background:#9e6a03;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;">SPARSE</span>'
+              : '<span style="background:#6e7681;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;">NO DATA</span>';
+          const bullets = (label, items, col) => items.length
+              ? `<div style="margin-top:10px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:${col};margin-bottom:4px;">${label}</div><ul style="margin:0;padding-left:18px;">${items.map(b=>`<li style="margin-bottom:3px;">${b}</li>`).join('')}</ul></div>`
+              : '';
+          out.innerHTML = `
+              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
+                  <strong style="font-size:16px;">${d.ticker}</strong>
+                  <span style="color:var(--dim);">${d.name}</span>
+                  <span style="color:var(--dim);font-size:12px;">${d.sector} · ${d.country}</span>
+                  ${badge}
+              </div>
+              <div style="color:var(--dim);font-size:12px;margin-bottom:8px;">${d.summary}</div>
+              ${bullets('Bull Case', d.bull, 'var(--green)')}
+              ${bullets('Bear Case', d.bear, 'var(--red)')}
+              ${bullets('Risk Factors', d.risk, 'var(--amber)')}
+          `;
+      } catch (e) {
+          out.innerHTML = `<span style="color:var(--red)">Error: ${e}</span>`;
+      }
+  }
+
+  function _pctCell(v, good='pos') {
+      if (v === null || v === undefined) return '<td class="num" style="color:var(--dim)">—</td>';
+      const pct = (v * 100).toFixed(2) + '%';
+      const cls = v > 0 ? good : (v < 0 ? (good === 'pos' ? 'neg' : 'pos') : '');
+      return `<td class="num ${cls}">${pct}</td>`;
+  }
+
+  async function loadCongressStudy() {
+      const btn = document.getElementById('btn-congress');
+      btn.disabled = true; btn.textContent = 'Computing…';
+      document.getElementById('congress-summary').textContent = 'Running event study (may take ~10s)…';
+      try {
+          const res = await fetch('/api/analysis/congress');
+          const d = await res.json();
+          if (d.error) {
+              document.getElementById('congress-summary').innerHTML = `<span style="color:var(--red)">${d.error}</span>`;
+              return;
+          }
+          document.getElementById('congress-summary').innerHTML =
+              `<strong>${d.n_events}</strong> events across <strong>${d.n_tickers}</strong> tickers`;
+
+          const wins = d.windows;
+          const rows = ['buy', 'sell'].map(tx => {
+              const ab = d.avg_abnormal[tx] || {};
+              return `<tr><td><strong>${tx.toUpperCase()}</strong></td>${wins.map(w => _pctCell(ab[w])).join('')}</tr>`;
+          }).join('');
+          document.getElementById('congress-table').innerHTML = `
+              <table>
+                  <thead><tr><th>Type</th>${wins.map(w=>`<th class="num">+${w}d abn</th>`).join('')}</tr></thead>
+                  <tbody>${rows}</tbody>
+              </table>`;
+
+          // Top tickers
+          const topT = d.top_tickers.slice(0, 10);
+          document.getElementById('congress-top-tickers').innerHTML = topT.length
+              ? `<table><thead><tr><th>Ticker</th><th class="num">Trades</th><th class="num">Avg Abn 20d</th></tr></thead><tbody>
+                  ${topT.map(r=>`<tr><td><strong>${r.ticker}</strong></td><td class="num">${r.n_events}</td>${_pctCell(r.avg_abn_20d)}</tr>`).join('')}
+                 </tbody></table>`
+              : '<div style="color:var(--dim)">Need ≥2 events per ticker.</div>';
+
+          // Top legislators
+          const topL = d.top_legislators.slice(0, 10);
+          document.getElementById('congress-top-legs').innerHTML = topL.length
+              ? `<table><thead><tr><th>Legislator</th><th class="num">Buys</th><th class="num">Win%</th><th class="num">Avg Abn</th></tr></thead><tbody>
+                  ${topL.map(r=>`<tr><td>${r.filer}</td><td class="num">${r.n_buys}</td><td class="num">${(r.win_rate*100).toFixed(0)}%</td>${_pctCell(r.avg_abn)}</tr>`).join('')}
+                 </tbody></table>`
+              : '<div style="color:var(--dim)">Need ≥3 trades per legislator.</div>';
+
+      } catch (e) {
+          document.getElementById('congress-summary').innerHTML = `<span style="color:var(--red)">Error: ${e}</span>`;
+      } finally {
+          btn.disabled = false; btn.textContent = 'Refresh';
+      }
+  }
+
+  async function loadTrumpStudy() {
+      const btn = document.getElementById('btn-trump');
+      btn.disabled = true; btn.textContent = 'Computing…';
+      document.getElementById('trump-summary').textContent = 'Classifying posts and computing returns…';
+      try {
+          const res = await fetch('/api/analysis/trump');
+          const d = await res.json();
+          if (d.error) {
+              document.getElementById('trump-summary').innerHTML = `<span style="color:var(--red)">${d.error}</span>`;
+              return;
+          }
+          document.getElementById('trump-summary').innerHTML =
+              `<strong>${d.n_posts.toLocaleString()}</strong> posts analysed · <strong>${d.n_actionable}</strong> actionable`;
+
+          const wins = d.windows;
+          const cats = Object.keys(d.category_abnormal).sort();
+          const rows = cats.map(cat => {
+              const ab = d.category_abnormal[cat];
+              const cnt = d.category_counts[cat] || 0;
+              return `<tr><td><strong>${cat}</strong></td><td class="num">${cnt}</td>${wins.map(w => _pctCell(ab[w])).join('')}</tr>`;
+          }).join('');
+          document.getElementById('trump-table').innerHTML = `
+              <table>
+                  <thead><tr><th>Category</th><th class="num">Count</th>${wins.map(w=>`<th class="num">+${w}d abn</th>`).join('')}</tr></thead>
+                  <tbody>${rows}</tbody>
+              </table>`;
+      } catch (e) {
+          document.getElementById('trump-summary').innerHTML = `<span style="color:var(--red)">Error: ${e}</span>`;
+      } finally {
+          btn.disabled = false; btn.textContent = 'Refresh';
+      }
+  }
+
+  // Auto-run research tab on first open
+  const _researchLoaded = { congress: false, trump: false };
+  const _origShowTab = showTab;
 </script>
 </body>
 </html>

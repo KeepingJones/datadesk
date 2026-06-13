@@ -770,6 +770,89 @@ def api_fundamentals(ticker: str | None = None):
             pass
 
 
+@app.get("/api/thesis")
+def api_thesis(ticker: str | None = None):
+    """
+    Return investment thesis for one ticker (?ticker=NVDA) or all tickers.
+    Template-based from stored fundamentals — no LLM required.
+    """
+    from datadesk.analysis.thesis import generate_thesis, generate_all_theses
+    import dataclasses
+
+    def _serialise(t):
+        return dataclasses.asdict(t)
+
+    try:
+        if ticker:
+            return _serialise(generate_thesis(ticker))
+        else:
+            results = generate_all_theses()
+            return [_serialise(v) for v in results.values()]
+    except Exception as e:
+        return {"error": str(e)}
+
+
+_congress_study_cache: dict = {}
+_trump_study_cache: dict = {}
+
+
+@app.get("/api/analysis/congress")
+def api_congress_event_study(refresh: bool = False):
+    """
+    Congress trading event study — measures forward returns after disclosure dates.
+    Cached after first computation (set ?refresh=true to recompute).
+    """
+    global _congress_study_cache
+    if not refresh and _congress_study_cache:
+        return _congress_study_cache
+    try:
+        from datadesk.analysis.congress_events import run_congress_event_study
+        import dataclasses
+        study = run_congress_event_study()
+        result = {
+            "n_events": study.n_events,
+            "n_tickers": study.n_tickers,
+            "windows": study.windows,
+            "avg_returns": study.avg_returns,
+            "avg_abnormal": study.avg_abnormal,
+            "top_tickers": study.top_tickers,
+            "top_legislators": study.top_legislators,
+        }
+        _congress_study_cache = result
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.get("/api/analysis/trump")
+def api_trump_event_study(refresh: bool = False):
+    """
+    Trump post event study — classifies posts by category, measures SPY abnormal return.
+    Cached after first computation (set ?refresh=true to recompute).
+    """
+    global _trump_study_cache
+    if not refresh and _trump_study_cache:
+        return _trump_study_cache
+    try:
+        from datadesk.analysis.trump_events import run_trump_event_study
+        study = run_trump_event_study()
+        result = {
+            "n_posts": study.n_posts,
+            "n_actionable": study.n_actionable,
+            "windows": study.windows,
+            "category_abnormal": study.category_abnormal,
+            "category_counts": study.category_counts,
+            "top_events": [
+                {k: (str(v) if hasattr(v, "isoformat") else v) for k, v in e.items()}
+                for e in study.top_events
+            ],
+        }
+        _trump_study_cache = result
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
+
 @app.get("/api/phase")
 def api_phase(nav: float = 0.0, monthly: float = 500.0, cagr: float = 0.20, years: int = 15):
     """

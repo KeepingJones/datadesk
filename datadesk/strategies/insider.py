@@ -32,9 +32,9 @@ def insider_congress_follow(
                 "SELECT ticker, filing_date as observed_at, filer_name FROM insiders WHERE transaction_type = 'P'",
                 conn,
             )
-            # Congress (Purchase)
+            # Congress buys (actual DB values: 'buy', not 'Purchase')
             congress = pd.read_sql(
-                "SELECT ticker, disclosure_date as observed_at, filer_name FROM congress_trading WHERE transaction_type = 'Purchase'",
+                "SELECT ticker, disclosure_date as observed_at, filer_name FROM congress_trading WHERE transaction_type = 'buy'",
                 conn,
             )
             conn.close()
@@ -42,9 +42,20 @@ def insider_congress_follow(
             # If db is missing, return empty weights
             return weights
 
-        # Convert to datetime
+        # Convert to datetime — congress dates use format "24 Mar2026" (no space before year)
+        import re as _re
+        def _parse_date(s):
+            if pd.isna(s):
+                return pd.NaT
+            s = str(s).strip()
+            s = _re.sub(r"([A-Za-z])(\d{4})$", r"\1 \2", s)
+            try:
+                return pd.to_datetime(s, dayfirst=True)
+            except Exception:
+                return pd.NaT
+
         insiders["observed_at"] = pd.to_datetime(insiders["observed_at"], errors="coerce")
-        congress["observed_at"] = pd.to_datetime(congress["observed_at"], errors="coerce")
+        congress["observed_at"] = congress["observed_at"].apply(_parse_date)
 
         insiders = insiders.dropna(subset=["observed_at"])
         congress = congress.dropna(subset=["observed_at"])
