@@ -5,6 +5,7 @@ short-term reversal would otherwise contaminate the signal).
 """
 
 from collections.abc import Callable
+from collections.abc import Collection
 
 import pandas as pd
 
@@ -16,8 +17,25 @@ def month_end_dates(index: pd.DatetimeIndex) -> pd.DatetimeIndex:
 
 
 def momentum(
-    lookback: int = 126, top_n: int = 10, skip: int = 21
+    lookback: int = 126,
+    top_n: int = 10,
+    skip: int = 21,
+    quality_universe: Collection[str] | None = None,
 ) -> Callable[[pd.DataFrame], pd.DataFrame]:
+    """
+    Cross-sectional momentum with optional quality filter.
+
+    quality_universe: if provided, only tickers in this set are eligible at each
+    rebalance. Tickers not in the set are zeroed out before ranking. Useful for
+    excluding micro-caps, highly leveraged or deeply loss-making companies.
+
+    If quality_universe is empty or None, all tickers in prices are eligible
+    (backward-compatible default).
+    """
+    _qset: frozenset[str] | None = (
+        frozenset(quality_universe) if quality_universe else None
+    )
+
     def target_weights(prices: pd.DataFrame) -> pd.DataFrame:
         signal = prices.shift(skip) / prices.shift(skip + lookback) - 1
         rebal_dates = month_end_dates(prices.index)
@@ -25,6 +43,8 @@ def momentum(
         rows = {}
         for date in rebal_dates:
             scores = signal.loc[date].dropna()
+            if _qset:
+                scores = scores[scores.index.isin(_qset)]
             scores = scores[scores > 0]  # long-only: don't buy downtrends
             if scores.empty:
                 rows[date] = pd.Series(0.0, index=prices.columns)

@@ -311,3 +311,62 @@ def fetch_fundamentals(
     ok = sum(v for v in results.values())
     logger.info(f"fundamentals: {ok}/{len(tickers)} tickers stored")
     return results
+
+
+def load_quality_excludes(
+    db_path: Path | None = None,
+    min_market_cap: float = 100_000_000,
+    min_net_margin: float = -1.0,
+) -> frozenset[str]:
+    """
+    Return set of tickers to EXCLUDE based on quality gates.
+
+    Tickers NOT in the fundamentals DB pass through (opt-in exclusion philosophy).
+    D/E ratio is NOT a gate — financial companies and buyback-heavy tech have structurally
+    high D/E that is not a quality signal.
+
+    Gates:
+      - market_cap < min_market_cap (default $100M) — exclude micro-caps for liquidity
+      - net_margin < min_net_margin (default -100%) — exclude deeply cash-burning companies
+
+    Usage in callers:
+        excluded = load_quality_excludes()
+        eligible = set(prices.columns) - excluded
+    """
+    db = db_path or ALTDATA_DB
+    try:
+        con = sqlite3.connect(db)
+        rows = con.execute(
+            """
+            SELECT r.ticker, r.market_cap, r.net_margin
+            FROM equity_ratios r
+            INNER JOIN (
+                SELECT ticker, MAX(id) AS max_id FROM equity_ratios GROUP BY ticker
+            ) latest ON r.id = latest.max_id
+            """
+        ).fetchall()
+        con.close()
+    except Exception as e:
+        logger.warning(f"load_quality_excludes: DB read failed ({e}) — no exclusions applied")
+        return frozenset()
+
+    excluded: set[str] = set()
+    for ticker, mkt_cap, net_margin in rows:
+        if mkt_cap is not None and mkt_cap < min_market_cap:
+            excluded.add(ticker)
+        elif net_margin is not None and net_margin < min_net_margin:
+            excluded.add(ticker)
+
+    logger.info(
+        f"load_quality_excludes: {len(excluded)}/{len(rows)} tickers excluded "
+        f"(mkt_cap<{min_market_cap/1e6:.0f}M or net_margin<{min_net_margin:.0%})"
+    )
+    return frozenset(excluded)
+
+
+def load_quality_universe(
+    db_path: Path | None = None,
+    min_market_cap: float = 100_000_000,
+) -> frozenset[str]:
+    """Deprecated alias — use load_quality_excludes() instead."""
+    return load_quality_excludes(db_path=db_path, min_market_cap=min_market_cap)

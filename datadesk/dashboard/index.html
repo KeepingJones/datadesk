@@ -250,6 +250,41 @@
               </table>
           </div>
       </div>
+
+      <div class="panel wide">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <h2 style="margin:0;">Fundamentals Screener</h2>
+              <div style="display:flex; gap:8px; align-items:center;">
+                  <input type="text" id="screenerFilter" placeholder="Filter by ticker or sector…" style="width:220px;" oninput="filterScreener(this.value)" />
+                  <button class="primary" onclick="loadScreener()">Refresh</button>
+              </div>
+          </div>
+          <div class="table-container" style="max-height:520px; overflow-y:auto;">
+              <table id="screenerTable">
+                  <thead>
+                      <tr>
+                          <th onclick="sortScreener('ticker')" style="cursor:pointer;">Ticker ↕</th>
+                          <th onclick="sortScreener('name')" style="cursor:pointer;">Name ↕</th>
+                          <th onclick="sortScreener('sector')" style="cursor:pointer;">Sector ↕</th>
+                          <th onclick="sortScreener('country')" style="cursor:pointer;">Country ↕</th>
+                          <th class="num" onclick="sortScreener('market_cap')" style="cursor:pointer;">Mkt Cap ↕</th>
+                          <th class="num" onclick="sortScreener('trailing_pe')" style="cursor:pointer;">PE ↕</th>
+                          <th class="num" onclick="sortScreener('price_to_book')" style="cursor:pointer;">P/B ↕</th>
+                          <th class="num" onclick="sortScreener('ev_to_ebitda')" style="cursor:pointer;">EV/EBITDA ↕</th>
+                          <th class="num" onclick="sortScreener('revenue_growth')" style="cursor:pointer;">Rev Gr% ↕</th>
+                          <th class="num" onclick="sortScreener('gross_margin')" style="cursor:pointer;">Grs Mgn% ↕</th>
+                          <th class="num" onclick="sortScreener('net_margin')" style="cursor:pointer;">Net Mgn% ↕</th>
+                          <th class="num" onclick="sortScreener('roe')" style="cursor:pointer;">ROE% ↕</th>
+                          <th class="num" onclick="sortScreener('debt_to_equity')" style="cursor:pointer;">D/E ↕</th>
+                          <th class="num" onclick="sortScreener('dividend_yield')" style="cursor:pointer;">Div% ↕</th>
+                          <th class="num" onclick="sortScreener('beta')" style="cursor:pointer;">Beta ↕</th>
+                      </tr>
+                  </thead>
+                  <tbody id="screenerBody"></tbody>
+              </table>
+          </div>
+          <div class="note" id="screenerNote">Loading…</div>
+      </div>
   </div>
 </div>
 
@@ -387,6 +422,7 @@ function showTab(tabId) {
     document.getElementById(tabId).classList.add('active');
     const btn = document.querySelector(`.tab-btn[onclick*='${tabId}']`);
     if (btn) btn.classList.add('active');
+    if (tabId === 'tab-universe' && _screenerData.length === 0) loadScreener();
 }
 
 
@@ -509,6 +545,97 @@ function showTab(tabId) {
       const action = start ? 'start' : 'stop';
       await fetch(`/api/daemons/${name}/${action}`, { method: 'POST' });
       fetchDaemonStatus();
+  }
+
+  // ── Fundamentals Screener ──────────────────────────────────────────────────
+  let _screenerData = [];
+  let _screenerSort = { col: 'market_cap', asc: false };
+
+  function fmt(v, digits=2, suffix='') {
+      if (v === null || v === undefined) return '<span style="color:#484f58">—</span>';
+      return Number(v).toFixed(digits) + suffix;
+  }
+  function fmtCap(v) {
+      if (!v) return '<span style="color:#484f58">—</span>';
+      if (v >= 1e12) return (v/1e12).toFixed(2) + 'T';
+      if (v >= 1e9)  return (v/1e9).toFixed(1) + 'B';
+      if (v >= 1e6)  return (v/1e6).toFixed(0) + 'M';
+      return v.toString();
+  }
+  function colorPct(v, goodPositive=true) {
+      if (v === null || v === undefined) return '<span style="color:#484f58">—</span>';
+      const pct = (v*100).toFixed(1) + '%';
+      const cls = (goodPositive ? v >= 0 : v <= 0) ? 'pos' : 'neg';
+      return `<span class="${cls}">${pct}</span>`;
+  }
+
+  function renderScreenerRow(r) {
+      return `<tr>
+          <td><strong>${r.ticker || ''}</strong></td>
+          <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.name||''}">${r.name||'—'}</td>
+          <td>${r.sector||'—'}</td>
+          <td>${r.country||'—'}</td>
+          <td class="num">${fmtCap(r.market_cap)}</td>
+          <td class="num">${fmt(r.trailing_pe)}</td>
+          <td class="num">${fmt(r.price_to_book)}</td>
+          <td class="num">${fmt(r.ev_to_ebitda)}</td>
+          <td class="num">${colorPct(r.revenue_growth)}</td>
+          <td class="num">${colorPct(r.gross_margin)}</td>
+          <td class="num">${colorPct(r.net_margin)}</td>
+          <td class="num">${colorPct(r.roe)}</td>
+          <td class="num">${fmt(r.debt_to_equity)}</td>
+          <td class="num">${colorPct(r.dividend_yield)}</td>
+          <td class="num">${fmt(r.beta)}</td>
+      </tr>`;
+  }
+
+  function renderScreener(data) {
+      const body = document.getElementById('screenerBody');
+      if (!body) return;
+      body.innerHTML = data.map(renderScreenerRow).join('');
+  }
+
+  function sortScreener(col) {
+      if (_screenerSort.col === col) {
+          _screenerSort.asc = !_screenerSort.asc;
+      } else {
+          _screenerSort = { col, asc: col === 'ticker' || col === 'name' || col === 'sector' };
+      }
+      const asc = _screenerSort.asc;
+      const sorted = [..._screenerData].sort((a, b) => {
+          const va = a[col], vb = b[col];
+          if (va === null || va === undefined) return 1;
+          if (vb === null || vb === undefined) return -1;
+          if (typeof va === 'string') return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+          return asc ? va - vb : vb - va;
+      });
+      renderScreener(sorted);
+  }
+
+  function filterScreener(q) {
+      const lq = q.toLowerCase();
+      const filtered = _screenerData.filter(r =>
+          (r.ticker||'').toLowerCase().includes(lq) ||
+          (r.name||'').toLowerCase().includes(lq) ||
+          (r.sector||'').toLowerCase().includes(lq)
+      );
+      renderScreener(filtered);
+  }
+
+  async function loadScreener() {
+      const note = document.getElementById('screenerNote');
+      if (note) note.textContent = 'Loading…';
+      try {
+          const res = await fetch('/api/fundamentals');
+          const data = await res.json();
+          _screenerData = data;
+          // default sort: market_cap descending
+          _screenerData.sort((a,b) => (b.market_cap||0) - (a.market_cap||0));
+          renderScreener(_screenerData);
+          if (note) note.textContent = `${data.length} tickers — click column headers to sort`;
+      } catch(e) {
+          if (note) note.textContent = `Error: ${e}`;
+      }
   }
 
   async function triggerJob(jobType) {

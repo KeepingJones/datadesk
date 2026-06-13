@@ -184,6 +184,7 @@ def cmd_holdout() -> None:
     from datadesk.backtest.engine import run_backtest
     from datadesk.db import save_backtest_run
     from datadesk.history.store import coverage, load_closes
+    from datadesk.ingest.fundamentals import load_quality_excludes
     from datadesk.strategies.momentum import momentum
     from datadesk.strategies.regime import bear_only_scale
 
@@ -196,9 +197,13 @@ def cmd_holdout() -> None:
 
     prices = load_closes(tickers=tickers)
     prices = prices[prices.index >= "2016-05-24"].ffill().dropna(axis=1)
-    print(f"Universe: {prices.shape[1]} tickers, {prices.shape[0]} days")
 
-    w_mom = momentum(126, 10, 21)(prices)
+    excluded = load_quality_excludes()
+    eligible = set(prices.columns) - excluded
+    print(f"Universe: {prices.shape[1]} tickers, {prices.shape[0]} days "
+          f"| quality filter excluded {len(excluded)} micro-caps → {len(eligible)} eligible")
+
+    w_mom = momentum(126, 10, 21, quality_universe=eligible)(prices)
     if "SPY" in prices.columns and "^VIX" in prices.columns:
         scale = bear_only_scale(prices["SPY"], prices["^VIX"])
         w_strat = w_mom.mul(scale, axis=0)
@@ -262,6 +267,7 @@ def cmd_tax_compare() -> None:
     from datadesk.backtest.engine import run_backtest
     from datadesk.backtest.tax import UK_HIGHER_RATE, compare_tax_wrappers, print_tax_comparison
     from datadesk.history.store import coverage, load_closes
+    from datadesk.ingest.fundamentals import load_quality_excludes
     from datadesk.strategies.momentum import momentum
     from datadesk.strategies.regime import bear_only_scale
 
@@ -273,9 +279,13 @@ def cmd_tax_compare() -> None:
 
     prices = load_closes(tickers=tickers)
     prices = prices[prices.index >= "2016-05-24"].ffill().dropna(axis=1)
-    print(f"Universe: {prices.shape[1]} tickers, {prices.shape[0]} days")
 
-    w_mom = momentum(126, 10, 21)(prices)
+    excluded = load_quality_excludes()
+    eligible = set(prices.columns) - excluded
+    print(f"Universe: {prices.shape[1]} tickers, {prices.shape[0]} days "
+          f"| quality filter excluded {len(excluded)} micro-caps → {len(eligible)} eligible")
+
+    w_mom = momentum(126, 10, 21, quality_universe=eligible)(prices)
     if "SPY" in prices.columns and "^VIX" in prices.columns:
         scale = bear_only_scale(prices["SPY"], prices["^VIX"])
         w_strat = w_mom.mul(scale, axis=0)

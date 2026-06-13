@@ -745,10 +745,16 @@ def api_fundamentals(ticker: str | None = None):
             }
         else:
             rows = con.execute("""
-                SELECT r.ticker, i.name, i.sector, i.industry, i.country,
+                SELECT r.ticker, i.name, i.sector, i.industry, i.country, i.exchange,
                        r.market_cap, r.trailing_pe, r.forward_pe, r.price_to_book,
-                       r.dividend_yield, r.revenue_growth, r.gross_margin, r.roe,
-                       r.debt_to_equity, r.beta, r.week52_change, r.fetched_at
+                       r.price_to_sales, r.ev_to_ebitda,
+                       r.dividend_yield, r.payout_ratio,
+                       r.revenue, r.revenue_growth,
+                       r.gross_margin, r.operating_margin, r.net_margin,
+                       r.roe, r.roa, r.debt_to_equity, r.current_ratio,
+                       r.free_cashflow, r.beta,
+                       r.week52_high, r.week52_low, r.week52_change,
+                       r.short_pct_float, r.fetched_at
                 FROM equity_ratios r
                 LEFT JOIN equity_info i ON r.ticker=i.ticker
                 WHERE r.id IN (SELECT MAX(id) FROM equity_ratios GROUP BY ticker)
