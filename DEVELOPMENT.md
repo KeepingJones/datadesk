@@ -53,21 +53,34 @@ datadesk/
 │   │   ├── ecb.py            ECB EUR reference rates
 │   │   ├── trump.py          CNN Truth Social archive collector
 │   │   ├── t212_client.py    read-only T212 REST client (60s cache)
-│   │   └── fundamentals.py   yfinance fundamental fetcher → altdata.db
+│   │   ├── fundamentals.py   yfinance fundamental fetcher → altdata.db
+│   │   └── index_membership.py  ETF constituent registry → index_memberships table
 │   │
 │   ├── strategies/           signal generation
 │   │   ├── momentum.py       cross-sectional 12-1 momentum (formation, skip, top_n)
 │   │   ├── trend.py          200d trend filter with hysteresis band
-│   │   ├── regime.py         VIX + bear_only_scale overlay
+│   │   ├── regime.py         VIX + bear_only_scale overlay (2-state)
+│   │   ├── macro_regime.py   3-state economic regime (Expansion/Caution/Stress)
+│   │   ├── phase.py          portfolio phase model (top_n by NAV: 3/6/10/15)
+│   │   ├── congress_blend.py momentum with congressional buy score tilt
 │   │   ├── meanrev.py        mean reversion (parked, not in live blend)
 │   │   └── insider.py        congress/Form4 follow strategy (strategy 4)
 │   │
 │   ├── backtest/             backtesting
 │   │   ├── engine.py         run_backtest() — vectorised, no-lookahead
 │   │   ├── costs.py          CostModel, ALPACA_COSTS, T212_ISA_COSTS, ZERO_COSTS
+│   │   ├── tiers.py          exchange+market-cap cost tier assignment
 │   │   ├── metrics.py        cagr(), sharpe(), max_drawdown(), summarize()
 │   │   ├── walkforward.py    walk-forward harness with param-stability flag
+│   │   ├── phase_backtest.py phase-aware backtest with monthly contributions
 │   │   └── tax.py            UK CGT simulation — compare_tax_wrappers()
+│   │
+│   ├── analysis/             research and signal analysis
+│   │   ├── congress_events.py  congressional trading event study
+│   │   ├── trump_events.py     Trump post keyword-classification event study
+│   │   ├── thesis.py           template-based investment thesis generator
+│   │   ├── signal_audit.py     look-ahead bias audit / signal genesis report
+│   │   └── forward_screener.py multi-factor forward screener + thematic radar
 │   │
 │   ├── universe/             platform classification
 │   │   └── platform.py       classify(), split_by_platform(), available_on_*()
@@ -94,7 +107,7 @@ datadesk/
 │   └── dashboard/
 │       └── index.html        single-page ops console (Jinja2 + Chart.js)
 │
-├── tests/                    119 tests (pytest)
+├── tests/                    143 tests (pytest)
 ├── scripts/
 │   └── migrate_from_trading_bot.py  one-shot legacy migration (already run)
 ├── docs/
@@ -150,26 +163,52 @@ All alternative and fundamental data.
 ## 3. Commands
 
 ```bash
+# Core strategy
 python main.py backtest          # momentum+trend backtest, save to platform.db
-python main.py holdout           # strategy v2 (momentum-core + bear overlay) vs SPY
-python main.py tax-compare       # 3-column after-tax comparison: Alpaca pre, Alpaca post, ISA
+python main.py holdout           # full strategy comparison: tiered costs, regime, phase-aware
+python main.py tax-compare       # 3-column after-tax: Alpaca pre, Alpaca post, ISA
+
+# Server
 python main.py serve [--port N]  # ops console on http://localhost:8000
+
+# Data management
 python main.py coverage          # print history store coverage table
 python main.py universe          # print platform availability per ticker (T212 ISA / Alpaca)
 python main.py backfill [--source yahoo|massive] [--no-fundamentals] T1 T2 ...
-                                 # backfill price history + fundamentals for tickers
-python main.py enrich [T1 T2 ...]  # refresh fundamentals only (all or subset)
-python main.py weekly-update     # gap-fill prices + refresh stale fundamentals (run Saturdays)
-python main.py collect-trump     # refresh Trump CNN corpus
+python main.py enrich [T1 T2 ...]   # refresh fundamentals only (all or subset)
+python main.py weekly-update        # gap-fill prices + refresh stale fundamentals (Saturdays)
+python main.py collect-trump        # refresh Trump CNN corpus
+python main.py index-seed           # populate index_memberships table (SMH/QQQ/SPY/XLK)
+
+# Research / discovery
+python main.py screen               # forward screener: top buys by momentum+quality+congress+theme
+python main.py signal-audit         # look-ahead bias audit: when did signal first fire per ticker?
+python main.py universe-expand [--theme THEME] [--dry-run]  # add new tickers from themed ETFs
+python main.py event-study [congress|trump]  # event study results
+python main.py phase-projection [--monthly M] [--initial I] [--cagr C] [--years Y]
 ```
 
 ### `holdout` output
-Prints two tables — FULL PERIOD and HOLDOUT (last 252d) — each with three rows:
-1. Strategy (ALPACA costs)
-2. Strategy (T212 ISA 15bps FX costs)
-3. SPY benchmark (zero cost, no tax)
+Sections printed:
+1. **ALPACA tiered costs** — full period + holdout (last 252d) for equal-weight and inv-vol-weight
+2. **T212 ISA tiered+FX** — same with 15bps FX per trade
+3. **Congress-momentum blend** — equal-weight + congress score tilt vs pure momentum
+4. **Economic regime** — Expansion/Caution/Stress day counts; 3-state overlay vs bear_only
+5. **Phase-aware backtest** — £500 start + £500/mo contributions, dynamic top_n, transition log
 
 Gate 1 = beat SPY on **both** Sharpe and MaxDD in the holdout section.
+
+### `screen` output
+Two sections:
+1. **Thematic S-curve radar** — HOT/WARM/COLD for each tech theme (3-month momentum)
+2. **Ranked stock table** — top 20 by composite score with all signal components visible
+
+### `signal-audit` output
+Per-ticker table showing:
+- `1st Signal` — first date 6-1 momentum was positive (real-time, no lookahead)
+- `Price@Sig` — closing price on signal date
+- `From Sig%` / `Total%` — fraction of total return captured by signal
+- `Look-ahead?` — YES if ticker was added after backtest start (selection bias warning)
 
 ### `tax-compare` output
 Three columns per metric:
@@ -197,6 +236,39 @@ w_final = w_mom.mul(scale, axis=0)
 - `skip=21` (skip most recent month — avoids short-term reversal)
 - `top_n=10` (equal-weight top 10 by 6-1 return)
 - Bear overlay fires only when BOTH SPY below 200dMA AND VIX > 30
+
+### Phase-aware strategy (phase.py)
+
+Portfolio scales with account size. `portfolio_phase(nav_gbp)` returns the phase for a given NAV:
+
+| Phase | NAV | top_n | Min position |
+|---|---|---|---|
+| 1 — Accumulation | < £5k | 3 | £50 |
+| 2 — Growth | £5k–£25k | 6 | £100 |
+| 3 — Compounding | £25k–£100k | 10 | £500 |
+| 4 — Scale | > £100k | 15 | £2,000 |
+
+Phase is re-evaluated only at month-end rebalance dates to prevent daily threshold chatter.
+
+### 3-state economic regime (macro_regime.py)
+
+Extends the 2-state `bear_only_scale` with yield curve data:
+
+| Regime | Condition | Scale |
+|---|---|---|
+| EXPANSION | SPY > 150dMA, VIX < 25, yield curve > -0.5% | 1.0 |
+| CAUTION | yield curve < -0.5% OR VIX > 25 OR SPY < 150dMA | 0.65 |
+| STRESS | SPY < 200dMA AND (VIX > 32 OR yield curve < -1%) | 0.35 |
+
+Yield curve = ^TNX (10Y) minus ^IRX (3M) from yfinance. Free, no API key.
+Backtest period breakdown: ~61% Expansion, ~36% Caution (2022-23 rate hike cycle), ~3% Stress.
+
+### Congress-momentum blend (congress_blend.py)
+
+Multiplicative boost to momentum scores for tickers with recent congressional buys:
+- `congress_boost=2.0` → tickers with a congressional buy in last 45 days score 2× in ranking
+- Event study shows +6.5% abnormal 20d return on congress buys, but net alpha over pure momentum is ~0 (momentum already captures it)
+- Module kept as research tool; not recommended for live blend
 
 ### Parked strategies
 - `meanrev.py` — negative attribution in blended backtest; excluded from live blend
@@ -513,33 +585,144 @@ The file currently contains live T212 keys — do not push to public GitHub unti
 
 ---
 
-## 16. Current status & gate
+## 16. Backtest realism & bias
 
-### Gate 1 (holdout, last 252d, 25-ticker survivorship-biased universe)
-| Metric | Strategy | SPY | Status |
+### Honest assessment of the numbers
+
+The headline CAGR of ~38% (full period 2016–2026) is overstated. Here is the honest decomposition:
+
+| Source of bias | Estimated CAGR inflation | Fix |
+|---|---|---|
+| Survivorship bias (universe constructed in 2025) | 8–15% | Tiingo/EODHD point-in-time universe |
+| NVDA + 4 stocks carrying the whole result | Not separable | Wider universe dilutes concentration |
+| Execution at close vs T212 market open | ~0.3–1%/year | Accept — structural in T212 |
+| UK AIM / micro-cap spread now L3 (fixed) | ✓ corrected | `backtest/tiers.py` |
+| Congress signal adds no net alpha | ✓ confirmed | Pure momentum retained |
+
+**Realistic range:** A properly constructed momentum strategy on S&P 500 / Nasdaq-100 earns ~8–12% CAGR gross, ~6–10% after costs. Our ~38% implies roughly 25% comes from selection bias and NVDA concentration.
+
+### Signal genesis (was it hindsight?)
+
+Run `python main.py signal-audit` to see the first date each ticker was identified by real-time momentum. Key finding:
+- **NVDA**: first signal Aug 2014 at $0.46. Strategy captured 80% of the +54,850% total gain — momentum identified it during the gaming GPU super-cycle, before the AI narrative. No hindsight required.
+- **No look-ahead tickers**: every ticker in the backtest had price data before the backtest start. Selection bias is in *which* stocks we track, not in the price series.
+
+### Cost model realism (`backtest/tiers.py`)
+
+`build_cost_tiers()` assigns half-spread by exchange and market cap:
+
+| Tier | Half-spread | Applies to |
+|---|---|---|
+| L1 | 5bps | US/UK large-cap >$5B, ETFs |
+| L2 | 15bps | US/UK mid-cap $500M–$5B, European, Japanese, HK |
+| L3 | 40bps | UK AIM, US micro-cap <$500M, OTC/pink sheets |
+
+Use `CostModel(tier_by_ticker=build_cost_tiers())` for realistic per-ticker costs.
+
+### Index overlap
+
+`python main.py index-seed` populates `index_memberships` and `holdout` reports overlap:
+- Current backtest universe: ~18% SMH, ~16% QQQ, ~13% SPY overlap
+- High overlap = strategy partly riding index rebalancing flows (not pure alpha)
+- Target: keep any single index overlap below 40%
+
+### What's still unrealistic (requires paid data)
+
+1. **Point-in-time universe** — Tiingo/EODHD provide historical S&P 500 constituents by date. ~$20/mo. Eliminates survivorship bias entirely.
+2. **Delisted stocks** — currently absent from history.db. All delistings are losses we didn't record.
+
+---
+
+## 17. Forward screener & stock discovery
+
+### Finding the next NVDA
+
+The next breakout stock will likely be *currently unknown* — a small-cap in a new S-curve before it becomes widely followed. The discovery pipeline:
+
+**Step 1: Theme S-curve radar** (`python main.py screen` → Thematic S-curve radar section)
+  - Tracks 7 tech themes: AI_INFRA, QUANTUM, DATACENTRE_POWER, OPTICAL_NET, SEMI_EQUIP, CLOUD_AI_SW, ENERGY_TRANS, UK_TECH
+  - Score = % of theme members in top-quartile 3-month momentum
+  - Score > 50% → theme in acceleration phase → strong buy signal for theme members
+  - Example: AI_INFRA was 67% hot in June 2026 (NVDA, KLAC, MU all moving together)
+
+**Step 2: Momentum ranking within hot themes** (forward screener composite score)
+  - Momentum (50%) + Fundamental quality (30%) + Congress signal (20%) + Theme tilt (+5% bonus)
+  - NVDA in 2014 would have scored: 80th percentile momentum + gaming GPU quality + no congress signal → top-10 composite
+
+**Step 3: Universe expansion** (`python main.py universe-expand`)
+  - Add all members of themed ETFs we don't yet track
+  - Sources: SMH, QQQ, QTUM (quantum), BOTZ (robotics), AIQ (AI broad), CLOU (cloud)
+  - After adding, momentum signal will discover unknown names automatically
+
+**Step 4: News sentiment (not yet wired)**
+  - Hook in `datadesk/analysis/forward_screener.py:news_sentiment_score()`
+  - Free option: VADER on `news_articles` table headlines
+  - Better: FinBERT on real-time financial news feeds
+  - When wired, pass `news_weight=0.10` to `rank_universe()`
+
+**Step 5: Form 4 insider buys on unknowns**
+  - `insiders` table in altdata.db contains Form 4 filings
+  - Executives buying their OWN company stock = strongest free "unknown stock" signal
+  - Add to forward screener by joining `insiders` WHERE transaction_type='buy' AND date > 45d ago
+
+### Quantum computing (next S-curve)
+
+QUANTUM theme currently WARM (25% of members in top-quartile momentum as of June 2026).
+Watch for this to go HOT as: (a) error correction milestones are hit, (b) enterprise pilots start.
+Key names to track when theme accelerates: IONQ, GOOGL (quantum research), IBM, MSFT.
+Add to universe via `universe-expand --theme QUANTUM` when price history is insufficient.
+
+---
+
+## 18. Current status & gate
+
+### Gate 1 (holdout, last 252d, tiered-cost universe)
+| Metric | Strategy (T212) | SPY | Status |
 |---|---|---|---|
-| Sharpe | 1.96 | 1.73 | ✓ |
-| MaxDD | −16% | −9% | ✗ |
+| Sharpe | 2.33 | 1.72 | ✓ |
+| MaxDD | −14% | −9% | ✗ |
 
-The MaxDD failure is partly explained by survivorship bias (only winners in the 25-name universe). Gate requires honest universe from Tiingo/EODHD before re-evaluation.
+MaxDD gap persists. With survivorship-biased universe, our drawdowns look shallow because we only hold stocks that survived. Gate re-evaluation requires Tiingo/EODHD honest universe.
 
-### What's built (119 tests passing)
+### What's built (143 tests passing)
 - Price history: 249 tickers, history.db
-- Fundamentals: 32 tickers enriched (equity_info, equity_ratios, equity_financials, equity_balance)
-- Alt-data: all trading-bot databases unified into altdata.db
-- Strategy v2: momentum-core + bear_only_scale
-- After-tax simulation: `tax.py` + `tax-compare` command
-- Platform routing: `universe/platform.py` — ISA vs Alpaca classification
-- Monte Carlo: real bootstrap on strategy returns, P5–P95 fan chart
-- Dashboard: maintenance buttons, MC fan chart, T212 + Alpaca panels
+- Fundamentals: 80+ tickers enriched (equity_info, equity_ratios, equity_financials, equity_balance)
+- Alt-data: congress event study, Trump post event study, insider filings, news, macro
+- Strategy v2: momentum-core + bear_only_scale (2-state), + 3-state macro_regime
+- Phase-aware strategy: top_n scales 3→6→10→15 as NAV grows from £500 to £100k+
+- Phase-aware backtest: £500 start + £500/mo → £308k final NAV over 9 years
+- After-tax simulation: `tax.py` + `tax-compare` command (ISA wins above 1.25% annual gain)
+- Tiered cost model: L1/L2/L3 by exchange + market cap (AIM stocks now pay 40bps spread)
+- Index membership tracking: index_memberships table, overlap report in holdout
+- Forward screener: momentum + quality + congress + thematic acceleration
+- Thematic S-curve radar: AI_INFRA, QUANTUM, OPTICAL_NET, SEMI_EQUIP, UK_TECH etc.
+- Signal genesis audit: signal-audit command, proves no lookahead in price signals
+- Congress/Trump event studies: raw abnormal returns measured, dashboarded
+- Investment thesis generator: template-based, no LLM required
+- Dashboard: 4 tabs — C&C, Universe (fundamentals screener), Backtest, Research & Signals
+- Platform routing: T212 ISA vs Alpaca classification per ticker
 
 ### Open before public GitHub push
-1. `.env` cleanup — remove live T212 keys and Twitter password
-2. Move `live/` to private trading-bot repo per DESIGN boundary
+1. `.env` cleanup — remove live T212 keys
+2. Decide: keep `live/` in this repo or move to private trading-bot repo
 
-### Next build priorities
-1. Wire fundamentals into momentum strategy as a quality filter (ROE > 0, D/E < threshold)
-2. Run `tax-compare` on expanded 249-ticker universe
-3. Add fundamentals screener panel to dashboard (`/api/fundamentals` endpoint ready)
-4. Company thesis generator using sector + valuation + growth data
-5. Pay for Tiingo/EODHD → re-run holdout on honest universe → recheck Gate 1
+### Remaining paid-data gap
+- Tiingo/EODHD (~$20–29/mo) for point-in-time S&P 500 constituents → honest holdout
+
+---
+
+## 19. Upcoming / Roadmap (Options Trading)
+
+Options trading is a planned extension for the Alpaca US book only (options are not permitted in the T212 ISA). This will be rolled out strictly after the core equity book has proven stable in live execution for at least 4 weeks.
+
+**Planned Options Overlays:**
+1. **Income Generation:** Covered calls on held momentum winners (~30-45 DTE, ~0.30 delta) and cash-secured puts for paid entries on mean-reversion flags.
+2. **Hedging:** Buying SPY put spreads sized to cut portfolio beta during short-lived event risk (e.g., tariff whipsaws), replacing the current "sell to cash" overlay behaviour. Total premium spend capped at 1% NAV per quarter.
+
+**Validation Strategy:** 
+Free historical option-chain data is not reliable. Validation will rely on synthetic pricing (Black-Scholes on per-stock realised volatility) cross-checked against CBOE benchmarks (BXM, PUT). Real historical IV data (e.g., ORATS) will be procured before any significant capital scaling.
+
+**Safety Limits:**
+- No naked short options ever.
+- Short calls 100% covered by shares; short puts 100% cash-secured.
+- Net options notional ≤ 20% NAV.

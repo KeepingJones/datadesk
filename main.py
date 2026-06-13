@@ -180,11 +180,13 @@ def cmd_holdout() -> None:
     BEAR-ONLY overlay, always reported against the SPY benchmark on identical windows."""
     import pandas as pd
 
-    from datadesk.backtest.costs import ALPACA_COSTS, T212_ISA_COSTS, ZERO_COSTS
+    from datadesk.backtest.costs import ALPACA_COSTS, T212_ISA_COSTS, ZERO_COSTS, CostModel
     from datadesk.backtest.engine import run_backtest
+    from datadesk.backtest.tiers import build_cost_tiers
     from datadesk.db import save_backtest_run
     from datadesk.history.store import coverage, load_closes
     from datadesk.ingest.fundamentals import load_quality_excludes
+    from datadesk.ingest.index_membership import index_overlap_report
     from datadesk.strategies.momentum import momentum
     from datadesk.strategies.regime import bear_only_scale
 
@@ -202,6 +204,16 @@ def cmd_holdout() -> None:
     eligible = set(prices.columns) - excluded
     print(f"Universe: {prices.shape[1]} tickers, {prices.shape[0]} days "
           f"| quality filter excluded {len(excluded)} micro-caps → {len(eligible)} eligible")
+
+    overlap = index_overlap_report(list(eligible))
+    if overlap:
+        overlap_str = "  ".join(f"{k}: {v}%" for k, v in sorted(overlap.items()))
+        print(f"Index overlap (of eligible): {overlap_str}")
+
+    # Realistic costs: tier by exchange + market cap
+    ticker_tiers = build_cost_tiers()
+    ALPACA_TIERED = CostModel(tier_by_ticker=ticker_tiers, commission_bps=0.0, fx_fee_bps=0.0)
+    T212_TIERED   = CostModel(tier_by_ticker=ticker_tiers, commission_bps=0.0, fx_fee_bps=15.0)
 
     w_eq   = momentum(126, 10, 21, quality_universe=eligible)(prices)
     w_vol  = momentum(126, 10, 21, quality_universe=eligible, vol_weight=True)(prices)
@@ -227,7 +239,7 @@ def cmd_holdout() -> None:
         )
         return m
 
-    for label, costs in [("ALPACA 0bps", ALPACA_COSTS), ("T212 15bps FX", T212_ISA_COSTS)]:
+    for label, costs in [("ALPACA tiered costs", ALPACA_TIERED), ("T212 ISA tiered+FX", T212_TIERED)]:
         print(f"\n=== {label} ===")
         print(" FULL PERIOD:")
         m_full     = line("equal-weight + bear overlay      ", w_strat, costs, str(warmup.date()))
@@ -257,11 +269,170 @@ def cmd_holdout() -> None:
                     run_backtest(w, prices, costs, start=str(holdout_start.date())).equity,
                 )
 
+    # Congress-blend comparison
+    print("\n=== CONGRESS-MOMENTUM BLEND (congress boost x2, 45d window) ===")
+    try:
+        from datadesk.strategies.congress_blend import congress_momentum
+        w_cong = congress_momentum(126, 10, 21, congress_boost=2.0, quality_universe=eligible)(prices)
+        w_cong_bear = apply_bear(w_cong)
+        print(" FULL PERIOD:")
+        line("congress-blend + bear overlay    ", w_cong_bear, T212_ISA_COSTS, str(warmup.date()))
+        line("pure momentum (equal-wt)          ", w_strat, T212_ISA_COSTS, str(warmup.date()))
+        print(" HOLDOUT (last 252d):")
+        line("congress-blend + bear overlay    ", w_cong_bear, T212_ISA_COSTS, str(holdout_start.date()))
+        line("pure momentum (equal-wt)          ", w_strat, T212_ISA_COSTS, str(holdout_start.date()))
+    except Exception as e:
+        print(f"  Congress blend unavailable: {e}")
+
+    # Phase-aware backtest: simulate starting from £500 + £500/month
+    print("\n=== PHASE-AWARE BACKTEST (£500 start, £500/mo contributions) ===")
+    from datadesk.backtest.costs import T212_ISA_COSTS
+    from datadesk.backtest.phase_backtest import run_phase_backtest
+    pb = run_phase_backtest(
+        prices=prices,
+        cost_model=T212_ISA_COSTS,
+        initial_nav_gbp=500.0,
+        monthly_contribution_gbp=500.0,
+        start=str(warmup.date()),
+        quality_universe=eligible,
+    )
+    print(f"  Final NAV:    £{pb.metrics['final_nav_gbp']:>12,.0f}")
+    print(f"  Contributed:  £{pb.metrics['total_contributed_gbp']:>12,.0f}")
+    print(f"  Strategy CAGR: {pb.metrics['cagr']:+.3f}  Sharpe {pb.metrics['sharpe']:.2f}  MaxDD {pb.metrics['max_drawdown']:.2f}")
+    print(f"  Phase transitions: {pb.metrics['n_transitions']}")
+    for t in pb.transitions:
+        print(f"    {t.date}  £{t.nav_gbp:>10,.0f}  top-{t.from_top_n} → top-{t.to_top_n}  ({t.new_phase})")
+
+    # Economic regime breakdown over the backtest
+    print("\n=== ECONOMIC REGIME (3-state: Expansion / Caution / Stress) ===")
+    try:
+        from datadesk.strategies.macro_regime import (
+            economic_regime_scale, fetch_yield_curve, regime_stats, regime_series
+        )
+        yc = fetch_yield_curve(start="2012-01-01")
+        spy_s = prices["SPY"] if "SPY" in prices.columns else None
+        vix_s = prices["^VIX"] if "^VIX" in prices.columns else None
+        if spy_s is not None and vix_s is not None:
+            reg = regime_series(spy_s, vix_s, yc if not yc.empty else None)
+            stats = regime_stats(reg)
+            print(f"  Expansion: {stats['EXPANSION']:.1f}%  Caution: {stats['CAUTION']:.1f}%  "
+                  f"Stress: {stats['STRESS']:.1f}%  (over full backtest period)")
+            # Macro-regime overlay vs pure bear_only
+            macro_scale = economic_regime_scale(spy_s, vix_s, yc if not yc.empty else None)
+            w_macro = w_eq.mul(macro_scale, axis=0)
+            print(" FULL PERIOD (T212 tiered):")
+            line("3-state macro + momentum         ", w_macro, T212_TIERED, str(warmup.date()))
+            line("bear_only + momentum (baseline)   ", w_strat, T212_TIERED, str(warmup.date()))
+            print(" HOLDOUT (last 252d):")
+            line("3-state macro + momentum         ", w_macro, T212_TIERED, str(holdout_start.date()))
+            line("bear_only + momentum (baseline)   ", w_strat, T212_TIERED, str(holdout_start.date()))
+    except Exception as e:
+        print(f"  Macro regime unavailable: {e}")
+
     print("\nSaved to platform store.")
     print("GATE 1: beat SPY on Sharpe AND max-drawdown in the holdout.")
     print(
         "NOTE: universe still survivorship-biased until Tiingo backfill — levels not yet evidence."
     )
+
+
+def cmd_signal_audit() -> None:
+    """Show when momentum first identified each major winner — look-ahead bias analysis."""
+    from datadesk.analysis.signal_audit import print_signal_audit, run_signal_audit
+    from datadesk.history.store import coverage, load_closes
+
+    cov = coverage()
+    tickers = cov[cov["rows"] > 2000]["ticker"].tolist()
+    prices = load_closes(tickers=tickers)
+    prices = prices[prices.index >= "2014-01-01"].ffill().dropna(axis=1)
+    records = run_signal_audit(prices, backtest_start="2016-05-24")
+    print_signal_audit(records, top_n=30)
+
+    print("\n=== UNDERSTANDING THE TABLE ===")
+    print("'From Sig%' = gain from first momentum signal to today (what the strategy captured)")
+    print("'Total%'    = gain from first price bar (includes pre-signal period)")
+    print("'Captured'  = From Sig% / Total% (>100% means signal caught it early)")
+    print("'Look-ahead?YES*' = ticker added to universe AFTER backtest start (selection bias)")
+    print("\nNVDA insight: if first signal was 2016, that means real-time momentum caught it")
+    print("at the gaming GPU super-cycle peak — before AI infrastructure was the thesis.")
+
+
+def cmd_screen() -> None:
+    """Print current multi-factor forward screener — find next breakout stocks."""
+    from datadesk.analysis.forward_screener import print_forward_screen, rank_universe
+    df = rank_universe()
+    if df.empty:
+        print("No momentum signals — run backfill to populate price history")
+        return
+    print_forward_screen(df, top_n=20)
+    print("\nTO ACTIVATE NEWS SENTIMENT:")
+    print("  pip install vaderSentiment")
+    print("  Then edit datadesk/analysis/forward_screener.py:news_sentiment_score()")
+    print("  Returns a 0-1 score per ticker. Wired to 0.10 weight when news_weight=0.10")
+    print("  passed to rank_universe().")
+
+
+def cmd_universe_expand(theme: str | None = None, dry_run: bool = False) -> None:
+    """
+    Expand the price universe by fetching constituents of themed ETFs.
+
+    This is the discovery mechanism for unknown breakout candidates.
+    Fetches price history for tickers in THEMES that we don't yet track,
+    then runs backfill on any that have sufficient history (>252 bars).
+
+    Usage:
+      python main.py universe-expand               # all themes
+      python main.py universe-expand --theme AI_INFRA
+      python main.py universe-expand --dry-run     # list new tickers, don't fetch
+    """
+    from datadesk.analysis.forward_screener import THEMES
+    from datadesk.history.store import coverage
+
+    existing = set(coverage()["ticker"].tolist())
+
+    if theme:
+        themes_to_check = {theme: THEMES.get(theme, [])}
+        if not themes_to_check[theme]:
+            print(f"Unknown theme '{theme}'. Available: {', '.join(THEMES.keys())}")
+            return
+    else:
+        themes_to_check = THEMES
+
+    new_tickers: set[str] = set()
+    for t_name, members in themes_to_check.items():
+        new_in_theme = [t for t in members if t not in existing]
+        if new_in_theme:
+            print(f"  {t_name}: {len(new_in_theme)} new tickers: {', '.join(new_in_theme)}")
+            new_tickers.update(new_in_theme)
+
+    if not new_tickers:
+        print("All theme members already in universe.")
+        return
+
+    print(f"\n{len(new_tickers)} new tickers to add: {', '.join(sorted(new_tickers))}")
+    if dry_run:
+        print("(dry-run mode — not fetching. Remove --dry-run to backfill.)")
+        print("\nNOTE: To find truly UNKNOWN stocks beyond these themes:")
+        print("  1. Browse ETF constituent pages (SMH, QQQ, QTUM, BOTZ, AIQ)")
+        print("  2. Add tickers to THEMES in datadesk/analysis/forward_screener.py")
+        print("  3. Run universe-expand to backfill them")
+        print("  4. Run screen to see where they rank on the composite signal")
+        return
+
+    print("\nFetching price history + fundamentals (this may take a few minutes)...")
+    # Filter to US/international stocks only (skip complex suffixes we can't backfill)
+    backfillable = [t for t in sorted(new_tickers)
+                    if not any(t.endswith(s) for s in [".NS", ".MI", ".DE", ".PA", ".AS"])]
+    if len(backfillable) < len(new_tickers):
+        skipped = sorted(new_tickers - set(backfillable))
+        print(f"  Skipping {len(skipped)} tickers (unsupported exchange suffix): {', '.join(skipped)}")
+
+    if backfillable:
+        from datadesk.ingest.backfill import backfill_tickers
+        backfill_tickers(backfillable, source="yahoo", skip_fundamentals=False)
+        print(f"\nDone. Run 'python main.py screen' to see new tickers in the screener.")
+    else:
+        print("No backfillable tickers remaining.")
 
 
 def cmd_tax_compare() -> None:
@@ -374,6 +545,55 @@ def cmd_phase_projection(
     print("  python main.py phase-projection --monthly 1000 --cagr 0.30 --years 10")
 
 
+def cmd_event_study(study: str = "congress") -> None:
+    """
+    Run and print an event study.
+
+      python main.py event-study congress   (default)
+      python main.py event-study trump
+    """
+    if study == "congress":
+        from datadesk.analysis.congress_events import run_congress_event_study
+        print("Running congress event study (parsing 16k+ disclosures)…")
+        s = run_congress_event_study()
+        print(f"\n{'─'*60}")
+        print(f"  CONGRESS TRADING EVENT STUDY")
+        print(f"  {s.n_events} events · {s.n_tickers} tickers")
+        print(f"{'─'*60}")
+        header = f"  {'Type':<6}" + "".join(f"  +{w}d abn" for w in s.windows)
+        print(header)
+        for tx in ("buy", "sell"):
+            ab = s.avg_abnormal.get(tx, {})
+            row = f"  {tx.upper():<6}" + "".join(
+                f"  {ab.get(w, 0):+.2%}" for w in s.windows
+            )
+            print(row)
+        print(f"\n  Top tickers (buy, 20d alpha, ≥2 events):")
+        for r in s.top_tickers[:10]:
+            print(f"    {r['ticker']:<8} avg abn {r['avg_abn_20d']:+.2%}  n={r['n_events']}")
+        print(f"\n  Top legislators (avg abnormal, ≥3 buys):")
+        for r in s.top_legislators[:8]:
+            print(f"    {r['filer']:<30} avg {r['avg_abn']:+.2%}  win {r['win_rate']:.0%}  n={r['n_buys']}")
+    elif study == "trump":
+        from datadesk.analysis.trump_events import run_trump_event_study
+        print("Running Trump post event study (classifying 33k+ posts)…")
+        s = run_trump_event_study()
+        print(f"\n{'─'*65}")
+        print(f"  TRUMP POST EVENT STUDY — {s.n_posts:,} posts, {s.n_actionable} actionable")
+        print(f"{'─'*65}")
+        header = f"  {'Category':<22}" + "".join(f"  +{w}d abn" for w in s.windows)
+        print(header)
+        for cat in sorted(s.category_abnormal):
+            ab = s.category_abnormal[cat]
+            cnt = s.category_counts.get(cat, 0)
+            row = f"  {cat:<22}" + "".join(f"  {ab.get(w, 0):+.4f}" for w in s.windows)
+            print(f"{row}  (n={cnt})")
+        print("\n  Interpretation: values are abnormal vs unconditional SPY baseline.")
+        print("  Small magnitudes (<0.5%) are noise-level and not tradeable after costs.")
+    else:
+        print(f"Unknown study '{study}'. Choose: congress, trump")
+
+
 def cmd_universe() -> None:
     """Print platform availability breakdown for all tickers in the history store."""
     from datadesk.history.store import coverage
@@ -421,6 +641,14 @@ if __name__ == "__main__":
     p_enrich = sub.add_parser("enrich")
     p_enrich.add_argument("tickers", nargs="*", help="Tickers to enrich (default: all in store)")
     sub.add_parser("weekly-update")
+    sub.add_parser("index-seed")
+    sub.add_parser("signal-audit")
+    sub.add_parser("screen")
+    p_ue = sub.add_parser("universe-expand")
+    p_ue.add_argument("--theme", default=None, help="Limit to one theme (e.g. QUANTUM)")
+    p_ue.add_argument("--dry-run", action="store_true", help="List new tickers without fetching")
+    p_es = sub.add_parser("event-study")
+    p_es.add_argument("study", nargs="?", default="congress", choices=["congress", "trump"])
     p_phase = sub.add_parser("phase-projection")
     p_phase.add_argument("--monthly", type=float, default=500.0, help="Monthly contribution (£)")
     p_phase.add_argument("--initial", type=float, default=500.0, help="Starting NAV (£)")
@@ -446,7 +674,19 @@ if __name__ == "__main__":
         cmd_holdout()
     elif args.command == "tax-compare":
         cmd_tax_compare()
+    elif args.command == "event-study":
+        cmd_event_study(args.study)
     elif args.command == "phase-projection":
         cmd_phase_projection(args.monthly, args.initial, args.cagr, args.years)
+    elif args.command == "index-seed":
+        from datadesk.ingest.index_membership import upsert_index_memberships
+        n = upsert_index_memberships()
+        print(f"index_memberships table seeded: {n} rows")
+    elif args.command == "signal-audit":
+        cmd_signal_audit()
+    elif args.command == "screen":
+        cmd_screen()
+    elif args.command == "universe-expand":
+        cmd_universe_expand(theme=args.theme, dry_run=args.dry_run)
     elif args.command == "universe":
         cmd_universe()
