@@ -592,13 +592,11 @@ def api_sweep_run():
 def api_monte_carlo_run(
     runs: int = 1000, model: str = "bootstrap", background_tasks: BackgroundTasks = None
 ):
-    """Start Monte Carlo simulation in background."""
-    logger.info(f"Monte Carlo run requested: runs={runs}, model={model}")
+    """Bootstrap strategy returns from the latest backtest run. Returns percentile fan bands."""
     if model not in MONTE_CARLO_CONFIG["models"]:
-        logger.error(f"Unsupported Monte Carlo model: {model}")
         return {"status": "error", "message": f"Model {model} not supported"}
     MONTE_CARLO_STATUS.update(
-        {"running": True, "progress": 0, "total": runs, "result_path": None, "message": "Running"}
+        {"running": True, "progress": 0, "total": runs, "result_path": None, "message": "Running", "result": None}
     )
 
     def run_sim():
@@ -606,18 +604,19 @@ def api_monte_carlo_run(
             result_path = mc_sim.run_simulation(
                 runs, model, status_callback=lambda p: MONTE_CARLO_STATUS.update({"progress": p})
             )
-            MONTE_CARLO_STATUS.update(
-                {
-                    "running": False,
-                    "progress": runs,
-                    "result_path": result_path,
-                    "message": "Completed",
-                }
-            )
-            logger.info("Monte Carlo simulation completed")
+            import json
+            with open(result_path) as f:
+                result_data = json.load(f)
+            MONTE_CARLO_STATUS.update({
+                "running": False,
+                "progress": runs,
+                "result_path": result_path,
+                "message": f"Done — {runs} paths bootstrapped from {result_data['n_days']} days of real returns",
+                "result": result_data,
+            })
         except Exception as e:
-            logger.exception("Monte Carlo simulation error")
-            MONTE_CARLO_STATUS.update({"running": False, "message": f"Error: {e}"})
+            logger.exception("Monte Carlo error")
+            MONTE_CARLO_STATUS.update({"running": False, "message": f"Error: {e}", "result": None})
 
     if background_tasks:
         background_tasks.add_task(run_sim)
@@ -628,7 +627,7 @@ def api_monte_carlo_run(
 
 @app.get("/api/monte_carlo/status")
 def api_monte_carlo_status():
-    """Return Monte Carlo simulation status."""
+    """Return Monte Carlo status including result data when complete."""
     return MONTE_CARLO_STATUS
 
 

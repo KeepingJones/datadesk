@@ -265,14 +265,36 @@
             </div>
         </div>
         <!-- Monte Carlo Controls -->
-        <div style="margin-top:10px; display:flex; align-items:center; gap:8px;">
-            <input type="number" id="mcRuns" placeholder="Runs" min="1" value="1000" style="width:100px;" />
+        <div style="margin-top:10px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <input type="number" id="mcRuns" placeholder="Runs" min="100" max="5000" value="1000" style="width:80px;" />
             <select id="mcModel" style="height:30px;">
-                <option value="bootstrap">Bootstrap</option>
-                <option value="gbm">GBM</option>
+                <option value="bootstrap">Bootstrap (resample daily returns)</option>
+                <option value="gbm">GBM (fit μ/σ, parametric)</option>
             </select>
-            <button class="primary" onclick="runMonteCarlo()" id="btn-run-mc">Run Monte Carlo</button>
-            <span id="mcStatus" style="margin-left:10px; color: var(--dim);"></span>
+            <button class="primary" onclick="runMonteCarlo()" id="btn-run-mc">Run Simulation</button>
+            <span id="mcStatus" style="margin-left:6px; color: var(--dim); font-size:12px;"></span>
+        </div>
+        <div id="mc-results" style="display:none; margin-top:16px;">
+            <canvas id="mc-fan-chart" height="80"></canvas>
+            <div style="display:flex; gap:24px; margin-top:12px; flex-wrap:wrap;">
+                <div>
+                    <div style="font-size:11px;color:var(--dim);text-transform:uppercase;margin-bottom:4px;">CAGR range (P5–P95)</div>
+                    <div id="mc-cagr-range" style="font-size:14px;font-weight:600;"></div>
+                </div>
+                <div>
+                    <div style="font-size:11px;color:var(--dim);text-transform:uppercase;margin-bottom:4px;">Sharpe range (P5–P95)</div>
+                    <div id="mc-sharpe-range" style="font-size:14px;font-weight:600;"></div>
+                </div>
+                <div>
+                    <div style="font-size:11px;color:var(--dim);text-transform:uppercase;margin-bottom:4px;">Max DD range (P5–P95)</div>
+                    <div id="mc-mdd-range" style="font-size:14px;font-weight:600;color:#f85149;"></div>
+                </div>
+                <div>
+                    <div style="font-size:11px;color:var(--dim);text-transform:uppercase;margin-bottom:4px;">Actual (backtest)</div>
+                    <div id="mc-actual" style="font-size:14px;font-weight:600;color:#3fb950;"></div>
+                </div>
+            </div>
+            <div style="font-size:11px;color:var(--dim);margin-top:8px;">Bands: P5 (worst 5%) · P25 · P50 (median) · P75 · P95 (best 5%). Bootstrapped from real daily returns — tests robustness to regime re-ordering.</div>
         </div>
         {% if runs %}
         <div class="kpis">
@@ -654,39 +676,81 @@ async function runBacktestSweep() {
       } catch (err) {}
   }
 
-   async function runMonteCarlo() {
-       const runs = document.getElementById('mcRuns').value;
-       const model = document.getElementById('mcModel').value;
-       const statusSpan = document.getElementById('mcStatus');
-       statusSpan.textContent = "Starting...";
-       try {
-           const res = await fetch('/api/monte_carlo/run', {
-               method: 'POST',
-               headers: { 'Content-Type': 'application/json' },
-               body: JSON.stringify({ runs: Number(runs), model })
-           });
-           const data = await res.json();
-           if (data.status === 'started') {
-               statusSpan.textContent = `Running ${data.runs} runs (${data.model})`;
-               // start polling status
-               const poll = async () => {
-                   const statRes = await fetch('/api/monte_carlo/status');
-                   const stat = await statRes.json();
-                   if (stat.running) {
-                       statusSpan.textContent = `Progress: ${stat.progress}/${stat.total}`;
-                       setTimeout(poll, 1000);
-                   } else {
-                       statusSpan.textContent = stat.message || 'Completed';
-                   }
-               };
-               poll();
-           } else {
-               statusSpan.textContent = data.message || 'Error';
-           }
-       } catch (e) {
-           statusSpan.textContent = 'Error';
-       }
-   }
+  let _mcFanChart = null;
+
+  async function runMonteCarlo() {
+      const runs = parseInt(document.getElementById('mcRuns').value) || 1000;
+      const model = document.getElementById('mcModel').value;
+      const statusSpan = document.getElementById('mcStatus');
+      const btn = document.getElementById('btn-run-mc');
+      btn.disabled = true;
+      statusSpan.textContent = 'Starting…';
+      try {
+          const res = await fetch(`/api/monte_carlo/run?runs=${runs}&model=${model}`, { method: 'POST' });
+          const data = await res.json();
+          if (data.status !== 'started') { statusSpan.textContent = data.message || 'Error'; btn.disabled=false; return; }
+          const poll = setInterval(async () => {
+              try {
+                  const sr = await fetch('/api/monte_carlo/status');
+                  const stat = await sr.json();
+                  if (stat.running) {
+                      statusSpan.textContent = `Running… ${stat.progress}/${stat.total}`;
+                  } else {
+                      clearInterval(poll);
+                      btn.disabled = false;
+                      statusSpan.textContent = stat.message || 'Done';
+                      if (stat.result) renderMCResults(stat.result);
+                  }
+              } catch(e) {}
+          }, 800);
+      } catch(e) {
+          statusSpan.textContent = 'Request failed';
+          btn.disabled = false;
+      }
+  }
+
+  function renderMCResults(d) {
+      document.getElementById('mc-results').style.display = 'block';
+
+      // Stats
+      const pct = v => (v * 100).toFixed(1) + '%';
+      document.getElementById('mc-cagr-range').textContent =
+          `${pct(d.cagr_dist.p5)} – ${pct(d.cagr_dist.p95)}  (median ${pct(d.cagr_dist.p50)})`;
+      document.getElementById('mc-sharpe-range').textContent =
+          `${d.sharpe_dist.p5} – ${d.sharpe_dist.p95}  (median ${d.sharpe_dist.p50})`;
+      document.getElementById('mc-mdd-range').textContent =
+          `${pct(d.mdd_dist.p95)} – ${pct(d.mdd_dist.p5)}  (median ${pct(d.mdd_dist.p50)})`;
+      document.getElementById('mc-actual').textContent =
+          `CAGR ${pct(d.actual_cagr)}  Sharpe ${d.actual_sharpe}  DD ${pct(d.actual_mdd)}`;
+
+      // Fan chart
+      const labels = d.path_indices.map(i => 'D' + i);
+      const bands = d.bands;
+      if (_mcFanChart) _mcFanChart.destroy();
+      const ctx = document.getElementById('mc-fan-chart').getContext('2d');
+      _mcFanChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+              labels,
+              datasets: [
+                  { label: 'P95', data: bands.p95, borderColor: '#238636', borderWidth: 1, pointRadius: 0, fill: false },
+                  { label: 'P75', data: bands.p75, borderColor: '#3fb950', borderWidth: 1, pointRadius: 0, backgroundColor: 'rgba(63,185,80,0.15)', fill: '+1' },
+                  { label: 'P50', data: bands.p50, borderColor: '#58a6ff', borderWidth: 2, pointRadius: 0, backgroundColor: 'rgba(88,166,255,0.12)', fill: '+1' },
+                  { label: 'P25', data: bands.p25, borderColor: '#e3b341', borderWidth: 1, pointRadius: 0, backgroundColor: 'rgba(227,179,65,0.12)', fill: '+1' },
+                  { label: 'P5',  data: bands.p5,  borderColor: '#f85149', borderWidth: 1, pointRadius: 0, fill: false },
+              ]
+          },
+          options: {
+              responsive: true,
+              interaction: { mode: 'index', intersect: false },
+              plugins: { legend: { labels: { color: '#c9d1d9', font: { size: 11 } } } },
+              scales: {
+                  x: { ticks: { color: '#8b949e', maxTicksLimit: 10 }, grid: { color: '#21262d' } },
+                  y: { ticks: { color: '#8b949e', callback: v => v.toFixed(2) + 'x' }, grid: { color: '#21262d' } }
+              }
+          }
+      });
+  }
 
     // Fast-changing data: daemon status, AI feed, live trades (every 2 seconds)
     setInterval(() => {
