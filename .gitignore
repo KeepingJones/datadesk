@@ -13,3 +13,4 @@ logs/
 reports/output/
 *.egg-info/
 error_log.txt
+.gstack/
