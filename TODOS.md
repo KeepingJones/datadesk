@@ -41,3 +41,15 @@ Items deferred from CEO review on 2026-06-14. Pick these up after the public sho
 
 **Effort:** L-XL (human: 3-4 weeks / CC: ~1 week)
 **Depends on:** Stable live execution (not demo) + Gate 1 passed on corrected universe
+
+---
+
+## P3 — Dashboard: Fix Unstyled Serif Font (FINDING-008)
+
+**What:** One element in `datadesk/dashboard/index.html` is not covered by the font-stack declaration and falls back to the browser default (Times New Roman).
+
+**Why deferred:** Cosmetic only. Dashboard is internal/operational — the operator is the only viewer. Does not affect function, data accuracy, or the career showcase.
+
+**When to revisit:** During any future dashboard styling pass, or before sharing a screen recording of the dashboard externally.
+
+**Effort:** XS (CC: ~5 min to locate and fix)
