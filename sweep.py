@@ -117,7 +117,27 @@ def _run_combo(
     save_backtest_run(f"{label} HOLDOUT 252d", params, res_ho.metrics, res_ho.equity)
 
 
+def _backfill_missing(all_tickers: list[str]) -> None:
+    """Fetch price history for any tickers not yet in history.db."""
+    from datadesk.history.store import coverage
+    from datadesk.ingest.backfill import backfill_history
+
+    covered = set(coverage().keys())
+    missing = [t for t in all_tickers if t not in covered]
+    if not missing:
+        logger.info("All universe tickers already in history.db — skipping backfill")
+        return
+    logger.info(f"Backfilling {len(missing)} missing tickers: {missing}")
+    written = backfill_history(missing)
+    fetched = sum(1 for v in written.values() if v > 0)
+    logger.info(f"Backfill complete: {fetched}/{len(missing)} tickers had data")
+
+
 def run_sweep() -> None:
+    # Ensure all universe tickers have price history before sweeping
+    all_tickers = list({t for tickers in UNIVERSES.values() for t in tickers})
+    _backfill_missing(all_tickers)
+
     total_runs = 0
 
     for univ_name, tickers in UNIVERSES.items():

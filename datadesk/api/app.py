@@ -330,6 +330,7 @@ import threading
 from datadesk.live.monitors.agent_worker import AgentWorker
 from datadesk.live.monitors.jensen_monitor import JensenMonitor
 from datadesk.live.monitors.news_monitor import NewsMonitor
+from datadesk.live.monitors.rebalancer import DailyRebalancer
 from datadesk.live.monitors.supply_chain import SupplyChainMonitor
 from datadesk.live.monitors.trump_monitor import TrumpMonitor
 from datadesk.live.oms import OMSFastPath
@@ -344,6 +345,7 @@ class DaemonManager:
             "supply_chain": {"instance": SupplyChainMonitor(self.oms), "thread": None},
             "jensen_monitor": {"instance": JensenMonitor(self.oms), "thread": None},
             "news_monitor": {"instance": NewsMonitor(), "thread": None},
+            "rebalancer": {"instance": DailyRebalancer(self.oms), "thread": None},
         }
 
     @property
