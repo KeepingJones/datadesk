@@ -778,6 +778,15 @@ def api_trigger_backfill(tickers: list[str], background_tasks: BackgroundTasks):
     return {"job_id": job_id, "status": "queued"}
 
 
+def _clean_row(row: dict) -> dict:
+    """Replace non-finite floats (NaN/Inf) with None so JSON serialization never fails."""
+    import math
+    return {
+        k: (None if isinstance(v, float) and (math.isnan(v) or math.isinf(v)) else v)
+        for k, v in row.items()
+    }
+
+
 @app.get("/api/fundamentals")
 def api_fundamentals(ticker: str | None = None):
     """Return stored fundamentals. Pass ?ticker=AAPL for one ticker, else returns all."""
@@ -798,10 +807,10 @@ def api_fundamentals(ticker: str | None = None):
                 "SELECT * FROM equity_balance WHERE ticker=? ORDER BY fiscal_year DESC LIMIT 5", (ticker,)
             ).fetchall()
             return {
-                "info": dict(info_row) if info_row else None,
-                "ratios": dict(ratios_row) if ratios_row else None,
-                "financials": [dict(r) for r in fins],
-                "balance": [dict(r) for r in bal],
+                "info": _clean_row(dict(info_row)) if info_row else None,
+                "ratios": _clean_row(dict(ratios_row)) if ratios_row else None,
+                "financials": [_clean_row(dict(r)) for r in fins],
+                "balance": [_clean_row(dict(r)) for r in bal],
             }
         else:
             rows = con.execute("""
@@ -820,7 +829,7 @@ def api_fundamentals(ticker: str | None = None):
                 WHERE r.id IN (SELECT MAX(id) FROM equity_ratios GROUP BY ticker)
                 ORDER BY r.market_cap DESC NULLS LAST
             """).fetchall()
-            return [dict(r) for r in rows]
+            return [_clean_row(dict(r)) for r in rows]
     except Exception as e:
         return {"error": str(e)}
     finally:
