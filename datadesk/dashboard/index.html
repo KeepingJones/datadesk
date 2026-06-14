@@ -849,9 +849,10 @@ function showTab(tabId) {
                // Update account summary UI
                 if (accData && accData.status === 'ok') {
     document.getElementById('alpaca-equity').innerText = `$${accData.equity.toLocaleString()}`;
-    const pnlColor = accData.pnl_dollar >= 0 ? '#2ea043' : '#da3633';
-    const pnlSign = accData.pnl_dollar >= 0 ? '+' : '';
-    document.getElementById('alpaca-pnl').innerText = `${pnlSign}$${accData.pnl_dollar.toLocaleString()} (${pnlSign}${accData.pnl_pct}%)`;
+    const _pnlDollar = accData.pnl_dollar || 0;
+    const pnlColor = _pnlDollar >= 0 ? '#2ea043' : '#da3633';
+    const pnlSign = _pnlDollar > 0 ? '+' : '';
+    document.getElementById('alpaca-pnl').innerText = `${pnlSign}$${Math.abs(_pnlDollar).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} (${pnlSign}${accData.pnl_pct}%)`;
     document.getElementById('alpaca-pnl').style.color = pnlColor;
     // Update buying power display
     document.getElementById('alpaca-bp').innerText = `$${accData.buying_power.toLocaleString()}`;
