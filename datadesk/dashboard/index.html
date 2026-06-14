@@ -17,6 +17,9 @@
            border: 1px solid var(--border); background: #21262d; color: var(--text);
            font-size: 13px; }
   button:hover { background: #30363d; }
+  button.danger { background: #21262d; border-color: var(--red); color: var(--red);
+                  font-size: 12px; font-weight: 600; min-height: 28px; }
+  button.danger:hover { background: rgba(248,81,73,0.12); }
   header { display: flex; align-items: baseline; gap: 16px; padding: 14px 24px;
            border-bottom: 1px solid var(--border); }
   header h1 { font-size: 16px; margin: 0; letter-spacing: 1px; }
@@ -157,7 +160,7 @@
 
       <div class="panel wide">
           <h2>Alpaca — <span id="alpaca-mode-badge" style="color:var(--green);font-weight:normal;text-transform:none;letter-spacing:0">PAPER</span>
-            <button id="alpaca-toggle-btn" onclick="toggleAlpacaMode()" style="margin-left:12px;padding:3px 10px;font-size:11px;background:#21262d;border:1px solid #30363d;border-radius:4px;color:#c9d1d9;cursor:pointer;">Switch to LIVE</button>
+            <button id="alpaca-toggle-btn" onclick="toggleAlpacaMode()" class="danger" style="margin-left:12px;">Switch to LIVE</button>
           </h2>
           <div id="alpaca-status-panel" style="background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 15px;">
               <div style="display: flex; gap: 40px;">
@@ -196,7 +199,7 @@
 
       <div class="panel wide">
           <h2>T212 ISA Account — <span id="t212-mode-badge" style="color:var(--amber);font-weight:normal;text-transform:none;letter-spacing:0">loading…</span>
-            <button id="t212-toggle-btn" onclick="toggleT212Mode()" style="margin-left:12px;padding:3px 10px;font-size:11px;background:#21262d;border:1px solid #30363d;border-radius:4px;color:#c9d1d9;cursor:pointer;">Switch to LIVE</button>
+            <button id="t212-toggle-btn" onclick="toggleT212Mode()" class="danger" style="margin-left:12px;">Switch to LIVE</button>
           </h2>
           <div style="display:flex;gap:40px;margin-bottom:16px">
               <div>
@@ -1275,10 +1278,10 @@ async function runBacktestSweep() {
     if (!badge) return;
     if (_alpacaPaper) {
       badge.textContent = 'PAPER'; badge.style.color = 'var(--green)';
-      btn.textContent = 'Switch to LIVE'; btn.style.borderColor = '#f85149';
+      btn.textContent = 'Switch to LIVE'; btn.className = 'danger';
     } else {
       badge.textContent = 'LIVE'; badge.style.color = '#f85149';
-      btn.textContent = 'Switch to PAPER'; btn.style.borderColor = 'var(--green)';
+      btn.textContent = 'Switch to PAPER'; btn.className = '';
     }
   }
 
@@ -1288,10 +1291,10 @@ async function runBacktestSweep() {
     if (!badge) return;
     if (_t212Mode === 'demo') {
       badge.textContent = 'DEMO'; badge.style.color = 'var(--amber)';
-      btn.textContent = 'Switch to LIVE'; btn.style.borderColor = '#f85149';
+      btn.textContent = 'Switch to LIVE'; btn.className = 'danger';
     } else {
       badge.textContent = 'LIVE'; badge.style.color = '#f85149';
-      btn.textContent = 'Switch to DEMO'; btn.style.borderColor = 'var(--amber)';
+      btn.textContent = 'Switch to DEMO'; btn.className = '';
     }
   }
 
