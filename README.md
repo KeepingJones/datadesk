@@ -20,7 +20,7 @@ A market data platform built to mirror the internal tooling a prop trading firm 
 | **Daily rebalancer** | Fires at NYSE MOC window; picks highest-Sharpe 3y-holdout strategy (top_n ≥ 2, MaxDD ≥ −30%); routes per-ticker to the correct exchange |
 | **Out-of-session analysts** | Research analyst (nightly stock discovery + insider/congress scoring), Strategy analyst (sweep review, promotion/demotion, overfitting flags), Risk analyst (concentration, beta, correlation, drawdown checks) |
 | **News monitor** | Real RSS feed polling (Reuters/MarketWatch/WSJ) + Alpaca News API; keyword sentiment scoring; optional phi3:mini LLM signal; saves to analyst_reports |
-| **Dashboard** | Dark ops-console UI — backtest leaderboard, equity curves, universe management, P&L summary, AI feed, Alpaca paper + T212 ISA status, Monte Carlo bootstrap simulations |
+| **Dashboard** | Dark ops-console UI — backtest leaderboard, equity curves, universe management, P&L summary, AI feed, Alpaca paper + T212 ISA status, Monte Carlo bootstrap simulations. [See UI Documentation](docs/ui_documentation.md) |
 
 ---
 
