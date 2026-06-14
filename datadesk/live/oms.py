@@ -59,23 +59,34 @@ class OMSFastPath:
         self.current_nav = 100_000.0
         self.realized_pnl = 0.0
 
+        armed = os.getenv("DATADESK_ARM_BROKER", "0") == "1"
+
+        # Alpaca (US equities)
         api_key = os.getenv("ALPACA_API_KEY")
         secret_key = os.getenv("ALPACA_SECRET_KEY")
-        armed = os.getenv("DATADESK_ARM_BROKER", "0") == "1"
         self.alpaca = None
         if api_key and secret_key and armed:
             from alpaca.trading.client import TradingClient
-
             self.alpaca = TradingClient(api_key, secret_key, paper=True)
             logger.info("OMS ARMED: Alpaca paper client initialized.")
             self._adopt_alpaca_positions()
         elif api_key and secret_key:
-            logger.warning(
-                "OMS in SHADOW MODE: Alpaca keys found but DATADESK_ARM_BROKER != 1. "
-                "Signals will be recorded, not executed."
-            )
+            logger.warning("OMS SHADOW: Alpaca keys found but DATADESK_ARM_BROKER != 1.")
         else:
-            logger.warning("OMS in SHADOW MODE: no Alpaca keys. Signals recorded only.")
+            logger.warning("OMS SHADOW: no Alpaca keys.")
+
+        # T212 (UK/EU equities via ISA — demo by default, live requires T212_MODE=live)
+        self.t212 = None
+        t212_key = os.getenv("T212_DEMO_API_KEY") or os.getenv("T212_LIVE_API_KEY")
+        if t212_key and armed:
+            try:
+                from datadesk.ingest.t212_client import T212Client
+                self.t212 = T212Client()
+                logger.info(f"OMS ARMED: T212 {self.t212.mode} client initialized.")
+            except Exception as e:
+                logger.warning(f"OMS: T212 client failed to init: {e}")
+        elif t212_key:
+            logger.warning("OMS SHADOW: T212 key found but DATADESK_ARM_BROKER != 1.")
 
     @property
     def is_armed(self) -> bool:
@@ -147,7 +158,26 @@ class OMSFastPath:
         execution_ticker = TickerMapper.to_broker(ticker, broker)
 
         # 3. ALWAYS record to the shadow store — armed or not (audit trail)
-        executed = self.is_armed and broker == "Alpaca"
+        # Determine whether the exchange is open right now
+        from datadesk.live.market_calendar import exchange_is_open, ticker_exchange
+        exchange = ticker_exchange(ticker)
+        market_open = exchange_is_open(exchange)
+
+        # Event-driven signals (trump, news) are time-sensitive — skip broker
+        # execution if the market is closed (edge decays by open).
+        # Risk/rebalance signals (agent_worker, rebalancer) queue for next open.
+        _skip_if_closed = source in ("trump_monitor", "news_monitor")
+        can_execute = market_open or not _skip_if_closed
+
+        executed_alpaca = self.alpaca is not None and broker == "Alpaca" and can_execute
+        executed_t212 = self.t212 is not None and broker == "Trading212" and can_execute
+        executed = executed_alpaca or executed_t212
+
+        if not market_open and not executed:
+            reason = f"[AFTER-HOURS] {reason}"
+        elif not market_open and executed:
+            reason = f"[QUEUED-NEXT-OPEN] {reason}"
+
         shadow.record_signal(
             source=source,
             ticker=ticker,
@@ -158,15 +188,18 @@ class OMSFastPath:
             executed=executed,
         )
 
-        # 4. Broker execution — armed mode only
+        # 4. Broker execution — unified path
         order_id = str(uuid.uuid4())[:8]
-        if executed:
+        if executed_alpaca:
             if not self._execute_alpaca(ticker, execution_ticker, side, weight_pct):
+                return False
+        elif executed_t212:
+            if not self._execute_t212(ticker, side, weight_pct):
                 return False
         else:
             logger.info(
-                f"[SHADOW] {side} {execution_ticker} via {broker} recorded "
-                f"(alloc {weight_pct:.1%}, SL {sl_pct:.1%}, ref_price {price})"
+                f"[SHADOW] {side} {execution_ticker} via {broker} "
+                f"({'closed' if not market_open else 'shadow-only'})"
             )
 
         # 5. Internal book-keeping (both modes — shadow tracks would-have positions)
@@ -237,6 +270,19 @@ class OMSFastPath:
             return True
         except Exception as e:
             logger.error(f"[Alpaca PAPER] order failed for {execution_ticker}: {e}")
+            return False
+
+    def _execute_t212(self, ticker: str, side: str, weight_pct: float) -> bool:
+        try:
+            equity = self.t212.get_equity()
+            notional = round(equity * weight_pct, 2)
+            if side == "SELL":
+                self.t212.close_position(ticker)
+            else:
+                self.t212.place_market_order(ticker, notional)
+            return True
+        except Exception as e:
+            logger.error(f"[T212] order failed for {ticker}: {e}")
             return False
 
     # ── Continuous updates ──────────────────────────────────────────────────

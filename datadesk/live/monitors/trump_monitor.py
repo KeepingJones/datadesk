@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING
 
 from datadesk.ai.post_classifier import classify_post
 from datadesk.ingest.trump import collect, load_posts
-from datadesk.live.market_calendar import should_execute_intraday
 
 if TYPE_CHECKING:
     from datadesk.live.oms import OMSFastPath
@@ -92,18 +91,11 @@ class TrumpMonitor:
                     )
                     break
                 signal_weight = min(EVENT_WEIGHT, remaining)
-                market_open = should_execute_intraday(ticker)
-                if not market_open:
-                    logger.warning(
-                        f"[TRUMP MONITOR] {ticker} exchange closed — "
-                        f"signal shadow-recorded only (event edge decays by open)"
-                    )
                 self.oms.submit_signal(
                     ticker,
                     side,
                     weight_pct=signal_weight,
-                    reason=f"{'[AFTER-HOURS] ' if not market_open else ''}"
-                           f"{c.impact_class}: {post['content'][:80]}",
+                    reason=f"{c.impact_class}: {post['content'][:80]}",
                     source="trump_monitor",
                 )
                 batch_used += signal_weight

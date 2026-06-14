@@ -18,7 +18,6 @@ import time
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from datadesk.live.market_calendar import exchange_is_open, ticker_exchange
 
 if TYPE_CHECKING:
     from datadesk.live.oms import OMSFastPath
@@ -85,30 +84,21 @@ class AgentWorker:
             pos = self.oms.active_positions.get(t)
             if not pos:
                 continue
-            # Risk-management closes always fire — but log when exchange is closed
-            # so Alpaca queues them for next open rather than executing immediately.
-            after_hours = not exchange_is_open(ticker_exchange(t))
-            if after_hours:
-                logger.warning(f"[AGENT WORKER] {t} exchange closed — close submitted for next open")
             if pos["side"] == "SELL":
                 logger.warning(f"[AGENT WORKER] adopted SHORT {t} rejected (long-only).")
                 self.oms.submit_signal(
-                    t,
-                    "SELL",
-                    pos["alloc"],
+                    t, "SELL", pos["alloc"],
                     price=pos.get("current_price"),
-                    reason=f"{'[AFTER-HOURS] ' if after_hours else ''}adopted short rejected",
+                    reason="adopted short rejected",
                     source="agent_worker",
                 )
                 continue
             if weights is not None and t in weights.columns and weights[t].iloc[-1] <= 0:
                 logger.warning(f"[AGENT WORKER] adopted LONG {t} failed momentum screen.")
                 self.oms.submit_signal(
-                    t,
-                    "SELL",
-                    pos["alloc"],
+                    t, "SELL", pos["alloc"],
                     price=pos.get("current_price"),
-                    reason=f"{'[AFTER-HOURS] ' if after_hours else ''}failed momentum screen",
+                    reason="failed momentum screen",
                     source="agent_worker",
                 )
                 continue
