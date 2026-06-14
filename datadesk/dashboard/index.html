@@ -152,7 +152,9 @@
       </div>
 
       <div class="panel wide">
-          <h2>Live Trading Status (Alpaca Paper)</h2>
+          <h2>Alpaca — <span id="alpaca-mode-badge" style="color:var(--green);font-weight:normal;text-transform:none;letter-spacing:0">PAPER</span>
+            <button id="alpaca-toggle-btn" onclick="toggleAlpacaMode()" style="margin-left:12px;padding:3px 10px;font-size:11px;background:#21262d;border:1px solid #30363d;border-radius:4px;color:#c9d1d9;cursor:pointer;">Switch to LIVE</button>
+          </h2>
           <div id="alpaca-status-panel" style="background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 15px;">
               <div style="display: flex; gap: 40px;">
                   <div>
@@ -189,7 +191,9 @@
       </div>
 
       <div class="panel wide">
-          <h2>T212 ISA Account — <span id="t212-mode-badge" style="color:var(--amber);font-weight:normal;text-transform:none;letter-spacing:0">loading…</span></h2>
+          <h2>T212 ISA Account — <span id="t212-mode-badge" style="color:var(--amber);font-weight:normal;text-transform:none;letter-spacing:0">loading…</span>
+            <button id="t212-toggle-btn" onclick="toggleT212Mode()" style="margin-left:12px;padding:3px 10px;font-size:11px;background:#21262d;border:1px solid #30363d;border-radius:4px;color:#c9d1d9;cursor:pointer;">Switch to LIVE</button>
+          </h2>
           <div style="display:flex;gap:40px;margin-bottom:16px">
               <div>
                   <div style="font-size:12px;color:var(--dim);">Total Value</div>
@@ -1242,6 +1246,66 @@ async function runBacktestSweep() {
   // Auto-run research tab on first open
   const _researchLoaded = { congress: false, trump: false };
   const _origShowTab = showTab;
+
+  // ── Broker mode toggles ───────────────────────────────────────────────────
+
+  let _alpacaPaper = true;
+  let _t212Mode = 'demo';
+
+  async function initBrokerModes() {
+    try {
+      const [am, tm] = await Promise.all([
+        fetch('/api/alpaca/mode').then(r => r.json()),
+        fetch('/api/t212/mode').then(r => r.json()),
+      ]);
+      _alpacaPaper = am.paper;
+      _t212Mode = tm.mode;
+      _updateAlpacaBadge();
+      _updateT212Badge();
+    } catch(e) {}
+  }
+
+  function _updateAlpacaBadge() {
+    const badge = document.getElementById('alpaca-mode-badge');
+    const btn   = document.getElementById('alpaca-toggle-btn');
+    if (!badge) return;
+    if (_alpacaPaper) {
+      badge.textContent = 'PAPER'; badge.style.color = 'var(--green)';
+      btn.textContent = 'Switch to LIVE'; btn.style.borderColor = '#f85149';
+    } else {
+      badge.textContent = 'LIVE'; badge.style.color = '#f85149';
+      btn.textContent = 'Switch to PAPER'; btn.style.borderColor = 'var(--green)';
+    }
+  }
+
+  function _updateT212Badge() {
+    const badge = document.getElementById('t212-mode-badge');
+    const btn   = document.getElementById('t212-toggle-btn');
+    if (!badge) return;
+    if (_t212Mode === 'demo') {
+      badge.textContent = 'DEMO'; badge.style.color = 'var(--amber)';
+      btn.textContent = 'Switch to LIVE'; btn.style.borderColor = '#f85149';
+    } else {
+      badge.textContent = 'LIVE'; badge.style.color = '#f85149';
+      btn.textContent = 'Switch to DEMO'; btn.style.borderColor = 'var(--amber)';
+    }
+  }
+
+  async function toggleAlpacaMode() {
+    const next = _alpacaPaper ? 'live' : 'paper';
+    if (next === 'live' && !confirm('Switch Alpaca to LIVE trading? Real capital at risk.')) return;
+    const res = await fetch(`/api/alpaca/mode?mode=${next}`, { method: 'POST' }).then(r => r.json());
+    if (res.status === 'ok') { _alpacaPaper = res.paper; _updateAlpacaBadge(); fetchAlpacaStatus(); }
+  }
+
+  async function toggleT212Mode() {
+    const next = _t212Mode === 'demo' ? 'live' : 'demo';
+    if (next === 'live' && !confirm('Switch T212 to LIVE account? Real capital at risk.')) return;
+    const res = await fetch(`/api/t212/mode?mode=${next}`, { method: 'POST' }).then(r => r.json());
+    if (res.status === 'ok') { _t212Mode = res.mode; _updateT212Badge(); fetchT212Status(); }
+  }
+
+  initBrokerModes();
 </script>
 </body>
 </html>

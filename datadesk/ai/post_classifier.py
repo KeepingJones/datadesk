@@ -67,7 +67,8 @@ def _find_tickers(text: str) -> list[str]:
     low = text.lower()
     found = []
     for name, ticker in COMPANY_TICKERS.items():
-        if name in low and ticker not in found:
+        pattern = r"\b" + re.escape(name) + r"\b"
+        if re.search(pattern, low) and ticker not in found:
             found.append(ticker)
     return found
 

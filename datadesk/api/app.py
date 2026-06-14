@@ -41,6 +41,12 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "dashbo
 app.mount("/static", StaticFiles(directory=str(Path(__file__).parent.parent / "dashboard")), name="static")
 
 _last_weekly_run: _dt.date | None = None
+_sweep_lock = _threading.Lock()
+_sweep_running = False
+
+# Runtime-mutable broker mode flags (survive server lifetime, reset on restart)
+_ALPACA_PAPER: bool = True   # True = paper, False = live
+_T212_MODE: str = "demo"     # "demo" or "live"
 
 
 def _weekly_scheduler_loop() -> None:
@@ -80,6 +86,10 @@ def _start_scheduler() -> None:
     t = _threading.Thread(target=_weekly_scheduler_loop, daemon=True, name="weekly-scheduler")
     t.start()
     logger.info("weekly scheduler started (fires Sundays 07:00 UTC)")
+    # Auto-start all daemons except Jensen (parked — no live transcript feed)
+    for name in ("agent_worker", "trump_monitor", "supply_chain", "news_monitor"):
+        daemon_mgr.start(name)
+        logger.info(f"auto-started daemon: {name}")
 
 
 def _trump_stats() -> dict:
@@ -456,7 +466,7 @@ def api_alpaca_account():
     try:
         from alpaca.trading.client import TradingClient
 
-        alpaca = TradingClient(api_key, secret_key, paper=True)
+        alpaca = TradingClient(api_key, secret_key, paper=_ALPACA_PAPER)
         account = alpaca.get_account()
 
         equity = float(account.equity)
@@ -492,7 +502,7 @@ def api_alpaca_positions():
     try:
         from alpaca.trading.client import TradingClient
 
-        alpaca = TradingClient(api_key, secret_key, paper=True)
+        alpaca = TradingClient(api_key, secret_key, paper=_ALPACA_PAPER)
         positions = alpaca.get_all_positions()
 
         result = []
@@ -540,6 +550,42 @@ def api_alpaca_positions():
         return {"status": "error", "message": str(e)}
 
 
+@app.get("/api/alpaca/mode")
+def api_alpaca_mode_get():
+    return {"paper": _ALPACA_PAPER, "mode": "paper" if _ALPACA_PAPER else "live"}
+
+
+@app.post("/api/alpaca/mode")
+def api_alpaca_mode_set(mode: str):
+    """Switch Alpaca between paper and live. mode='paper' or mode='live'."""
+    global _ALPACA_PAPER
+    if mode not in ("paper", "live"):
+        return {"status": "error", "message": "mode must be 'paper' or 'live'"}
+    _ALPACA_PAPER = mode == "paper"
+    logger.warning(f"Alpaca mode switched to: {mode.upper()}")
+    return {"status": "ok", "paper": _ALPACA_PAPER, "mode": mode}
+
+
+@app.get("/api/t212/mode")
+def api_t212_mode_get():
+    import os
+    active = os.getenv("T212_MODE", _T212_MODE)
+    return {"mode": active}
+
+
+@app.post("/api/t212/mode")
+def api_t212_mode_set(mode: str):
+    """Switch T212 between demo and live at runtime. mode='demo' or mode='live'."""
+    global _T212_MODE
+    if mode not in ("demo", "live"):
+        return {"status": "error", "message": "mode must be 'demo' or 'live'"}
+    _T212_MODE = mode
+    import os
+    os.environ["T212_MODE"] = mode  # picked up by t212_client on next instantiation
+    logger.warning(f"T212 mode switched to: {mode.upper()}")
+    return {"status": "ok", "mode": mode}
+
+
 from pydantic import BaseModel
 
 from datadesk.ingest.validation import validate_universe
@@ -580,11 +626,25 @@ def api_sweep_run():
     import os
     import subprocess
 
-    # Launch sweep.py in the background
-    subprocess.Popen(
-        [".venv\\Scripts\\python", "sweep.py"],
-        cwd=os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-    )
+    global _sweep_running
+    with _sweep_lock:
+        if _sweep_running:
+            return {"status": "already_running"}
+        _sweep_running = True
+
+    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+    def _run_and_clear():
+        global _sweep_running
+        try:
+            subprocess.run(
+                [".venv\\Scripts\\python", "sweep.py"],
+                cwd=root,
+            )
+        finally:
+            _sweep_running = False
+
+    _threading.Thread(target=_run_and_clear, daemon=True).start()
     return {"status": "started"}
 
 

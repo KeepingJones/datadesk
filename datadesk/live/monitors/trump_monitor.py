@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 POLL_SECONDS = 300  # archive is ~18MB; the collector is delta-aware but be polite
 EVENT_WEIGHT = 0.05  # 5% per event signal — below the 10% OMS cap
+POST_BATCH_CAP = 0.10  # max total allocation committed from a single post
 
 
 class TrumpMonitor:
@@ -80,14 +81,24 @@ class TrumpMonitor:
             if c.impact_class == "MACRO_COMMENTARY":
                 continue  # index/vol overlay territory, not a single-stock fast-path trade
             side = "BUY" if c.sentiment == "POSITIVE" else "SELL"
+            batch_used = 0.0
             for ticker in c.actionable_tickers:
+                remaining = POST_BATCH_CAP - batch_used
+                if remaining <= 0:
+                    logger.warning(
+                        f"[TRUMP MONITOR] post batch cap reached ({POST_BATCH_CAP:.0%}); "
+                        f"skipping remaining tickers: {c.actionable_tickers[c.actionable_tickers.index(ticker):]}"
+                    )
+                    break
+                signal_weight = min(EVENT_WEIGHT, remaining)
                 self.oms.submit_signal(
                     ticker,
                     side,
-                    weight_pct=EVENT_WEIGHT,
+                    weight_pct=signal_weight,
                     reason=f"{c.impact_class}: {post['content'][:80]}",
                     source="trump_monitor",
                 )
+                batch_used += signal_weight
                 fired += 1
         logger.info(f"[TRUMP MONITOR] {new_count} new posts, {fired} signals")
         return fired

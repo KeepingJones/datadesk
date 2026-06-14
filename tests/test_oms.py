@@ -52,7 +52,8 @@ def test_close_records_side_aware_pnl(oms):
     oms.submit_signal("AAPL", "BUY", 0.10, price=100.0)
     oms.active_positions["AAPL"]["current_price"] = 110.0
     oms.submit_signal("AAPL", "SELL", 0.10, price=110.0)
-    assert HISTORIC_TRADES[-1]["pnl"] == pytest.approx(10.0 * 0.10)  # long up = profit
+    # New formula: pct_return × allocated_capital = (10/100) × (0.10 × 100_000) = 1_000
+    assert HISTORIC_TRADES[-1]["pnl"] == pytest.approx(1_000.0)  # 10% return on $10k allocated
 
 
 def test_unknown_entry_price_gives_none_pnl_not_fake(oms):

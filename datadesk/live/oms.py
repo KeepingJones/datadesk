@@ -188,9 +188,12 @@ class OMSFastPath:
             elif side == "SELL" and ticker in self.active_positions:
                 pos = self.active_positions[ticker]
                 cp, ep = pos.get("current_price"), pos.get("entry_price")
-                if cp is not None and ep is not None:
+                if cp is not None and ep is not None and ep != 0:
                     direction = 1.0 if pos["side"] == "BUY" else -1.0  # side-aware P&L
-                    pnl = direction * (cp - ep) * pos.get("alloc", 0.0)
+                    # Dollar P&L: pct_return × allocated_capital
+                    # alloc is a fraction of NAV (e.g. 0.05); ep gives the entry reference.
+                    allocated_capital = pos.get("alloc", 0.0) * self.current_nav
+                    pnl = direction * (cp - ep) / ep * allocated_capital
                 else:
                     pnl = None  # unknown entry — no fabricated P&L
                 HISTORIC_TRADES.append(

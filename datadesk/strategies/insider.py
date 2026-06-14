@@ -50,7 +50,7 @@ def insider_congress_follow(
             s = str(s).strip()
             s = _re.sub(r"([A-Za-z])(\d{4})$", r"\1 \2", s)
             try:
-                return pd.to_datetime(s, dayfirst=True)
+                return pd.to_datetime(s, dayfirst=True, format="mixed")
             except Exception:
                 return pd.NaT
 
