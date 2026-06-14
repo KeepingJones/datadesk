@@ -60,7 +60,7 @@ def get_series_latest(series_id: str) -> PriceQuote | None:
             timestamp=datetime.now(UTC),
         )
     except Exception as e:
-        logger.error(f"FRED fetch failed for {series_id}: {e}")
+        logger.exception(f"FRED fetch failed for {series_id}: {e}")
         return None
 
 

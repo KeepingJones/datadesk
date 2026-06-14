@@ -1,14 +1,46 @@
 import os
 from pathlib import Path
+import logging
+from logging.handlers import RotatingFileHandler
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
-DB_PATH = Path(os.getenv("DATADESK_DB_PATH", "datadesk.db"))
-ALTDATA_DB = Path(os.getenv("ALTDATA_DB_PATH", "altdata.db"))
+# Directories
+PROJECT_ROOT = Path(__file__).resolve().parent
+DATA_DIR = PROJECT_ROOT / "data"
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+LOG_DIR = PROJECT_ROOT / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+def setup_logging(name: str, log_filename: str) -> logging.Logger:
+    """Configures and returns a logger that writes to both console and a rotating log file."""
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    
+    # Avoid duplicate handlers if setup_logging is called multiple times
+    if not logger.handlers:
+        formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s: %(message)s')
+        
+        # Console Handler
+        ch = logging.StreamHandler()
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+        
+        # File Handler (10MB max size, keep 3 backups)
+        log_path = LOG_DIR / log_filename
+        fh = RotatingFileHandler(log_path, maxBytes=10*1024*1024, backupCount=3, encoding='utf-8')
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+        
+    return logger
+
+DB_PATH = DATA_DIR / os.getenv("DATADESK_DB_PATH", "datadesk.db")
+ALTDATA_DB = DATA_DIR / os.getenv("ALTDATA_DB_PATH", "altdata.db")
 FUND_BASE_CURRENCY = os.getenv("FUND_BASE_CURRENCY", "GBP")
 FRED_API_KEY = os.getenv("FRED_API_KEY", "")
+TIINGO_API_KEY = os.getenv("TIINGO_API_KEY", "")
 
 PAPER_TRADE_MODE = True  # Never change this — no live capital
 

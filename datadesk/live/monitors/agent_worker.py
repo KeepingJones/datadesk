@@ -40,7 +40,7 @@ class AgentWorker:
         self.is_running = False
         self.last_run = "Never"
         self.ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
-        self.ollama_model = os.getenv("OLLAMA_MODEL", "llama3.2")
+        self.ollama_model = os.getenv("ANALYST_MODEL", "llama3.2")
 
     def start(self):
         self.is_running = True
@@ -50,7 +50,7 @@ class AgentWorker:
             try:
                 self.process_live_filings()
             except Exception as e:
-                logger.error(f"[AGENT WORKER] revaluation pass failed: {e}")
+                logger.exception(f"[AGENT WORKER] revaluation pass failed: {e}")
             self.last_run = datetime.now().strftime("%H:%M:%S")
             for _ in range(REVALUE_INTERVAL_SECONDS):
                 if not self.is_running:
@@ -78,7 +78,7 @@ class AgentWorker:
                 prices = prices.dropna(axis=1, thresh=int(len(prices) * 0.9)).ffill()
                 weights = momentum(lookback=126, top_n=10, skip=21)(prices)
         except Exception as e:
-            logger.error(f"[AGENT WORKER] quantitative validation unavailable: {e}")
+            logger.exception(f"[AGENT WORKER] quantitative validation unavailable: {e}")
 
         for t in adopted:
             pos = self.oms.active_positions.get(t)

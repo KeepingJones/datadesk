@@ -112,19 +112,41 @@ class T212Client:
         self._cash_ts: float = 0.0
         self._positions_ts: float = 0.0
 
+    def _retry_request(self, method: str, path: str, **kwargs) -> httpx.Response:
+        max_retries = 5
+        base_delay = 1.0
+        for attempt in range(max_retries):
+            try:
+                r = self._client.request(method, path, **kwargs)
+                r.raise_for_status()
+                return r
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 429:
+                    if attempt < max_retries - 1:
+                        delay = base_delay * (2 ** attempt)
+                        logger.warning(f"[T212] 429 Too Many Requests on {path}. Retrying in {delay}s...")
+                        time.sleep(delay)
+                        continue
+                raise
+            except httpx.RequestError as e:
+                if attempt < max_retries - 1:
+                    delay = base_delay * (2 ** attempt)
+                    logger.warning(f"[T212] Network error {e} on {path}. Retrying in {delay}s...")
+                    time.sleep(delay)
+                    continue
+                raise
+        raise RuntimeError(f"Failed {method} {path} after {max_retries} attempts")
+
     def _get(self, path: str) -> dict | list:
-        r = self._client.get(path)
-        r.raise_for_status()
+        r = self._retry_request("GET", path)
         return r.json()
 
     def _post(self, path: str, body: dict) -> dict:
-        r = self._client.post(path, json=body)
-        r.raise_for_status()
+        r = self._retry_request("POST", path, json=body)
         return r.json()
 
     def _delete(self, path: str) -> None:
-        r = self._client.delete(path)
-        r.raise_for_status()
+        self._retry_request("DELETE", path)
 
     def get_cash(self) -> T212Cash:
         now = time.time()
@@ -169,7 +191,7 @@ class T212Client:
             self._delete(f"/equity/portfolio/{t212_ticker}")
             logger.info(f"[T212 {self.mode.upper()}] CLOSED {t212_ticker}")
         except Exception as e:
-            logger.error(f"[T212 {self.mode.upper()}] close failed for {t212_ticker}: {e}")
+            logger.exception(f"[T212 {self.mode.upper()}] close failed for {t212_ticker}: {e}")
             raise
 
     def get_portfolio(self) -> list[T212Position]:

@@ -51,7 +51,7 @@ class RiskAnalyst:
                     logger.warning(f"[RISK] {len(alerts)} alert(s): {[a['type'] for a in alerts]}")
                 sleep_secs = INTRADAY_POLL if in_session else OVERNIGHT_POLL
             except Exception as e:
-                logger.error(f"[RISK] error: {e}")
+                logger.exception(f"[RISK] error: {e}")
                 sleep_secs = 300
             time.sleep(sleep_secs)
 

@@ -31,6 +31,13 @@ CREATE TABLE IF NOT EXISTS analyst_reports (
     body        TEXT NOT NULL,   -- plain-text briefing
     data        TEXT NOT NULL    -- JSON payload (findings, scores, alerts)
 );
+
+CREATE TABLE IF NOT EXISTS live_prices (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts          TEXT NOT NULL,
+    ticker      TEXT NOT NULL,
+    price       REAL NOT NULL
+);
 """
 
 
@@ -111,3 +118,14 @@ def load_backtest_runs(limit: int = 10, db_path: Path | None = None) -> list[dic
         }
         for r in rows
     ]
+
+
+def save_live_prices(prices: list[tuple[str, str, float]], db_path: Path | None = None) -> None:
+    """Bulk insert live price snapshots. prices is a list of (timestamp_iso, ticker, price)."""
+    if not prices:
+        return
+    with _connect(db_path) as con:
+        con.executemany(
+            "INSERT INTO live_prices (ts, ticker, price) VALUES (?, ?, ?)",
+            prices,
+        )

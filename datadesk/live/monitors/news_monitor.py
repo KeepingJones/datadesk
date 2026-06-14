@@ -163,7 +163,7 @@ class NewsMonitor:
             try:
                 self._poll()
             except Exception as e:
-                logger.error(f"[NEWS] poll error: {e}")
+                logger.exception(f"[NEWS] poll error: {e}")
             time.sleep(POLL_INTERVAL)
 
     def stop(self):

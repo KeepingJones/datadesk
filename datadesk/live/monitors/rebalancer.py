@@ -132,7 +132,7 @@ class DailyRebalancer:
             try:
                 self._tick()
             except Exception as e:
-                logger.error(f"[REBALANCER] tick error: {e}")
+                logger.exception(f"[REBALANCER] tick error: {e}")
             time.sleep(POLL_INTERVAL)
 
     def stop(self):
@@ -184,7 +184,7 @@ class DailyRebalancer:
         try:
             weights = _build_strategy(params, prices)
         except Exception as e:
-            logger.error(f"[REBALANCER] strategy build failed: {e}")
+            logger.exception(f"[REBALANCER] strategy build failed: {e}")
             return {"status": "strategy_error", "error": str(e)}
 
         if weights.empty:

@@ -31,7 +31,7 @@ def _fetch_ecb_rate(series_key: str) -> float | None:
         latest_idx = max(obs.keys(), key=int)
         return float(obs[latest_idx][0])
     except Exception as e:
-        logger.error(f"ECB fetch failed for {series_key}: {e}")
+        logger.exception(f"ECB fetch failed for {series_key}: {e}")
         return None
 
 

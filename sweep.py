@@ -24,9 +24,10 @@ from datadesk.strategies.insider import insider_congress_follow
 from datadesk.strategies.meanrev import mean_reversion
 from datadesk.strategies.momentum import momentum
 from datadesk.strategies.trend import trend_signal
+from datetime import datetime
+from datadesk.config import setup_logging
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("sweep")
+logger = setup_logging("", "sweep.log")
 
 
 # ---------------------------------------------------------------------------
@@ -214,19 +215,42 @@ def _run_walk_forward(
 
 
 def _backfill_missing(all_tickers: list[str]) -> None:
-    """Fetch price history for any tickers not yet in history.db."""
-    from datadesk.history.store import coverage
-    from datadesk.ingest.backfill import backfill_history
+    """Fetch recent price history for all tickers to ensure they are up to date."""
+    from datadesk.ingest.backfill import backfill_smart
 
-    covered = set(coverage().keys())
-    missing = [t for t in all_tickers if t not in covered]
-    if not missing:
-        logger.info("All universe tickers already in history.db — skipping backfill")
-        return
-    logger.info(f"Backfilling {len(missing)} missing tickers: {missing}")
-    written = backfill_history(missing)
+    logger.info(f"Running smart backfill for all {len(all_tickers)} universe tickers to catch up...")
+    written = backfill_smart(all_tickers)
     fetched = sum(1 for v in written.values() if v > 0)
-    logger.info(f"Backfill complete: {fetched}/{len(missing)} tickers had data")
+    logger.info(f"Smart backfill complete: {fetched}/{len(all_tickers)} tickers had new data")
+
+
+def _get_quality_universe(tickers: list[str]) -> set[str]:
+    """Fetch tickers from ALTDATA_DB that pass the fundamental quality filter."""
+    import sqlite3
+    from datadesk.config import ALTDATA_DB
+    try:
+        with sqlite3.connect(ALTDATA_DB) as conn:
+            placeholders = ','.join(['?'] * len(tickers))
+            # Yahoo finance reports debt_to_equity as a percentage (e.g. 200 = 200%)
+            query = f"""
+                SELECT ticker FROM equity_ratios
+                WHERE id IN (SELECT MAX(id) FROM equity_ratios GROUP BY ticker)
+                AND (roe IS NULL OR roe > 0)
+                AND (debt_to_equity IS NULL OR debt_to_equity < 200.0)
+                AND ticker IN ({placeholders})
+            """
+            res = conn.execute(query, tuple(tickers)).fetchall()
+            passed_db = {r[0] for r in res}
+            
+            # Allow tickers completely missing from the DB (e.g. ETFs that were never scraped)
+            in_db_query = f"SELECT DISTINCT ticker FROM equity_ratios WHERE ticker IN ({placeholders})"
+            in_db = {r[0] for r in conn.execute(in_db_query, tuple(tickers)).fetchall()}
+            missing_from_db = set(tickers) - in_db
+            
+            return passed_db | missing_from_db
+    except Exception as e:
+        logger.warning(f"Failed to fetch quality universe: {e}")
+        return set(tickers)
 
 
 def run_sweep() -> None:
@@ -248,6 +272,9 @@ def run_sweep() -> None:
         n_days = len(prices)
         n_tickers = prices.shape[1]
         logger.info(f"  Loaded {n_tickers} tickers, {n_days} trading days")
+
+        q_universe = _get_quality_universe(tickers)
+        logger.info(f"  Quality filter passed {len(q_universe)}/{len(tickers)} tickers")
 
         warmup_idx = min(252, n_days - 1)
         warmup_start = str(prices.index[warmup_idx].date())
@@ -283,7 +310,7 @@ def run_sweep() -> None:
                 for z in Z_ENTRIES:
                     for trend in TREND_FLAGS:
                         for blend in BLEND_TYPES:
-                            w_mom = momentum(lb, top, 21)(prices)
+                            w_mom = momentum(lb, top, 21, quality_universe=q_universe)(prices)
                             w_mr = mean_reversion(z_entry=z, z_exit=0.0)(prices)
 
                             if blend == "inv_vol":
@@ -319,7 +346,7 @@ def run_sweep() -> None:
         for lb in LOOKBACKS:
             for top in TOP_NS:
                 for trend in TREND_FLAGS:
-                    w = momentum(lb, top, 21)(prices)
+                    w = momentum(lb, top, 21, quality_universe=q_universe)(prices)
                     if trend:
                         w = _apply_trend(w, prices)
 
@@ -383,7 +410,7 @@ def run_sweep() -> None:
         if w_insider is not None and not w_insider.empty and w_insider.abs().sum().sum() > 0:
             for lb in [63, 126]:
                 for top in [2, 3]:
-                    w_mom = momentum(lb, top, 21)(prices)
+                    w_mom = momentum(lb, top, 21, quality_universe=q_universe)(prices)
                     w = inverse_volatility_blend([w_mom, w_insider], prices)
                     w = _apply_trend(w, prices)
                     label = f"{univ_name} | mom({lb},{top})+insider trend=Y"
@@ -407,7 +434,7 @@ def run_sweep() -> None:
         for lb in LOOKBACKS:
             for top in TOP_NS:
                 for trend in TREND_FLAGS:
-                    w_mom = momentum(lb, top, 21)(prices)
+                    w_mom = momentum(lb, top, 21, quality_universe=q_universe)(prices)
                     w_mr = mean_reversion(z_entry=1.0, z_exit=0.0)(prices)
                     w = inverse_volatility_blend([w_mom, w_mr], prices)
                     if trend:
@@ -438,7 +465,7 @@ def run_sweep() -> None:
         # ----------------------------------------------------------------
         for lb in [63, 126, 252]:
             for trend in TREND_FLAGS:
-                w_mom = momentum(lb, 2, 21)(prices)
+                w_mom = momentum(lb, 2, 21, quality_universe=q_universe)(prices)
                 w_mr = mean_reversion(z_entry=1.0, z_exit=0.0)(prices)
                 w = inverse_volatility_blend([w_mom, w_mr], prices)
                 if trend:
@@ -469,7 +496,7 @@ def run_sweep() -> None:
                     for z in Z_ENTRIES:
                         for trend in TREND_FLAGS:
                             for blend in BLEND_TYPES:
-                                w_mom = momentum(lb, top, 21)(prices)
+                                w_mom = momentum(lb, top, 21, quality_universe=q_universe)(prices)
                                 w_mr = mean_reversion(z_entry=z, z_exit=0.0)(prices)
                                 if blend == "inv_vol":
                                     w = inverse_volatility_blend([w_mom, w_mr], prices)

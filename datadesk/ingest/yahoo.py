@@ -52,7 +52,7 @@ def get_quote(ticker: str, asset_class: str, currency: str) -> PriceQuote | None
         return quote
 
     except Exception as e:
-        logger.error(f"Yahoo fetch failed for {ticker}: {e}")
+        logger.exception(f"Yahoo fetch failed for {ticker}: {e}")
         return None
 
 
@@ -63,7 +63,7 @@ def get_bulk_quotes(instruments: list[dict]) -> list[PriceQuote]:
     try:
         raw = yf.download(tickers, period="2d", auto_adjust=True, progress=False, group_by="ticker")
     except Exception as e:
-        logger.error(f"Yahoo bulk download failed: {e}")
+        logger.exception(f"Yahoo bulk download failed: {e}")
         return []
 
     for inst in instruments:

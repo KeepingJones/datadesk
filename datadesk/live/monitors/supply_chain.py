@@ -74,7 +74,7 @@ def fetch_intraday_moves(tickers: list[str]) -> dict[str, float]:
             except Exception:
                 continue
     except Exception as e:
-        logger.error(f"[SUPPLY CHAIN] intraday fetch failed: {e}")
+        logger.exception(f"[SUPPLY CHAIN] intraday fetch failed: {e}")
     return moves
 
 
@@ -93,7 +93,7 @@ class SupplyChainMonitor:
             try:
                 self.check_matrix()
             except Exception as e:
-                logger.error(f"[SUPPLY CHAIN] check failed: {e}")
+                logger.exception(f"[SUPPLY CHAIN] check failed: {e}")
             self.last_run = datetime.now().strftime("%H:%M:%S")
             for _ in range(POLL_SECONDS):
                 if not self.is_running:

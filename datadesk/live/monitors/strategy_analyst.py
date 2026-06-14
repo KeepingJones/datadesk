@@ -41,7 +41,7 @@ class StrategyAnalyst:
                     self.run()
                     self.last_run = datetime.now().strftime("%H:%M:%S")
             except Exception as e:
-                logger.error(f"[STRATEGY] error: {e}")
+                logger.exception(f"[STRATEGY] error: {e}")
             time.sleep(POLL_HOURS * 3600)
 
     def stop(self):

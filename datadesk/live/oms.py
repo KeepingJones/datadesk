@@ -122,7 +122,7 @@ class OMSFastPath:
             if positions:
                 logger.info(f"OMS adopted {len(positions)} pre-existing Alpaca positions.")
         except Exception as e:
-            logger.error(f"Failed to adopt Alpaca positions: {e}")
+            logger.exception(f"Failed to adopt Alpaca positions: {e}")
 
     # ── Signal handling ─────────────────────────────────────────────────────
 
@@ -269,7 +269,7 @@ class OMSFastPath:
                 logger.info(f"[Alpaca PAPER] {side} {execution_ticker} ${notional} ({order.id})")
             return True
         except Exception as e:
-            logger.error(f"[Alpaca PAPER] order failed for {execution_ticker}: {e}")
+            logger.exception(f"[Alpaca PAPER] order failed for {execution_ticker}: {e}")
             return False
 
     def _execute_t212(self, ticker: str, side: str, weight_pct: float) -> bool:
@@ -282,7 +282,7 @@ class OMSFastPath:
                 self.t212.place_market_order(ticker, notional)
             return True
         except Exception as e:
-            logger.error(f"[T212] order failed for {ticker}: {e}")
+            logger.exception(f"[T212] order failed for {ticker}: {e}")
             return False
 
     # ── Continuous updates ──────────────────────────────────────────────────

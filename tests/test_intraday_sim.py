@@ -25,10 +25,11 @@ def run_simulation():
     supply = SupplyChainMonitor(oms)
     jensen = JensenMonitor(oms)
 
-    agent.start()
-    trump.start()
-    supply.start()
-    jensen.start()
+    import threading
+    threading.Thread(target=agent.start, daemon=True).start()
+    threading.Thread(target=trump.start, daemon=True).start()
+    threading.Thread(target=supply.start, daemon=True).start()
+    threading.Thread(target=jensen.start, daemon=True).start()
 
     logger.info("\n=== [1] TRUMP SENTIMENT OVERRIDE & AI REVALUATION ===")
     trump.poll()  # Fires a random AAPL/TSLA trade

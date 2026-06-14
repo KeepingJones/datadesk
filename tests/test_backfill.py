@@ -36,6 +36,8 @@ def fake_download_factory(tickers_served: list[str], n_days: int = 30):
 def test_backfill_writes_bars(tmp_path, monkeypatch):
     db = tmp_path / "hist.db"
     monkeypatch.setattr(backfill.yf, "download", fake_download_factory(["AAPL", "MSFT"]))
+    monkeypatch.setattr("datadesk.ingest.tiingo.fetch_tiingo_prices", lambda t, s, e=None: None)
+    monkeypatch.setattr("datadesk.ingest.massive.fetch_massive_prices", lambda t, s, e=None: None)
 
     written = backfill.backfill_history(["AAPL", "MSFT"], db_path=db)
     assert written == {"AAPL": 30, "MSFT": 30}
@@ -48,6 +50,8 @@ def test_backfill_writes_bars(tmp_path, monkeypatch):
 def test_backfill_unknown_ticker_returns_zero(tmp_path, monkeypatch):
     db = tmp_path / "hist.db"
     monkeypatch.setattr(backfill.yf, "download", fake_download_factory(["AAPL"]))
+    monkeypatch.setattr("datadesk.ingest.tiingo.fetch_tiingo_prices", lambda t, s, e=None: None)
+    monkeypatch.setattr("datadesk.ingest.massive.fetch_massive_prices", lambda t, s, e=None: None)
 
     written = backfill.backfill_history(["AAPL", "NOPE.XX"], db_path=db)
     assert written["AAPL"] == 30
@@ -74,6 +78,9 @@ def test_backfill_missing_skips_covered_tickers(tmp_path, monkeypatch):
         return real_fake(batch, **kwargs)
 
     monkeypatch.setattr(backfill.yf, "download", spying_download)
+    monkeypatch.setattr("datadesk.ingest.tiingo.fetch_tiingo_prices", lambda t, s, e=None: None)
+    monkeypatch.setattr("datadesk.ingest.massive.fetch_massive_prices", lambda t, s, e=None: None)
+    
     written = backfill.backfill_missing(["AAPL", "NEW"], min_rows=1000, db_path=db)
 
     assert "AAPL" not in calls  # covered → not re-downloaded
@@ -95,6 +102,9 @@ def test_backfill_missing_all_covered_is_noop(tmp_path, monkeypatch):
         raise AssertionError("should not download")
 
     monkeypatch.setattr(backfill.yf, "download", explode)
+    monkeypatch.setattr("datadesk.ingest.tiingo.fetch_tiingo_prices", lambda t, s, e=None: None)
+    monkeypatch.setattr("datadesk.ingest.massive.fetch_massive_prices", lambda t, s, e=None: None)
+    
     assert backfill.backfill_missing(["AAPL"], min_rows=1000, db_path=db) == {}
 
 
@@ -105,5 +115,8 @@ def test_download_failure_is_contained(tmp_path, monkeypatch):
         raise ConnectionError("yahoo down")
 
     monkeypatch.setattr(backfill.yf, "download", broken)
+    monkeypatch.setattr("datadesk.ingest.tiingo.fetch_tiingo_prices", lambda t, s, e=None: None)
+    monkeypatch.setattr("datadesk.ingest.massive.fetch_massive_prices", lambda t, s, e=None: None)
+    
     written = backfill.backfill_history(["AAPL"], db_path=db)
     assert written == {"AAPL": 0}

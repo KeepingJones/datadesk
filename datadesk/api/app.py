@@ -12,12 +12,10 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import logging
 
-# Import logging configuration
-from datadesk.logging_config import setup_logging
+from contextlib import asynccontextmanager
 
-# Initialize logging
-setup_logging()
-logger = logging.getLogger(__name__)
+from datadesk.config import setup_logging
+logger = setup_logging("", "live.log")
 
 from datadesk.config import PAPER_TRADE_MODE
 from datadesk.live.oms import CLOSED_POSITIONS, HISTORIC_TRADES
@@ -78,7 +76,7 @@ def _weekly_scheduler_loop() -> None:
                 _last_weekly_run = now.date()
                 logger.info("scheduler: weekly update complete")
             except Exception as e:
-                logger.error(f"scheduler: weekly update failed: {e}")
+                logger.exception(f"scheduler: weekly update failed: {e}")
 
 
 @app.on_event("startup")

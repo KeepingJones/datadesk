@@ -314,7 +314,7 @@ def fetch_fundamentals(
                 print(f"  {t:<12} {name[:30]:<30} {mkt_s:>8}  {sector:<22} {pe_s}")
 
         except Exception as e:
-            logger.error(f"fundamentals: failed for {t}: {e}")
+            logger.exception(f"fundamentals: failed for {t}: {e}")
             results[t] = False
 
     con.close()

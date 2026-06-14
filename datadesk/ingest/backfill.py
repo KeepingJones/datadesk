@@ -22,7 +22,7 @@ from datadesk.history.store import coverage, save_bars
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_START = "2012-01-01"
+DEFAULT_START = "1980-01-01"
 
 
 def backfill_history(
@@ -37,10 +37,19 @@ def backfill_history(
     Returns {ticker: rows_written}. Tickers that return nothing map to 0 —
     caller decides whether that's an error.
     """
+    from datadesk.ingest.tiingo import fetch_tiingo_prices, TiingoRateLimitExceeded
+    from datadesk.ingest.massive import fetch_massive_prices, MassiveRateLimitExceeded
+    
+    tiingo_limit_hit = False
+    massive_limit_hit = False
+    
     written: dict[str, int] = dict.fromkeys(tickers, 0)
 
     for i in range(0, len(tickers), batch_size):
         batch = tickers[i : i + batch_size]
+        missing_from_yf = []
+        
+        # 1. Try yfinance first (fastest, bulk download, max history)
         try:
             raw = yf.download(
                 batch,
@@ -50,31 +59,58 @@ def backfill_history(
                 progress=False,
                 group_by="ticker",
             )
+            
+            if raw is not None and not raw.empty:
+                for ticker in batch:
+                    frame = _extract_ticker_frame(raw, ticker, single=len(batch) == 1)
+                    if frame is None or frame.empty:
+                        missing_from_yf.append(ticker)
+                        continue
+                        
+                    rows = frame.reset_index()
+                    df = pd.DataFrame(
+                        {
+                            "ticker": ticker,
+                            "date": rows.iloc[:, 0],
+                            "open": rows.get("Open"),
+                            "high": rows.get("High"),
+                            "low": rows.get("Low"),
+                            "close": rows["Close"],
+                            "volume": rows.get("Volume"),
+                        }
+                    ).dropna(subset=["close"])
+                    
+                    if not df.empty:
+                        written[ticker] = save_bars(df, source="yahoo_primary", db_path=db_path)
+                    else:
+                        missing_from_yf.append(ticker)
+            else:
+                missing_from_yf = batch.copy()
         except Exception as e:
-            logger.error(f"backfill: batch download failed ({batch}): {e}")
-            continue
-        if raw is None or raw.empty:
-            logger.warning(f"backfill: no data for batch {batch}")
-            continue
+            logger.exception(f"backfill: yfinance batch download failed ({batch}): {e}")
+            missing_from_yf = batch.copy()
 
-        for ticker in batch:
-            frame = _extract_ticker_frame(raw, ticker, single=len(batch) == 1)
-            if frame is None or frame.empty:
-                logger.warning(f"backfill: no data for {ticker}")
-                continue
-            rows = frame.reset_index()
-            df = pd.DataFrame(
-                {
-                    "ticker": ticker,
-                    "date": rows.iloc[:, 0],  # index column: Date
-                    "open": rows.get("Open"),
-                    "high": rows.get("High"),
-                    "low": rows.get("Low"),
-                    "close": rows["Close"],
-                    "volume": rows.get("Volume"),
-                }
-            ).dropna(subset=["close"])
-            written[ticker] = save_bars(df, source="yahoo_backfill", db_path=db_path)
+        # 2. Fallback to Tiingo/Massive for any tickers yfinance missed
+        for ticker in missing_from_yf:
+            df = None
+            if not tiingo_limit_hit:
+                try:
+                    df = fetch_tiingo_prices(ticker, start)
+                except TiingoRateLimitExceeded:
+                    logger.warning(f"Tiingo limit hit on {ticker}. Falling back to Massive.")
+                    tiingo_limit_hit = True
+                    
+            if df is None and not massive_limit_hit:
+                try:
+                    df = fetch_massive_prices(ticker, start, end)
+                except MassiveRateLimitExceeded:
+                    logger.warning(f"Massive limit hit on {ticker}.")
+                    massive_limit_hit = True
+            
+            if df is not None and not df.empty:
+                written[ticker] = save_bars(df, source="tier_1_2_fallback", db_path=db_path)
+            else:
+                logger.warning(f"backfill: no data found for {ticker} across all sources")
 
     logger.info(
         f"backfill complete: {sum(written.values())} rows across "
@@ -122,12 +158,40 @@ def backfill_smart(
     # Group tickers by their required start date to minimize API calls
     # Or for simplicity and robust gap filling, we can fetch individually since
     # it's just catching up.
+    from datadesk.ingest.tiingo import fetch_tiingo_prices, TiingoRateLimitExceeded
+    from datadesk.ingest.massive import fetch_massive_prices, MassiveRateLimitExceeded
+    
+    tiingo_limit_hit = False
+    massive_limit_hit = False
+
     for ticker in tickers:
         last_date = cov_dict.get(ticker)
         start_date = last_date if pd.notna(last_date) else DEFAULT_START
 
+        logger.info(f"Smart backfill for {ticker} starting from {start_date}")
+        
+        df = None
+        if not tiingo_limit_hit:
+            try:
+                df = fetch_tiingo_prices(ticker, start_date)
+            except TiingoRateLimitExceeded:
+                logger.warning(f"Tiingo limit hit on {ticker}. Falling back to Massive for remaining.")
+                tiingo_limit_hit = True
+
+        if df is None and not massive_limit_hit:
+            try:
+                df = fetch_massive_prices(ticker, start_date)
+            except MassiveRateLimitExceeded:
+                logger.warning(f"Massive limit hit on {ticker}. Falling back to yfinance for remaining.")
+                massive_limit_hit = True
+
+        if df is not None and not df.empty:
+            w = save_bars(df, source="tier_1_2_smart_backfill", db_path=db_path)
+            written[ticker] = w
+            continue
+
+        # Fallback to yfinance
         try:
-            logger.info(f"Smart backfill for {ticker} starting from {start_date}")
             raw = yf.download(
                 ticker,
                 start=start_date,
@@ -176,7 +240,7 @@ def backfill_smart(
             written[ticker] = w
 
         except Exception as e:
-            logger.error(f"backfill_smart failed for {ticker}: {e}")
+            logger.exception(f"backfill_smart failed for {ticker}: {e}")
             written[ticker] = 0
 
     return written

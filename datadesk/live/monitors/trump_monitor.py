@@ -40,7 +40,7 @@ class TrumpMonitor:
             try:
                 self.poll()
             except Exception as e:
-                logger.error(f"[TRUMP MONITOR] poll failed: {e}")
+                logger.exception(f"[TRUMP MONITOR] poll failed: {e}")
             self.last_run = datetime.now().strftime("%H:%M:%S")
             for _ in range(POLL_SECONDS):
                 if not self.is_running:

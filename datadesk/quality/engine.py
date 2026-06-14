@@ -55,7 +55,7 @@ class ReconEngine:
                 for q in source():
                     self._quotes.setdefault(q.ticker, []).append(q)
             except Exception as e:
-                logger.error(f"Source fetch failed: {e}")
+                logger.exception(f"Source fetch failed: {e}")
 
         logger.info(
             f"Fetched prices for {len(self._quotes)} instruments "
