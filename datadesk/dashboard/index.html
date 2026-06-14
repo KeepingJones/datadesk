@@ -878,7 +878,7 @@ function showTab(tabId) {
                        tr.style.borderBottom = '1px solid #21262d';
                        tr.innerHTML = `
                            <td style="padding: 8px 0; font-weight: bold;">${p.symbol}</td>
-                           <td>${p.qty}</td>
+                           <td>${parseFloat(p.qty).toLocaleString(undefined, {maximumFractionDigits: 4})}</td>
                            <td>$${parseFloat(p.market_value).toFixed(2)}</td>
                            <td style="color: ${pnlColor};">${plStr}</td>
                            <td style="color: ${aiStatusColor}; font-weight: bold;">${p.ai_status}</td>
