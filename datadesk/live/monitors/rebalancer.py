@@ -15,8 +15,14 @@ target by more than this — avoids churn on trivial drift.
 
 import logging
 import time
-from datetime import datetime, timezone
 from typing import TYPE_CHECKING
+
+from datadesk.live.market_calendar import (
+    exchange_is_open,
+    is_moc_window,
+    is_trading_day,
+    ticker_exchange,
+)
 
 if TYPE_CHECKING:
     from datadesk.live.oms import OMSFastPath
@@ -25,23 +31,6 @@ logger = logging.getLogger(__name__)
 
 DRIFT_THRESHOLD = 0.02    # 2% drift before rebalancing
 POLL_INTERVAL = 60        # seconds between checks
-REBAL_HOUR_ET = 15        # 3pm ET target — fire once when hour reaches this
-REBAL_MINUTE_ET = 45      # 3:45pm ET
-
-
-def _et_now() -> datetime:
-    """Current time in US/Eastern (UTC-5 winter, UTC-4 summer — good enough approximation)."""
-    import time as _time
-    utc = datetime.now(timezone.utc)
-    # Approximate ET offset: UTC-5 Nov-Mar, UTC-4 Mar-Nov
-    doy = utc.timetuple().tm_yday
-    offset_hours = -4 if (90 < doy < 307) else -5  # rough DST boundary
-    from datetime import timedelta
-    return utc + timedelta(hours=offset_hours)
-
-
-def _is_weekday() -> bool:
-    return _et_now().weekday() < 5
 
 
 def _build_strategy(params: dict, prices):
@@ -123,16 +112,19 @@ class DailyRebalancer:
         self.is_running = False
 
     def _tick(self):
-        if not _is_weekday():
+        """Fire rebalance when NYSE enters its MOC window on a trading day."""
+        import datetime as _dt
+        today = _dt.date.today()
+        today_str = str(today)
+
+        if not is_trading_day("NYSE", today):
             return
-        now = _et_now()
-        today_str = now.strftime("%Y-%m-%d")
-        if (now.hour > REBAL_HOUR_ET or (now.hour == REBAL_HOUR_ET and now.minute >= REBAL_MINUTE_ET)):
-            if self._last_rebal_date != today_str:
-                logger.info(f"[REBALANCER] triggering daily rebalance for {today_str}")
-                self.rebalance()
-                self._last_rebal_date = today_str
-                self.last_run = now.strftime("%H:%M:%S")
+
+        if is_moc_window("NYSE") and self._last_rebal_date != today_str:
+            logger.info(f"[REBALANCER] NYSE MOC window open — triggering rebalance for {today_str}")
+            self.rebalance()
+            self._last_rebal_date = today_str
+            self.last_run = _dt.datetime.now().strftime("%H:%M:%S")
 
     def rebalance(self) -> dict:
         """
@@ -179,13 +171,22 @@ class DailyRebalancer:
 
         logger.info(f"[REBALANCER] target weights: {targets}")
 
-        buys, sells, holds, skipped = [], [], [], []
+        buys, sells, holds, queued = [], [], [], []
 
         # Get current prices for the last row of price history
         current_prices = prices.iloc[-1].to_dict()
 
-        # 1. Open / increase positions
+        # 1. Open / increase positions — only for exchanges currently tradeable
         for ticker, target_w in targets.items():
+            exchange = ticker_exchange(ticker)
+            if not exchange_is_open(exchange):
+                queued.append(ticker)
+                logger.info(
+                    f"[REBALANCER] {ticker} queued — {exchange} closed, "
+                    f"will execute at next open"
+                )
+                continue
+
             current_pos = self.oms.active_positions.get(ticker)
             current_w = current_pos["alloc"] if current_pos else 0.0
             drift = abs(target_w - current_w)
@@ -194,13 +195,15 @@ class DailyRebalancer:
                 holds.append(ticker)
                 continue
 
+            in_moc = is_moc_window(exchange)
+            timing = "MOC" if in_moc else "market"
             ref_price = current_prices.get(ticker)
             self.oms.submit_signal(
                 ticker,
                 "BUY",
                 weight_pct=target_w,
                 price=ref_price,
-                reason=f"daily rebalance → {target_w:.1%} (drift {drift:.1%})",
+                reason=f"rebalance {timing} → {target_w:.1%} (drift {drift:.1%})",
                 source="rebalancer",
             )
             buys.append(ticker)
@@ -229,8 +232,10 @@ class DailyRebalancer:
             "buys": buys,
             "sells": sells,
             "holds": holds,
+            "queued_closed_exchange": queued,
         }
         logger.info(
-            f"[REBALANCER] done — {len(buys)} buys, {len(sells)} sells, {len(holds)} holds"
+            f"[REBALANCER] done — {len(buys)} buys, {len(sells)} sells, "
+            f"{len(holds)} holds, {len(queued)} queued (exchange closed)"
         )
         return summary
