@@ -37,6 +37,7 @@ def run_backtest(
     cost_model: CostModel | None = None,
     start: str | None = None,
     end: str | None = None,
+    benchmark_returns: pd.DataFrame | None = None,
 ) -> BacktestResult:
     cost_model = cost_model or CostModel()
 
@@ -56,13 +57,18 @@ def run_backtest(
     costs = dw.mul(cost_rates, axis=1).sum(axis=1)
 
     net = gross - costs
+    bm_rets = benchmark_returns
 
     if start:
         net, gross = net.loc[start:], gross.loc[start:]
         w, turnover, costs = w.loc[start:], turnover.loc[start:], costs.loc[start:]
+        if bm_rets is not None:
+            bm_rets = bm_rets.loc[start:]
     if end:
         net, gross = net.loc[:end], gross.loc[:end]
         w, turnover, costs = w.loc[:end], turnover.loc[:end], costs.loc[:end]
+        if bm_rets is not None:
+            bm_rets = bm_rets.loc[:end]
 
     return BacktestResult(
         returns=net,
@@ -70,5 +76,5 @@ def run_backtest(
         weights=w,
         turnover=turnover,
         costs=costs,
-        metrics=summarize(net, turnover),
+        metrics=summarize(net, turnover, bm_rets),
     )

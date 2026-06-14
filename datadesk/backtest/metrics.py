@@ -55,7 +55,11 @@ def calmar(returns: pd.Series) -> float:
     return cagr(returns) / mdd
 
 
-def summarize(returns: pd.Series, turnover: pd.Series | None = None) -> dict:
+def summarize(
+    returns: pd.Series, 
+    turnover: pd.Series | None = None,
+    benchmark_returns: pd.DataFrame | None = None,
+) -> dict:
     out = {
         "cagr": round(cagr(returns), 4),
         "sharpe": round(sharpe(returns), 3),
@@ -66,4 +70,15 @@ def summarize(returns: pd.Series, turnover: pd.Series | None = None) -> dict:
     }
     if turnover is not None and len(turnover):
         out["avg_annual_turnover"] = round(float(turnover.mean()) * TRADING_DAYS, 2)
+        
+    if benchmark_returns is not None and not benchmark_returns.empty:
+        for bm in benchmark_returns.columns:
+            bm_ret = benchmark_returns[bm].dropna()
+            aligned = pd.concat([returns, bm_ret], axis=1, join='inner').dropna()
+            if not aligned.empty and len(aligned) > 50:
+                strat_cagr = cagr(aligned.iloc[:, 0])
+                bm_cagr = cagr(aligned.iloc[:, 1])
+                out[f"outperform_{bm}"] = round(strat_cagr - bm_cagr, 4)
+                out[f"corr_{bm}"] = round(aligned.iloc[:, 0].corr(aligned.iloc[:, 1]), 3)
+
     return out

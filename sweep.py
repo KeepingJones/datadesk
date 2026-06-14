@@ -61,6 +61,8 @@ UNIVERSES: dict[str, list[str]] = {
     ],
 }
 
+BENCHMARKS = ["SPY", "QQQ", "^FTSE", "URTH"]
+
 # Parameter grid
 LOOKBACKS   = [21, 63, 126, 252]        # momentum lookback windows
 TOP_NS      = [1, 2, 3]                  # number of top momentum names to hold
@@ -115,6 +117,7 @@ def _run_combo(
     holdout_starts: dict,
     costs=None,
     vol_target: bool = False,
+    benchmark_returns: "pd.DataFrame | None" = None,
 ) -> None:
     """Run full-period + multiple holdout windows and save all."""
     if costs is None:
@@ -122,11 +125,11 @@ def _run_combo(
 
     w = vol_target_weights(weights, prices) if vol_target else weights
 
-    res = run_backtest(w, prices, costs, start=warmup_start)
+    res = run_backtest(w, prices, costs, start=warmup_start, benchmark_returns=benchmark_returns)
     save_backtest_run(label, params, res.metrics, res.equity)
 
     for window_label, ho_start in holdout_starts.items():
-        res_ho = run_backtest(w, prices, costs, start=ho_start)
+        res_ho = run_backtest(w, prices, costs, start=ho_start, benchmark_returns=benchmark_returns)
         cagr_pct = res_ho.metrics.get("cagr", 0) * 100
         logger.info(f"  HOLDOUT {window_label} CAGR: {cagr_pct:.1f}%")
         save_backtest_run(
@@ -146,6 +149,7 @@ def _run_walk_forward(
     test_years: int = 1,
     costs=None,
     vol_target: bool = False,
+    benchmark_returns: "pd.DataFrame | None" = None,
 ) -> None:
     """
     Expanding-window walk-forward OOS.
@@ -180,7 +184,7 @@ def _run_walk_forward(
 
         fold += 1
         try:
-            res = run_backtest(w, prices, costs, start=test_start, end=test_end)
+            res = run_backtest(w, prices, costs, start=test_start, end=test_end, benchmark_returns=benchmark_returns)
             cagr_pct = res.metrics.get("cagr", 0) * 100
             logger.info(f"  WFO fold-{fold} [{test_start}→{test_end}] CAGR {cagr_pct:.1f}%")
             save_backtest_run(
@@ -256,7 +260,13 @@ def _get_quality_universe(tickers: list[str]) -> set[str]:
 def run_sweep() -> None:
     # Ensure all universe tickers have price history before sweeping
     all_tickers = list({t for tickers in UNIVERSES.values() for t in tickers})
-    _backfill_missing(all_tickers)
+    _backfill_missing(all_tickers + BENCHMARKS)
+
+    benchmark_prices = load_closes(tickers=BENCHMARKS)
+    if not benchmark_prices.empty:
+        benchmark_returns = benchmark_prices.pct_change(fill_method=None)
+    else:
+        benchmark_returns = None
 
     total_runs = 0
 
@@ -335,7 +345,7 @@ def run_sweep() -> None:
                                 "variant": "mom+mr",
                             }
                             try:
-                                _run_combo(label, params, w, prices, warmup_start, holdout_starts)
+                                _run_combo(label, params, w, prices, warmup_start, holdout_starts, benchmark_returns=benchmark_returns)
                                 combo_count += 1
                             except Exception as e:
                                 logger.warning(f"  FAILED {label}: {e}")
@@ -359,7 +369,7 @@ def run_sweep() -> None:
                         "variant": "mom_only",
                     }
                     try:
-                        _run_combo(label, params, w, prices, warmup_start, holdout_starts)
+                        _run_combo(label, params, w, prices, warmup_start, holdout_starts, benchmark_returns=benchmark_returns)
                         combo_count += 1
                     except Exception as e:
                         logger.warning(f"  FAILED {label}: {e}")
@@ -381,7 +391,7 @@ def run_sweep() -> None:
                     "variant": "mr_only",
                 }
                 try:
-                    _run_combo(label, params, w, prices, warmup_start, holdout_starts)
+                    _run_combo(label, params, w, prices, warmup_start, holdout_starts, benchmark_returns=benchmark_returns)
                     combo_count += 1
                 except Exception as e:
                     logger.warning(f"  FAILED {label}: {e}")
@@ -399,7 +409,7 @@ def run_sweep() -> None:
             label = f"{univ_name} | trend_only_EW"
             try:
                 _run_combo(label, {"universe": univ_name, "variant": "trend_only_EW"},
-                           w_t, prices, warmup_start, holdout_starts)
+                           w_t, prices, warmup_start, holdout_starts, benchmark_returns=benchmark_returns)
                 combo_count += 1
             except Exception as e:
                 logger.warning(f"  FAILED {label}: {e}")
@@ -422,7 +432,7 @@ def run_sweep() -> None:
                         "variant": "mom+insider",
                     }
                     try:
-                        _run_combo(label, params, w, prices, warmup_start, holdout_starts)
+                        _run_combo(label, params, w, prices, warmup_start, holdout_starts, benchmark_returns=benchmark_returns)
                         combo_count += 1
                     except Exception as e:
                         logger.warning(f"  FAILED {label}: {e}")
@@ -453,7 +463,7 @@ def run_sweep() -> None:
                     try:
                         _run_combo(
                             vt_label, vt_params, w, prices,
-                            warmup_start, holdout_starts, vol_target=True,
+                            warmup_start, holdout_starts, vol_target=True, benchmark_returns=benchmark_returns
                         )
                         combo_count += 1
                     except Exception as e:
@@ -480,7 +490,7 @@ def run_sweep() -> None:
                     "wfo": True,
                 }
                 try:
-                    _run_walk_forward(wfo_label, wfo_params, w, prices)
+                    _run_walk_forward(wfo_label, wfo_params, w, prices, benchmark_returns=benchmark_returns)
                     combo_count += 1
                 except Exception as e:
                     logger.warning(f"  FAILED WFO {wfo_label}: {e}")
@@ -521,7 +531,7 @@ def run_sweep() -> None:
                                 try:
                                     _run_combo(
                                         t212_label, t212_params, w, prices,
-                                        warmup_start, holdout_starts, costs=T212_ISA_COSTS,
+                                        warmup_start, holdout_starts, costs=T212_ISA_COSTS, benchmark_returns=benchmark_returns
                                     )
                                     t212_count += 1
                                 except Exception as e:
