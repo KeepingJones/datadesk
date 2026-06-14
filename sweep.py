@@ -69,6 +69,13 @@ BLEND_TYPES = ["inv_vol", "equal"]       # weighting within the blend
 COVERAGE_THRESH = 0.80  # drop ticker if missing >20% of rows
 MIN_ROWS = 200           # skip universe if fewer than this many trading days
 
+# Holdout windows reported per run: last N trading days as OOS
+HOLDOUT_WINDOWS = {
+    "1y":  252,
+    "3y":  756,
+    "5y": 1260,
+}
+
 
 def _load_universe(tickers: list[str]) -> "pd.DataFrame | None":
     import pandas as pd
@@ -102,19 +109,25 @@ def _run_combo(
     params: dict,
     weights: "pd.DataFrame",
     prices: "pd.DataFrame",
-    start: str,
-    holdout_start: str,
+    warmup_start: str,
+    holdout_starts: dict,
 ) -> None:
-    """Run full-period and holdout backtests and save both."""
-    # Full period
-    res = run_backtest(weights, prices, ALPACA_COSTS, start=start)
-    save_backtest_run(f"{label}", params, res.metrics, res.equity)
+    """Run full-period + multiple holdout windows and save all."""
+    # Full period (from warmup onwards)
+    res = run_backtest(weights, prices, ALPACA_COSTS, start=warmup_start)
+    save_backtest_run(label, params, res.metrics, res.equity)
 
-    # Holdout (OOS) — last 252 trading days
-    res_ho = run_backtest(weights, prices, ALPACA_COSTS, start=holdout_start)
-    cagr_pct = res_ho.metrics.get("cagr", 0) * 100
-    logger.info(f"  HOLDOUT CAGR: {cagr_pct:.1f}%")
-    save_backtest_run(f"{label} HOLDOUT 252d", params, res_ho.metrics, res_ho.equity)
+    # Each holdout window
+    for window_label, ho_start in holdout_starts.items():
+        res_ho = run_backtest(weights, prices, ALPACA_COSTS, start=ho_start)
+        cagr_pct = res_ho.metrics.get("cagr", 0) * 100
+        logger.info(f"  HOLDOUT {window_label} CAGR: {cagr_pct:.1f}%")
+        save_backtest_run(
+            f"{label} HOLDOUT {window_label}",
+            {**params, "holdout_window": window_label},
+            res_ho.metrics,
+            res_ho.equity,
+        )
 
 
 def _backfill_missing(all_tickers: list[str]) -> None:
@@ -156,9 +169,20 @@ def run_sweep() -> None:
         warmup_idx = min(252, n_days - 1)
         warmup_start = str(prices.index[warmup_idx].date())
 
-        # Holdout: last 252 trading days as OOS test window
-        holdout_idx = max(warmup_idx + 1, n_days - 252)
-        holdout_start = str(prices.index[holdout_idx].date())
+        # Multiple holdout windows — only include windows that have enough data
+        holdout_starts: dict[str, str] = {}
+        for win_label, win_days in HOLDOUT_WINDOWS.items():
+            ho_idx = n_days - win_days
+            if ho_idx > warmup_idx:  # must be after warmup
+                holdout_starts[win_label] = str(prices.index[ho_idx].date())
+            else:
+                logger.info(f"  Skipping {win_label} holdout — insufficient history ({n_days} days)")
+
+        if not holdout_starts:
+            logger.warning(f"  No holdout windows fit {univ_name} — skipping")
+            continue
+
+        logger.info(f"  Holdout windows: {list(holdout_starts.keys())}")
 
         # Pre-compute insider signal once per universe (expensive loop)
         try:
@@ -201,7 +225,7 @@ def run_sweep() -> None:
                                 "variant": "mom+mr",
                             }
                             try:
-                                _run_combo(label, params, w, prices, warmup_start, holdout_start)
+                                _run_combo(label, params, w, prices, warmup_start, holdout_starts)
                                 combo_count += 1
                             except Exception as e:
                                 logger.warning(f"  FAILED {label}: {e}")
@@ -225,7 +249,7 @@ def run_sweep() -> None:
                         "variant": "mom_only",
                     }
                     try:
-                        _run_combo(label, params, w, prices, warmup_start, holdout_start)
+                        _run_combo(label, params, w, prices, warmup_start, holdout_starts)
                         combo_count += 1
                     except Exception as e:
                         logger.warning(f"  FAILED {label}: {e}")
@@ -247,7 +271,7 @@ def run_sweep() -> None:
                     "variant": "mr_only",
                 }
                 try:
-                    _run_combo(label, params, w, prices, warmup_start, holdout_start)
+                    _run_combo(label, params, w, prices, warmup_start, holdout_starts)
                     combo_count += 1
                 except Exception as e:
                     logger.warning(f"  FAILED {label}: {e}")
@@ -265,7 +289,7 @@ def run_sweep() -> None:
             label = f"{univ_name} | trend_only_EW"
             try:
                 _run_combo(label, {"universe": univ_name, "variant": "trend_only_EW"},
-                           w_t, prices, warmup_start, holdout_start)
+                           w_t, prices, warmup_start, holdout_starts)
                 combo_count += 1
             except Exception as e:
                 logger.warning(f"  FAILED {label}: {e}")
@@ -288,7 +312,7 @@ def run_sweep() -> None:
                         "variant": "mom+insider",
                     }
                     try:
-                        _run_combo(label, params, w, prices, warmup_start, holdout_start)
+                        _run_combo(label, params, w, prices, warmup_start, holdout_starts)
                         combo_count += 1
                     except Exception as e:
                         logger.warning(f"  FAILED {label}: {e}")

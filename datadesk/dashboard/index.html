@@ -674,7 +674,7 @@ function showTab(tabId) {
           <td class="num">${colorPct(r.net_margin)}</td>
           <td class="num">${colorPct(r.roe)}</td>
           <td class="num">${fmt(r.debt_to_equity)}</td>
-          <td class="num">${colorPct(r.dividend_yield)}</td>
+          <td class="num">${colorPct(r.dividend_yield > 0.5 ? r.dividend_yield / 100 : r.dividend_yield)}</td>
           <td class="num">${fmt(r.beta)}</td>
       </tr>`;
   }

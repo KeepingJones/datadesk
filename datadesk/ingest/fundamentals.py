@@ -127,6 +127,16 @@ def _pct_to_float(v) -> float | None:
     return float(v)
 
 
+def _div_yield_to_float(v) -> float | None:
+    """Normalise dividendYield to a decimal fraction (0.04 = 4%).
+    yfinance returns US yields as decimals (0.04) but some foreign tickers
+    as percentage form (4.0). Values > 0.5 are clearly in pct form already."""
+    if v is None:
+        return None
+    f = float(v)
+    return f / 100.0 if f > 0.5 else f
+
+
 def _safe_float(v) -> float | None:
     try:
         return float(v) if v is not None else None
@@ -213,7 +223,7 @@ def fetch_fundamentals(
                     _safe_float(info.get("priceToBook")),
                     _safe_float(info.get("priceToSalesTrailingTwelveMonths")),
                     _safe_float(_g(info, "enterpriseToEbitda")),
-                    _pct_to_float(info.get("dividendYield")),
+                    _div_yield_to_float(info.get("dividendYield")),
                     _pct_to_float(info.get("payoutRatio")),
                     _safe_float(info.get("beta")),
                     _safe_float(info.get("totalRevenue")),
