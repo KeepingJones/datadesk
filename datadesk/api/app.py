@@ -166,6 +166,12 @@ def api_runs() -> list[dict]:
     return load_backtest_runs()
 
 
+@app.get("/api/reports")
+def api_reports(analyst: str | None = None, limit: int = 20) -> list[dict]:
+    from datadesk.db import load_reports
+    return load_reports(analyst=analyst, limit=limit)
+
+
 @app.get("/api/pnl_summary")
 def api_pnl_summary() -> dict:
     """Derive daily/weekly/monthly PnL from the most recent backtest equity curve."""
@@ -331,6 +337,10 @@ from datadesk.live.monitors.agent_worker import AgentWorker
 from datadesk.live.monitors.jensen_monitor import JensenMonitor
 from datadesk.live.monitors.news_monitor import NewsMonitor
 from datadesk.live.monitors.rebalancer import DailyRebalancer
+from datadesk.live.monitors.price_feed import PriceFeed
+from datadesk.live.monitors.research_analyst import ResearchAnalyst
+from datadesk.live.monitors.risk_analyst import RiskAnalyst
+from datadesk.live.monitors.strategy_analyst import StrategyAnalyst
 from datadesk.live.monitors.supply_chain import SupplyChainMonitor
 from datadesk.live.monitors.trump_monitor import TrumpMonitor
 from datadesk.live.oms import OMSFastPath
@@ -340,12 +350,18 @@ class DaemonManager:
     def __init__(self):
         self.oms = OMSFastPath()
         self.daemons = {
-            "agent_worker": {"instance": AgentWorker(self.oms), "thread": None},
-            "trump_monitor": {"instance": TrumpMonitor(self.oms), "thread": None},
-            "supply_chain": {"instance": SupplyChainMonitor(self.oms), "thread": None},
-            "jensen_monitor": {"instance": JensenMonitor(self.oms), "thread": None},
-            "news_monitor": {"instance": NewsMonitor(), "thread": None},
-            "rebalancer": {"instance": DailyRebalancer(self.oms), "thread": None},
+            # ── Intraday / event-driven ──────────────────────────────────────
+            "agent_worker":      {"instance": AgentWorker(self.oms),        "thread": None},
+            "trump_monitor":     {"instance": TrumpMonitor(self.oms),       "thread": None},
+            "supply_chain":      {"instance": SupplyChainMonitor(self.oms), "thread": None},
+            "jensen_monitor":    {"instance": JensenMonitor(self.oms),      "thread": None},
+            "news_monitor":      {"instance": NewsMonitor(),                 "thread": None},
+            "rebalancer":        {"instance": DailyRebalancer(self.oms),    "thread": None},
+            "price_feed":        {"instance": PriceFeed(self.oms),          "thread": None},
+            # ── Out-of-session analysts ──────────────────────────────────────
+            "research_analyst":  {"instance": ResearchAnalyst(),            "thread": None},
+            "strategy_analyst":  {"instance": StrategyAnalyst(),            "thread": None},
+            "risk_analyst":      {"instance": RiskAnalyst(self.oms),        "thread": None},
         }
 
     @property

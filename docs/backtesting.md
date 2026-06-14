@@ -17,16 +17,43 @@ Vectorised daily-bar engine ([engine.py](../datadesk/backtest/engine.py)):
 
 ## Validation, in order of rigour
 
-1. **In-sample sweep** — exploration only. Never quoted as a result.
-2. **Walk-forward** ([walkforward.py](../datadesk/backtest/walkforward.py)) —
-   train 18 months, pick the best params on train only, run them untouched on the
-   next 6 months, roll forward. The stitched out-of-sample series is the quotable
-   number.
-3. **Param stability** — the share of walk-forward segments choosing the modal
-   parameter set. Low stability = the "edge" moves when the window moves = overfit
-   flag, reported alongside every result.
-4. **Holdout** — the final 12 months of data are never used during development.
-   One evaluation, at the end, before any deployment decision.
+1. **In-sample sweep** (`sweep.py`) — ~1000 combos across 5 universe families (AI/Semi, EU
+   Regional, Defensive, Global Macro, Small-Cap Growth). Exploration only. Never quoted as a result.
+
+2. **Walk-forward OOS** (`sweep.py: _run_walk_forward`) — expanding window: 3y train, 1y test,
+   expand, repeat. Each fold saved as `{label} WFO fold-N`; aggregate saved as `WFO aggregate`.
+   Parameters are fixed from the sweep — the WFO tests fold-to-fold stability, not selection.
+
+3. **Param stability** (`backtest/walkforward.py`) — share of walk-forward segments choosing
+   the modal parameter set. Low stability = overfit flag.
+
+4. **Holdout windows** (1y / 3y / 5y) — saved per combo in platform.db as `{label} HOLDOUT Ny`.
+   The rebalancer and strategy analyst filter to 3y holdout as the most reliable OOS signal.
+
+5. **Final holdout gate** — the last 252d never used during development; one evaluation at the
+   end before any deployment decision.
+
+## Vol-targeting
+
+```python
+from datadesk.backtest.vol_target import vol_target_weights
+w_scaled = vol_target_weights(weights, prices, target_vol=0.15, window=63)
+```
+
+Scales the weight matrix so the rolling portfolio vol targets 15% annualised. Scale factor =
+target / rolling_vol, capped at 2×. The sweep saves `[VOL15]` variants for every combo so the
+impact is visible in the leaderboard. Vol-targeting reduces tail risk in trending markets and
+prevents outsized drawdowns when a universe becomes highly correlated.
+
+## Rebalancer filter (promotion to live)
+
+A strategy is eligible for live deployment via the daily rebalancer only if:
+- **Sharpe ≥ 1.0** in the holdout period
+- **MaxDD ≥ −30%** in the holdout period
+- **top_n ≥ 2** — single-name concentrated positions excluded
+- **Source**: 3y holdout preferred over 1y; any holdout over full-period in-sample
+
+These filters are enforced in `_get_best_run()` in `rebalancer.py`.
 
 ## Rules we hold ourselves to
 

@@ -51,8 +51,12 @@ def run_simulation(
 
     r = returns_series.dropna().values
     n = len(r)
-    mu = float(np.mean(r))
-    sigma = float(np.std(r))
+    mu_daily = float(np.mean(r))
+    sigma_daily = float(np.std(r))
+    
+    # Annualize for GBM parametric model
+    mu_ann = mu_daily * 252
+    sigma_ann = sigma_daily * np.sqrt(252)
 
     # Percentile bands sampled at equal intervals across the path length
     sample_points = min(252, n)
@@ -71,12 +75,13 @@ def run_simulation(
             sim_r = np.random.choice(r, size=n, replace=True)
         else:  # gbm
             dt = 1 / 252
-            shocks = np.random.normal(
-                loc=(mu - 0.5 * sigma ** 2) * dt,
-                scale=sigma * np.sqrt(dt),
+            log_returns = np.random.normal(
+                loc=(mu_ann - 0.5 * sigma_ann ** 2) * dt,
+                scale=sigma_ann * np.sqrt(dt),
                 size=n,
             )
-            sim_r = shocks
+            # convert log returns to simple returns for cumprod
+            sim_r = np.exp(log_returns) - 1
 
         curve = _equity_curve(sim_r)
         all_paths.append(curve[indices])
@@ -149,19 +154,19 @@ def run_simulation(
 def _load_latest_returns() -> pd.Series | None:
     """Load the equity curve from the most recent backtest run and derive daily returns."""
     try:
-        import sqlite3
-        from datadesk.config import DB_PATH
-
-        con = sqlite3.connect(DB_PATH)
-        rows = con.execute(
-            "SELECT equity_curve FROM backtest_runs ORDER BY run_at DESC LIMIT 1"
-        ).fetchone()
-        con.close()
-        if not rows:
+        from datadesk.db import load_backtest_runs
+        
+        runs = load_backtest_runs(limit=1)
+        if not runs:
             return None
-        equity = pd.Series(json.loads(rows[0]))
-        if len(equity) < 2:
+        
+        # runs[0]['equity'] is a list of [date_str, value] pairs
+        equity_data = runs[0]["equity"]
+        if len(equity_data) < 2:
             return None
+            
+        values = [float(point[1]) for point in equity_data]
+        equity = pd.Series(values)
         return equity.pct_change().dropna()
     except Exception:
         return None

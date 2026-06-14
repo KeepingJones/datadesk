@@ -72,16 +72,43 @@ def _build_strategy(params: dict, prices):
 
 
 def _get_best_run() -> dict | None:
-    """Load the highest-Sharpe HOLDOUT run from platform.db."""
-    import json
+    """
+    Load the best eligible HOLDOUT run from platform.db.
+
+    Eligibility: Sharpe >= 1.0, MaxDD >= -30%, top_n >= 2.
+    Prefer 3y holdout over 1y; fall back to any holdout, then any run.
+    """
     from datadesk.db import load_backtest_runs
-    runs = load_backtest_runs(limit=200)
-    holdout_runs = [r for r in runs if "HOLDOUT" in r["name"]]
-    if not holdout_runs:
-        holdout_runs = runs  # fall back to any run
-    if not holdout_runs:
-        return None
-    return max(holdout_runs, key=lambda r: r["metrics"].get("sharpe", 0))
+    runs = load_backtest_runs(limit=500)
+
+    def _eligible(r: dict) -> bool:
+        m = r["metrics"]
+        p = r["params"]
+        return (
+            m.get("sharpe", 0) >= 1.0
+            and m.get("max_drawdown", -1) >= -0.30
+            and p.get("mom_top_n", 1) >= 2
+        )
+
+    holdout_3y = [r for r in runs if "HOLDOUT 3y" in r["name"] and _eligible(r)]
+    if holdout_3y:
+        return max(holdout_3y, key=lambda r: r["metrics"].get("sharpe", 0))
+
+    holdout_1y = [r for r in runs if "HOLDOUT 1y" in r["name"] and _eligible(r)]
+    if holdout_1y:
+        return max(holdout_1y, key=lambda r: r["metrics"].get("sharpe", 0))
+
+    # Fallback: any holdout passing filters, then any run passing filters
+    holdouts = [r for r in runs if "HOLDOUT" in r["name"] and _eligible(r)]
+    if holdouts:
+        return max(holdouts, key=lambda r: r["metrics"].get("sharpe", 0))
+
+    eligible_any = [r for r in runs if _eligible(r)]
+    if eligible_any:
+        return max(eligible_any, key=lambda r: r["metrics"].get("sharpe", 0))
+
+    logger.warning("[REBALANCER] no eligible run found (all fail top_n/Sharpe/MaxDD filters)")
+    return None
 
 
 def _universe_tickers(params: dict) -> list[str]:

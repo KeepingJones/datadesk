@@ -69,6 +69,7 @@ datadesk/
 │   ├── backtest/             backtesting
 │   │   ├── engine.py         run_backtest() — vectorised, no-lookahead
 │   │   ├── costs.py          CostModel, ALPACA_COSTS, T212_ISA_COSTS, ZERO_COSTS
+│   │   ├── vol_target.py     vol_target_weights() — scales weights to 15% annual vol target
 │   │   ├── tiers.py          exchange+market-cap cost tier assignment
 │   │   ├── metrics.py        cagr(), sharpe(), max_drawdown(), summarize()
 │   │   ├── walkforward.py    walk-forward harness with param-stability flag
@@ -89,12 +90,18 @@ datadesk/
 │   │   ├── oms.py            shadow-first OMS — gated on DATADESK_ARM_BROKER=1
 │   │   ├── shadow.py         signal audit store (every fast-path signal recorded)
 │   │   ├── universe.py       active universe management
-│   │   ├── monitors/         event monitors (none auto-start)
-│   │   │   ├── trump.py      TrumpMonitor — CNN polling + v3 taxonomy classifier
-│   │   │   ├── supply_chain.py  SupplyChainMonitor — real v3 matrix + 1m yfinance
-│   │   │   ├── news.py       NewsMonitor
-│   │   │   └── agent.py      AgentWorker (requires Ollama)
-│   │   └── jensen.py         JensenMonitor (parked — no data source)
+│   │   ├── market_calendar.py  exchange hours/holidays: NYSE, LSE, XETRA, TSE, HKEX
+│   │   └── monitors/         event monitors (none auto-start)
+│   │       ├── trump_monitor.py     TrumpMonitor — CNN polling + v3 taxonomy classifier
+│   │       ├── supply_chain.py      SupplyChainMonitor — real v3 matrix + 1m yfinance
+│   │       ├── news_monitor.py      Real RSS + Alpaca News, sentiment scoring, phi3:mini
+│   │       ├── agent_worker.py      AgentWorker (requires Ollama)
+│   │       ├── jensen_monitor.py    parked (no data source)
+│   │       ├── rebalancer.py        Daily MOC rebalancer → best eligible sweep strategy
+│   │       ├── price_feed.py        Alpaca websocket live price feed → OMS trailing stops
+│   │       ├── research_analyst.py  Nightly stock discovery (momentum + quality + insider)
+│   │       ├── strategy_analyst.py  Sweep analysis: promotions, overfitting, universe rank
+│   │       └── risk_analyst.py      Portfolio risk: concentration, beta, correlation, drawdown
 │   │
 │   ├── monte_carlo/          simulation
 │   │   └── simulation.py     bootstrap actual strategy returns → P5–P95 fan bands
@@ -154,7 +161,8 @@ All alternative and fundamental data.
 | `equity_balance` | ~100 | Annual balance sheets (assets, liabilities, cash, debt) |
 
 ### platform.db
-- `backtest_runs` — saved results from every `run_backtest()` call
+- `backtest_runs` — saved results from every `run_backtest()` call (upsert by name: same name → replaces)
+- `analyst_reports` — out-of-session analyst output (`analyst`: research/strategy/risk/news, `body`: plain-text, `data`: JSON payload)
 - Monitored universe
 - Shadow signal audit trail (every OMS fast-path signal)
 
@@ -306,6 +314,20 @@ ZERO_COSTS     = CostModel(flat_bps=0.0)
 - `.turnover` — `|Δweight|.sum(axis=1)` per day
 - `.metrics` — `dict` from `summarize()`
 
+**Vol-targeting (`backtest/vol_target.py`):**
+```python
+from datadesk.backtest.vol_target import vol_target_weights
+w_scaled = vol_target_weights(weights, prices, target_vol=0.15, window=63, max_leverage=2.0)
+```
+Scales the weight matrix daily so the rolling realised portfolio vol targets 15% annualised.
+Scale = target_vol / rolling_vol, capped at max_leverage. Applied before costs in the engine.
+The sweep saves `[VOL15]` labelled variants for every combo alongside the raw version.
+
+**Walk-forward OOS (`sweep.py: _run_walk_forward`):**
+Expanding-window WFO — train on 3 years, test on the next year, expand training window, repeat.
+Each fold saved as `{label} WFO fold-N`. Aggregate OOS metrics saved as `{label} WFO aggregate`.
+Distinct from holdout: holdout tests the parameter selection process; WFO tests individual fold stability.
+
 ---
 
 ## 6. After-tax simulation
@@ -406,11 +428,20 @@ Strategy signal → OMS.fast_path() → shadow.record_signal()
 
 ### Monitors (none auto-start)
 Started via dashboard buttons or `POST /api/daemons/{name}/start`.
+
+**Intraday / event-driven:**
 - `trump_monitor` — polls CNN archive, classifies new posts via v3 taxonomy
 - `supply_chain` — real supply-chain matrix + live 1m yfinance moves
-- `news_monitor` — headline ingestion
+- `news_monitor` — RSS (Reuters/MarketWatch/WSJ) + Alpaca News, keyword sentiment, phi3:mini signal
 - `agent_worker` — Ollama-backed inference (requires local model)
 - `jensen_monitor` — parked (no data source)
+- `rebalancer` — fires at NYSE MOC window (15:48 ET) each trading day; picks best eligible 3y-holdout strategy; routes per-ticker via market_calendar; drift threshold 2%
+- `price_feed` — Alpaca websocket; dynamically subscribes to all held US tickers; calls `oms.update_prices()` on each trade tick (trailing stops + take-profits); gracefully no-ops without keys
+
+**Out-of-session analysts (run when NYSE is closed):**
+- `research_analyst` — scores all tickers in altdata.db on momentum/quality/insider/congress composite; writes top-20 discovery candidates to analyst_reports
+- `strategy_analyst` — loads all sweep results; flags overfitting (full_cagr/holdout > 2×); builds promotion/demotion list (Sharpe ≥ 1.0, MaxDD ≥ -30%, top_n ≥ 2); universe ranking by mean 1y CAGR
+- `risk_analyst` — intraday fast check (30 min): daily loss + concentration; nightly deep: sector, beta, pairwise correlation, drawdown vs strategy expectation
 
 ---
 
@@ -428,11 +459,15 @@ All served by FastAPI on the port specified at launch (default 8000).
 | `/api/daily_pnl` | GET | Daily P&L series |
 | `/api/historic_trades` | GET | Closed positions |
 | `/api/live_trades` | GET | Shadow signals (executed=True) |
+| `/api/runs` | GET | Backtest leaderboard (latest per name, ordered by CAGR) |
+| `/api/reports` | GET | Analyst reports (`?analyst=research\|strategy\|risk\|news&limit=N`) |
 | `/api/alpaca/account` | GET | Alpaca paper account summary |
 | `/api/alpaca/positions` | GET | Alpaca open positions |
+| `/api/alpaca/mode` | GET/POST | Toggle Alpaca paper/live mode |
 | `/api/t212/account` | GET | T212 live account cash summary |
 | `/api/t212/positions` | GET | T212 open positions |
-| `/api/daemons/status` | GET | All monitor daemon statuses |
+| `/api/t212/mode` | GET/POST | Toggle T212 demo/live mode |
+| `/api/daemons/status` | GET | All monitor daemon statuses (includes new analysts + price_feed) |
 | `/api/monte_carlo/status` | GET | MC simulation status + result when done |
 
 ### Triggers
@@ -684,23 +719,40 @@ Add to universe via `universe-expand --theme QUANTUM` when price history is insu
 
 MaxDD gap persists. With survivorship-biased universe, our drawdowns look shallow because we only hold stocks that survived. Gate re-evaluation requires Tiingo/EODHD honest universe.
 
-### What's built (143 tests passing)
-- Price history: 249 tickers, history.db
-- Fundamentals: 80+ tickers enriched (equity_info, equity_ratios, equity_financials, equity_balance)
+### What's built
+
+**Data & alt-data:**
+- Price history: 249 tickers, history.db; Fundamentals: 80+ tickers enriched
 - Alt-data: congress event study, Trump post event study, insider filings, news, macro
-- Strategy v2: momentum-core + bear_only_scale (2-state), + 3-state macro_regime
-- Phase-aware strategy: top_n scales 3→6→10→15 as NAV grows from £500 to £100k+
+
+**Strategy & backtesting:**
+- Strategy v2: momentum-core + bear_only_scale + 3-state macro_regime
 - Phase-aware backtest: £500 start + £500/mo → £308k final NAV over 9 years
-- After-tax simulation: `tax.py` + `tax-compare` command (ISA wins above 1.25% annual gain)
-- Tiered cost model: L1/L2/L3 by exchange + market cap (AIM stocks now pay 40bps spread)
-- Index membership tracking: index_memberships table, overlap report in holdout
-- Forward screener: momentum + quality + congress + thematic acceleration
-- Thematic S-curve radar: AI_INFRA, QUANTUM, OPTICAL_NET, SEMI_EQUIP, UK_TECH etc.
-- Signal genesis audit: signal-audit command, proves no lookahead in price signals
-- Congress/Trump event studies: raw abnormal returns measured, dashboarded
-- Investment thesis generator: template-based, no LLM required
-- Dashboard: 4 tabs — C&C, Universe (fundamentals screener), Backtest, Research & Signals
-- Platform routing: T212 ISA vs Alpaca classification per ticker
+- After-tax: ISA vs Alpaca taxable (ISA wins above 1.25% annual gain)
+- Tiered cost model: L1/L2/L3 by exchange + market cap
+- Sweep: ~1000 combos across 5 universe families; T212 ISA cost pass for EU/DEFENSIVE
+- Vol-targeting: 15% annualised vol target scaling (sweep saves [VOL15] variants)
+- Walk-forward OOS: expanding-window, 3y train / 1y test per fold (sweep saves WFO folds)
+- Holdout windows: 1y, 3y, 5y per combo in platform.db
+
+**Live / execution:**
+- Shadow-first OMS: every signal recorded; broker gated on DATADESK_ARM_BROKER=1
+- Daily rebalancer: fires at NYSE MOC window; picks best eligible 3y-holdout strategy
+- Rebalancer filter: top_n ≥ 2, Sharpe ≥ 1.0, MaxDD ≥ -30%, prefers 3y holdout
+- Exchange calendar: NYSE/LSE/XETRA/TSE/HKEX — trading day, MOC window, open/close checks
+- Live price feed: Alpaca websocket → OMS trailing stops + take-profits
+- T212 order execution: place_market_order, close_position, resolve_ticker (yf→T212 format)
+
+**Analysts (out-of-session):**
+- Research analyst: nightly discovery scan, composite score (momentum/quality/insider/congress)
+- Strategy analyst: sweep analysis, promotion/demotion list, overfitting detection
+- Risk analyst: intraday concentration + daily loss; nightly sector/beta/correlation/drawdown
+- News monitor: real RSS feeds + Alpaca News; sentiment scoring; analyst_reports
+
+**Dashboard & API:**
+- /api/reports endpoint: fetch analyst output by type and recency
+- /api/runs: deduped leaderboard (MAX(id) per name, CAGR DESC)
+- Daemon panel covers all 10 daemons including new analysts + price_feed
 
 ### Open before public GitHub push
 1. `.env` cleanup — remove live T212 keys

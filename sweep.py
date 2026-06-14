@@ -14,8 +14,9 @@ import logging
 
 import pandas as pd
 
-from datadesk.backtest.costs import ALPACA_COSTS
+from datadesk.backtest.costs import ALPACA_COSTS, T212_ISA_COSTS
 from datadesk.backtest.engine import run_backtest
+from datadesk.backtest.vol_target import vol_target_weights
 from datadesk.db import save_backtest_run
 from datadesk.history.store import load_closes
 from datadesk.strategies.blend import inverse_volatility_blend
@@ -111,15 +112,20 @@ def _run_combo(
     prices: "pd.DataFrame",
     warmup_start: str,
     holdout_starts: dict,
+    costs=None,
+    vol_target: bool = False,
 ) -> None:
     """Run full-period + multiple holdout windows and save all."""
-    # Full period (from warmup onwards)
-    res = run_backtest(weights, prices, ALPACA_COSTS, start=warmup_start)
+    if costs is None:
+        costs = ALPACA_COSTS
+
+    w = vol_target_weights(weights, prices) if vol_target else weights
+
+    res = run_backtest(w, prices, costs, start=warmup_start)
     save_backtest_run(label, params, res.metrics, res.equity)
 
-    # Each holdout window
     for window_label, ho_start in holdout_starts.items():
-        res_ho = run_backtest(weights, prices, ALPACA_COSTS, start=ho_start)
+        res_ho = run_backtest(w, prices, costs, start=ho_start)
         cagr_pct = res_ho.metrics.get("cagr", 0) * 100
         logger.info(f"  HOLDOUT {window_label} CAGR: {cagr_pct:.1f}%")
         save_backtest_run(
@@ -127,6 +133,83 @@ def _run_combo(
             {**params, "holdout_window": window_label},
             res_ho.metrics,
             res_ho.equity,
+        )
+
+
+def _run_walk_forward(
+    label: str,
+    params: dict,
+    weights: "pd.DataFrame",
+    prices: "pd.DataFrame",
+    train_years: int = 3,
+    test_years: int = 1,
+    costs=None,
+    vol_target: bool = False,
+) -> None:
+    """
+    Expanding-window walk-forward OOS.
+
+    Trains on `train_years` years, tests on the next `test_years`, then
+    expands the training window by `test_years` and repeats. Each fold's
+    OOS result is saved independently as "{label} WFO fold-N".
+
+    This is a true out-of-sample test: parameters are fixed from the sweep
+    but the test window was never used to select them.
+    """
+    if costs is None:
+        costs = ALPACA_COSTS
+
+    w = vol_target_weights(weights, prices) if vol_target else weights
+
+    DAYS_PER_YEAR = 252
+    train_days = train_years * DAYS_PER_YEAR
+    test_days = test_years * DAYS_PER_YEAR
+    n = len(prices)
+
+    fold = 0
+    oos_returns = []
+
+    train_end_idx = train_days
+    while train_end_idx + test_days <= n:
+        test_start_idx = train_end_idx
+        test_end_idx = min(train_end_idx + test_days, n)
+
+        test_start = str(prices.index[test_start_idx].date())
+        test_end = str(prices.index[test_end_idx - 1].date())
+
+        fold += 1
+        try:
+            res = run_backtest(w, prices, costs, start=test_start, end=test_end)
+            cagr_pct = res.metrics.get("cagr", 0) * 100
+            logger.info(f"  WFO fold-{fold} [{test_start}→{test_end}] CAGR {cagr_pct:.1f}%")
+            save_backtest_run(
+                f"{label} WFO fold-{fold}",
+                {**params, "wfo_fold": fold, "wfo_start": test_start, "wfo_end": test_end},
+                res.metrics,
+                res.equity,
+            )
+            oos_returns.append(res.returns)
+        except Exception as e:
+            logger.warning(f"  WFO fold-{fold} failed: {e}")
+
+        train_end_idx += test_days
+
+    # Save aggregate OOS metrics across all folds
+    if oos_returns and len(oos_returns) >= 2:
+        combined = pd.concat(oos_returns)
+        from datadesk.backtest.metrics import summarize
+        agg_metrics = summarize(combined)
+        agg_metrics["wfo_folds"] = fold
+        save_backtest_run(
+            f"{label} WFO aggregate",
+            {**params, "wfo_folds": fold, "wfo_type": "aggregate"},
+            agg_metrics,
+            (1 + combined).cumprod(),
+        )
+        logger.info(
+            f"  WFO aggregate ({fold} folds): "
+            f"CAGR {agg_metrics['cagr']*100:.1f}%  "
+            f"Sharpe {agg_metrics['sharpe']:.2f}"
         )
 
 
@@ -316,6 +399,108 @@ def run_sweep() -> None:
                         combo_count += 1
                     except Exception as e:
                         logger.warning(f"  FAILED {label}: {e}")
+
+        # ----------------------------------------------------------------
+        # Vol-targeting pass — re-run best mom+mr combos with 15% vol target
+        # Run for every universe so the dashboard shows the comparison.
+        # ----------------------------------------------------------------
+        for lb in LOOKBACKS:
+            for top in TOP_NS:
+                for trend in TREND_FLAGS:
+                    w_mom = momentum(lb, top, 21)(prices)
+                    w_mr = mean_reversion(z_entry=1.0, z_exit=0.0)(prices)
+                    w = inverse_volatility_blend([w_mom, w_mr], prices)
+                    if trend:
+                        w = _apply_trend(w, prices)
+                    vt_label = (
+                        f"{univ_name}[VOL15] | mom({lb},{top}) trend={'Y' if trend else 'N'}"
+                    )
+                    vt_params = {
+                        "universe": univ_name,
+                        "mom_lookback": lb,
+                        "mom_top_n": top,
+                        "trend_filter": trend,
+                        "variant": "mom+mr",
+                        "vol_target": 0.15,
+                    }
+                    try:
+                        _run_combo(
+                            vt_label, vt_params, w, prices,
+                            warmup_start, holdout_starts, vol_target=True,
+                        )
+                        combo_count += 1
+                    except Exception as e:
+                        logger.warning(f"  FAILED {vt_label}: {e}")
+
+        # ----------------------------------------------------------------
+        # Walk-forward OOS — run the 3 most popular lookbacks at top_n=2
+        # (the single most likely configuration to promote to live).
+        # ----------------------------------------------------------------
+        for lb in [63, 126, 252]:
+            for trend in TREND_FLAGS:
+                w_mom = momentum(lb, 2, 21)(prices)
+                w_mr = mean_reversion(z_entry=1.0, z_exit=0.0)(prices)
+                w = inverse_volatility_blend([w_mom, w_mr], prices)
+                if trend:
+                    w = _apply_trend(w, prices)
+                wfo_label = f"{univ_name} | WFO mom({lb},2) trend={'Y' if trend else 'N'}"
+                wfo_params = {
+                    "universe": univ_name,
+                    "mom_lookback": lb,
+                    "mom_top_n": 2,
+                    "trend_filter": trend,
+                    "variant": "mom+mr",
+                    "wfo": True,
+                }
+                try:
+                    _run_walk_forward(wfo_label, wfo_params, w, prices)
+                    combo_count += 1
+                except Exception as e:
+                    logger.warning(f"  FAILED WFO {wfo_label}: {e}")
+
+        # ----------------------------------------------------------------
+        # T212 ISA cost pass — EU/DEFENSIVE universes carry a 0.15% FX fee
+        # on non-GBP stocks; re-run the main grid to compare net-of-costs
+        # ----------------------------------------------------------------
+        if univ_name in ("EU_REGIONAL", "DEFENSIVE"):
+            t212_count = 0
+            for lb in LOOKBACKS:
+                for top in TOP_NS:
+                    for z in Z_ENTRIES:
+                        for trend in TREND_FLAGS:
+                            for blend in BLEND_TYPES:
+                                w_mom = momentum(lb, top, 21)(prices)
+                                w_mr = mean_reversion(z_entry=z, z_exit=0.0)(prices)
+                                if blend == "inv_vol":
+                                    w = inverse_volatility_blend([w_mom, w_mr], prices)
+                                else:
+                                    w = _blend_equal([w_mom, w_mr])
+                                if trend:
+                                    w = _apply_trend(w, prices)
+                                t212_label = (
+                                    f"{univ_name}[T212] | mom({lb},{top}) mr({z}) "
+                                    f"trend={'Y' if trend else 'N'} blend={blend}"
+                                )
+                                t212_params = {
+                                    "universe": univ_name,
+                                    "broker_cost_model": "T212_ISA",
+                                    "mom_lookback": lb,
+                                    "mom_top_n": top,
+                                    "mr_z_entry": z,
+                                    "trend_filter": trend,
+                                    "blend": blend,
+                                    "variant": "mom+mr",
+                                }
+                                try:
+                                    _run_combo(
+                                        t212_label, t212_params, w, prices,
+                                        warmup_start, holdout_starts, costs=T212_ISA_COSTS,
+                                    )
+                                    t212_count += 1
+                                except Exception as e:
+                                    logger.warning(f"  FAILED {t212_label}: {e}")
+            logger.info(f"  {univ_name} T212 ISA: {t212_count} extra combos")
+            combo_count += t212_count
 
         total_runs += combo_count
         logger.info(f"  {univ_name}: {combo_count} combos saved ({combo_count * 2} DB rows)")

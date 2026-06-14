@@ -22,6 +22,15 @@ CREATE TABLE IF NOT EXISTS backtest_runs (
     metrics     TEXT NOT NULL,   -- JSON
     equity      TEXT NOT NULL    -- JSON [[date, value], ...]
 );
+
+CREATE TABLE IF NOT EXISTS analyst_reports (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at  TEXT NOT NULL,
+    analyst     TEXT NOT NULL,   -- 'research' | 'strategy' | 'risk'
+    title       TEXT NOT NULL,
+    body        TEXT NOT NULL,   -- plain-text briefing
+    data        TEXT NOT NULL    -- JSON payload (findings, scores, alerts)
+);
 """
 
 
@@ -30,6 +39,29 @@ def _connect(db_path: Path | None = None) -> sqlite3.Connection:
     con.execute("PRAGMA journal_mode=WAL")
     con.executescript(_SCHEMA)
     return con
+
+
+def save_report(analyst: str, title: str, body: str, data: dict, db_path: Path | None = None) -> None:
+    with _connect(db_path) as con:
+        con.execute(
+            "INSERT INTO analyst_reports (created_at, analyst, title, body, data) VALUES (?,?,?,?,?)",
+            (datetime.now(UTC).isoformat(), analyst, title, body, json.dumps(data)),
+        )
+
+
+def load_reports(analyst: str | None = None, limit: int = 20, db_path: Path | None = None) -> list[dict]:
+    with _connect(db_path) as con:
+        if analyst:
+            rows = con.execute(
+                "SELECT created_at, analyst, title, body, data FROM analyst_reports "
+                "WHERE analyst=? ORDER BY id DESC LIMIT ?", (analyst, limit)
+            ).fetchall()
+        else:
+            rows = con.execute(
+                "SELECT created_at, analyst, title, body, data FROM analyst_reports "
+                "ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+    return [{"created_at": r[0], "analyst": r[1], "title": r[2], "body": r[3], "data": json.loads(r[4])} for r in rows]
 
 
 def save_backtest_run(

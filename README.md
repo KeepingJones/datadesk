@@ -14,9 +14,13 @@ A market data platform built to mirror the internal tooling a prop trading firm 
 | **History** | Canonical daily-bar store — 221k+ bars across 168 tickers, 5y+ depth |
 | **Alt-data** | Congress (STOCK Act) trades, Form 4 insiders, SEC filings, macro series (724k rows), Trump communications corpus (33k posts), WSB sentiment archive |
 | **Strategies** | Cross-sectional momentum, trend filter, mean reversion, VIX regime overlay, congress/insider follow — walk-forward validated, costs always on |
-| **Backtesting** | Vectorised engine (no lookahead by construction), tiered cost model (L1/L2/L3 spread + commission + FX), walk-forward with param-stability flag, 12-month holdout |
-| **OMS** | Shadow-first fast-path OMS: every signal recorded, broker execution gated on `DATADESK_ARM_BROKER=1` (default: never armed) |
-| **Dashboard** | Dark ops-console UI — backtest leaderboard, equity curves, universe management, P&L summary (daily/weekly/monthly), AI feed, Alpaca paper status |
+| **Sweep** | ~1000-combo parameter sweep across 5 universe families (AI/Semi, EU, Defensive, Global Macro, Small-Cap); vol-targeting and expanding-window WFO variants; 1y/3y/5y holdout windows per combo |
+| **Backtesting** | Vectorised engine, tiered cost model (L1/L2/L3 + FX), vol-targeting (15% target), walk-forward OOS (expanding window); T212 ISA vs Alpaca cost comparison |
+| **OMS** | Shadow-first fast-path OMS: every signal recorded, broker execution gated on `DATADESK_ARM_BROKER=1`; live Alpaca websocket price feed → trailing stops |
+| **Daily rebalancer** | Fires at NYSE MOC window; picks highest-Sharpe 3y-holdout strategy (top_n ≥ 2, MaxDD ≥ −30%); routes per-ticker to the correct exchange |
+| **Out-of-session analysts** | Research analyst (nightly stock discovery + insider/congress scoring), Strategy analyst (sweep review, promotion/demotion, overfitting flags), Risk analyst (concentration, beta, correlation, drawdown checks) |
+| **News monitor** | Real RSS feed polling (Reuters/MarketWatch/WSJ) + Alpaca News API; keyword sentiment scoring; optional phi3:mini LLM signal; saves to analyst_reports |
+| **Dashboard** | Dark ops-console UI — backtest leaderboard, equity curves, universe management, P&L summary, AI feed, Alpaca paper + T212 ISA status, Monte Carlo bootstrap simulations |
 
 ---
 
@@ -26,18 +30,31 @@ A market data platform built to mirror the internal tooling a prop trading firm 
 datadesk/
 ├── quality/        price reconciliation engine, 7-cause break classifier, liquidity tiers
 ├── history/        canonical daily-bar store (SQLite WAL) + migration tooling
-├── ingest/         yahoo, FRED, ECB, yfinance backfill, Massive free-tier, Trump CNN collector
+├── ingest/         yahoo, FRED, ECB, yfinance backfill, Massive free-tier, t212_client
 ├── strategies/     momentum, trend, meanrev, regime overlays, insider/congress follow
-├── backtest/       vectorised engine, cost model, walk-forward harness, metrics
+├── backtest/       vectorised engine, cost model, vol_target, walk-forward harness, metrics
 ├── ai/             Trump post classifier (v3 taxonomy, deterministic + Ollama fallback)
-├── live/           OMS fast-path, shadow store, monitors (shadow mode by default)
-├── api/            FastAPI — all dashboard endpoints
-└── dashboard/      Single-page ops console (Jinja2 + Chart.js, no build chain)
+├── live/
+│   ├── oms.py               shadow-first OMS, gated on DATADESK_ARM_BROKER=1
+│   ├── market_calendar.py   exchange hours/holidays (NYSE, LSE, XETRA, TSE, HKEX)
+│   └── monitors/
+│       ├── rebalancer.py        daily MOC rebalancer → best 3y-holdout strategy
+│       ├── price_feed.py        Alpaca websocket → OMS trailing stops
+│       ├── research_analyst.py  nightly stock discovery (momentum + quality + insider)
+│       ├── strategy_analyst.py  sweep review: promotions, overfitting, universe ranking
+│       ├── risk_analyst.py      concentration, sector, beta, correlation, drawdown checks
+│       ├── news_monitor.py      RSS + Alpaca News feed with sentiment scoring
+│       ├── trump_monitor.py     CNN polling + v3 taxonomy
+│       ├── supply_chain.py      supply-chain matrix event monitor
+│       ├── agent_worker.py      Ollama-backed inference worker
+│       └── jensen_monitor.py    parked
+├── api/            FastAPI — all dashboard + /api/reports endpoint
+├── dashboard/      Single-page ops console (Jinja2 + Chart.js, no build chain)
+└── sweep.py        ~1000-combo parameter sweep (5 universes, vol-target, WFO, T212 costs)
 
-altdata.db          All alt-data in one place: congress, insiders, filings, news,
-                    macro_history (724k rows), Trump posts, WSB, ticker metadata
+altdata.db          All alt-data: congress, insiders, filings, news, macro, fundamentals
 history.db          Daily OHLCV bars (221k+)
-platform.db         Backtest runs, monitored universe, shadow signal audit trail
+platform.db         Backtest runs, analyst_reports, shadow signal audit trail
 ```
 
 ---
