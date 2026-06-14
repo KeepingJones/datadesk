@@ -32,6 +32,50 @@ logging.basicConfig(
 logger = logging.getLogger("datadesk")
 
 
+
+def cmd_init_db() -> None:
+    from datadesk.db import PLATFORM_DB
+    from datadesk.config import DB_PATH
+    import sqlite3
+    from pathlib import Path
+    from datadesk.history.store import connect as history_connect
+    from datadesk.live.shadow import _connect as shadow_connect
+
+    with history_connect(): pass
+    with shadow_connect(): pass
+
+    with sqlite3.connect(PLATFORM_DB) as con:
+        con.execute("PRAGMA journal_mode=WAL")
+        con.executescript('''
+        CREATE TABLE IF NOT EXISTS backtest_runs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL,
+            params TEXT NOT NULL,
+            metrics TEXT NOT NULL,
+            equity_curve TEXT,
+            ts TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS active_universe (
+            ticker TEXT PRIMARY KEY,
+            added_date TEXT NOT NULL,
+            reason TEXT
+        );
+        CREATE TABLE IF NOT EXISTS analyst_reports (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            analyst TEXT NOT NULL,
+            ts TEXT NOT NULL,
+            body TEXT,
+            data TEXT
+        );
+        ''')
+
+    ALTDATA_DB = Path(str(DB_PATH).replace("datadesk.db", "altdata.db"))
+    from datadesk.ingest.fundamentals import _DDL as altdata_ddl
+    with sqlite3.connect(ALTDATA_DB) as con:
+        con.execute("PRAGMA journal_mode=WAL")
+        con.executescript(altdata_ddl)
+    print("Databases initialized.")
+
 def cmd_backtest() -> None:
     from datadesk.backtest.costs import CostModel
     from datadesk.backtest.engine import run_backtest
@@ -44,8 +88,8 @@ def cmd_backtest() -> None:
     tickers = cov[cov["rows"] > 800]["ticker"].tolist()
     if not tickers:
         print(
-            "History store is empty — run: python -m datadesk.history.migrate "
-            "or python main.py backfill <tickers>"
+            "History store is empty — run: python main.py init-db "
+            "then python main.py backfill --preset ai_semi"
         )
         return
 
@@ -87,15 +131,38 @@ def cmd_collect_trump() -> None:
     print(f"New posts stored: {collect()}")
 
 
-def cmd_backfill(tickers: list[str], source: str, skip_fundamentals: bool = False) -> None:
+
+_BACKFILL_PRESETS = {
+    "ai_semi": [
+        "NVDA", "AMD", "AVGO", "ARM", "MRVL", "KLAC", "AMAT", "LRCX",
+        "QCOM", "MU", "INTC", "SMCI", "COHU", "FORM", "ONTO", "ON", "NXPI",
+        "MSFT", "GOOGL", "META", "AMZN", "PLTR", "NOW", "CRM", "ORCL",
+        "SNOW", "DDOG", "CDNS", "SNPS"
+    ]
+}
+
+def cmd_backfill(tickers: list[str], source: str, skip_fundamentals: bool = False, preset: str = None) -> None:
+    if preset and preset in _BACKFILL_PRESETS:
+        tickers = _BACKFILL_PRESETS[preset]
+        print(f"Using preset '{preset}': {len(tickers)} tickers")
+
+    import time
     if source == "massive":
         from datadesk.ingest.massive import backfill_massive
-
         written = backfill_massive(tickers)
     else:
         from datadesk.ingest.backfill import backfill_history
+        written = {}
+        for i in range(0, len(tickers), 5):
+            batch = tickers[i:i+5]
+            print(f"Backfilling batch {i//5 + 1}: {batch}")
+            try:
+                written.update(backfill_history(batch))
+            except Exception as e:
+                print(f"Warning: Batch {batch} failed ({e}). Rate limited? Sleeping 5s...")
+                time.sleep(5)
+            time.sleep(2)
 
-        written = backfill_history(tickers)
 
     for t, n in written.items():
         print(f"  {t:>10}  {n} bars")
@@ -623,27 +690,29 @@ def cmd_universe() -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="DataDesk — market data platform (paper only)")
-    sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("backtest")
-    p_serve = sub.add_parser("serve")
+    sub = parser.add_subparsers(dest="command", required=False)
+    sub.add_parser("init-db", help="Initialize database schemas")
+    sub.add_parser("backtest", help="Run momentum+trend backtest")
+    p_serve = sub.add_parser("serve", help="Start the ops console")
     p_serve.add_argument("--port", type=int, default=8000)
-    sub.add_parser("collect-trump")
+    sub.add_parser("collect-trump", help="Refresh Trump corpus")
     p_bf = sub.add_parser("backfill")
     p_bf.add_argument(
         "--source", choices=["yahoo", "massive"], default="yahoo", help="Data source to use"
     )
-    p_bf.add_argument("tickers", nargs="+")
+    p_bf.add_argument("--preset", choices=["ai_semi"], help="Use predefined ticker list")
+    p_bf.add_argument("tickers", nargs="*", help="Tickers to backfill")
     p_bf.add_argument("--no-fundamentals", action="store_true", help="Skip fundamental data fetch")
-    sub.add_parser("coverage")
-    sub.add_parser("holdout")
-    sub.add_parser("tax-compare")
-    sub.add_parser("universe")
+    sub.add_parser("coverage", help="Print history store coverage")
+    sub.add_parser("holdout", help="Run holdout strategy comparison")
+    sub.add_parser("tax-compare", help="After-tax simulation comparison")
+    sub.add_parser("universe", help="Print platform availability per ticker")
     p_enrich = sub.add_parser("enrich")
     p_enrich.add_argument("tickers", nargs="*", help="Tickers to enrich (default: all in store)")
-    sub.add_parser("weekly-update")
-    sub.add_parser("index-seed")
-    sub.add_parser("signal-audit")
-    sub.add_parser("screen")
+    sub.add_parser("weekly-update", help="Gap-fill prices and fundamentals")
+    sub.add_parser("index-seed", help="Populate index_memberships")
+    sub.add_parser("signal-audit", help="Look-ahead bias audit")
+    sub.add_parser("screen", help="Forward screener for top buys")
     p_ue = sub.add_parser("universe-expand")
     p_ue.add_argument("--theme", default=None, help="Limit to one theme (e.g. QUANTUM)")
     p_ue.add_argument("--dry-run", action="store_true", help="List new tickers without fetching")
@@ -656,14 +725,25 @@ if __name__ == "__main__":
     p_phase.add_argument("--years", type=int, default=15, help="Projection horizon (years)")
     args = parser.parse_args()
 
-    if args.command == "backtest":
+    
+    if args.command is None:
+        print("DataDesk Quickstart:")
+        print("  python main.py init-db")
+        print("  python main.py backfill --preset ai_semi")
+        print("  python main.py backtest")
+        print("  python main.py serve")
+        import sys; sys.exit(0)
+
+    if args.command == "init-db":
+        cmd_init_db()
+    elif args.command == "backtest":
         cmd_backtest()
     elif args.command == "serve":
         cmd_serve(args.port)
     elif args.command == "collect-trump":
         cmd_collect_trump()
     elif args.command == "backfill":
-        cmd_backfill(args.tickers, args.source, skip_fundamentals=args.no_fundamentals)
+        cmd_backfill(args.tickers, args.source, skip_fundamentals=args.no_fundamentals, preset=getattr(args, "preset", None))
     elif args.command == "enrich":
         cmd_enrich(args.tickers or None)
     elif args.command == "weekly-update":

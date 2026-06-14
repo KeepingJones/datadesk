@@ -91,3 +91,45 @@ def test_ticker_mapper_routing():
     assert TickerMapper.is_us_stock("AAPL") is True
     assert TickerMapper.is_us_stock("ULVR.L") is False
     assert TickerMapper.to_broker("ULVR.L", "Trading212") == "ULVR"
+
+def test_t212_armed_is_armed_true(monkeypatch, tmp_path):
+    monkeypatch.setenv("T212_DEMO_API_KEY", "fake_key")
+    monkeypatch.setenv("DATADESK_ARM_BROKER", "1")
+    monkeypatch.setattr(shadow, "PLATFORM_DB", tmp_path / "p.db")
+    # Mock T212Client so it doesn't actually hit network
+    class FakeT212:
+        mode = "demo"
+        def get_equity(self): return 1000.0
+    import sys
+    sys.modules['datadesk.ingest.t212_client'] = type('t212_client', (), {'T212Client': FakeT212})
+    o = OMSFastPath()
+    assert o.is_armed is True
+
+def test_t212_order_id_persisted(oms, monkeypatch):
+    monkeypatch.setenv("T212_DEMO_API_KEY", "fake_key")
+    monkeypatch.setenv("DATADESK_ARM_BROKER", "1")
+    
+    class FakeT212Client:
+        mode = "demo"
+        def get_equity(self): return 10000.0
+        def place_market_order(self, ticker, quantity): return {"orderId": "t212_12345"}
+        
+    oms.t212 = FakeT212Client()
+    oms.submit_signal("ULVR.L", "BUY", 0.05, price=40.0)
+    
+    df = shadow.load_signals(db_path=oms._shadow_db)
+    assert df.iloc[0]["order_id"] == "t212_12345"
+
+def test_rebalancer_queries_db(tmp_path, monkeypatch):
+    from datadesk.live.monitors.rebalancer import _get_best_run
+    db = tmp_path / "platform.db"
+    import sqlite3
+    with sqlite3.connect(db) as con:
+        con.execute("CREATE TABLE backtest_runs (name TEXT, params TEXT, metrics TEXT)")
+        con.execute("INSERT INTO backtest_runs VALUES ('test1', '{\"a\":1}', '{\"sharpe\": 1.5, \"max_drawdown\": -0.20}')")
+        con.execute("INSERT INTO backtest_runs VALUES ('test2', '{\"a\":2}', '{\"sharpe\": 2.5, \"max_drawdown\": -0.25}')")
+        con.execute("INSERT INTO backtest_runs VALUES ('test3', '{\"a\":3}', '{\"sharpe\": 3.5, \"max_drawdown\": -0.40}')") # Invalid MaxDD
+    monkeypatch.setattr("datadesk.db.PLATFORM_DB", db)
+    best = _get_best_run()
+    assert best["name"] == "test2"
+

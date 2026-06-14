@@ -714,8 +714,8 @@ Add to universe via `universe-expand --theme QUANTUM` when price history is insu
 ### Gate 1 (holdout, last 252d, tiered-cost universe)
 | Metric | Strategy (T212) | SPY | Status |
 |---|---|---|---|
-| Sharpe | 2.33 | 1.72 | ✓ |
-| MaxDD | −14% | −9% | ✗ |
+| Sharpe | 3.61 | 1.73 | ✓ |
+| MaxDD | −25.1% | −9% | ✗ |
 
 MaxDD gap persists. With survivorship-biased universe, our drawdowns look shallow because we only hold stocks that survived. Gate re-evaluation requires Tiingo/EODHD honest universe.
 

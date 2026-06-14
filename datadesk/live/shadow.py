@@ -33,6 +33,11 @@ def _connect(db_path: Path | None = None) -> sqlite3.Connection:
     con = sqlite3.connect(db_path or PLATFORM_DB)
     con.execute("PRAGMA journal_mode=WAL")
     con.executescript(_SCHEMA)
+    # Migration: add order_id column if not present (for existing DBs)
+    cols = {row[1] for row in con.execute("PRAGMA table_info(shadow_signals)")}
+    if "order_id" not in cols:
+        con.execute("ALTER TABLE shadow_signals ADD COLUMN order_id TEXT")
+        con.commit()
     return con
 
 
@@ -45,9 +50,9 @@ def record_signal(
     reason: str = "",
     executed: bool = False,
     db_path: Path | None = None,
-) -> None:
+) -> int:
     with _connect(db_path) as con:
-        con.execute(
+        cur = con.execute(
             "INSERT INTO shadow_signals (ts, source, ticker, side, weight, ref_price, reason, executed) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (
@@ -61,10 +66,20 @@ def record_signal(
                 1 if executed else 0,
             ),
         )
+        return cur.lastrowid
 
 
 def load_signals(limit: int = 100, db_path: Path | None = None) -> pd.DataFrame:
     with _connect(db_path) as con:
         return pd.read_sql(
             "SELECT * FROM shadow_signals ORDER BY id DESC LIMIT ?", con, params=(limit,)
+        )
+
+def update_order_id(row_id: int, order_id: str | None, db_path: Path | None = None) -> None:
+    if order_id is None:
+        return
+    with _connect(db_path) as con:
+        con.execute(
+            "UPDATE shadow_signals SET order_id = ? WHERE id = ?",
+            (order_id, row_id),
         )

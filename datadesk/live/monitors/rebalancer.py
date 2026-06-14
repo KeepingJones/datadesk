@@ -73,20 +73,31 @@ def _build_strategy(params: dict, prices):
 
 def _get_best_run() -> dict | None:
     """
-    Hardwired to the top-performing AI_SEMI strategy discovered during the historical sweep.
-    Strategy: 6-month momentum, top 2 stocks, no macro trend filter.
-    Historical 1-year holdout: 691.7% CAGR, 3.61 Sharpe.
+    Query platform.db for the strategy with the highest Sharpe (where max_drawdown >= -0.30).
     """
+    import json
+    import sqlite3
+    from datadesk.db import PLATFORM_DB
+
+    with sqlite3.connect(PLATFORM_DB) as con:
+        row = con.execute(
+            """
+            SELECT name, params, metrics FROM backtest_runs
+            WHERE json_extract(metrics, '$.sharpe') IS NOT NULL
+              AND json_extract(metrics, '$.max_drawdown') >= -0.30
+            ORDER BY json_extract(metrics, '$.sharpe') DESC
+            LIMIT 1
+            """
+        ).fetchone()
+        
+    if not row:
+        return None
+        
+    name, params_str, metrics_str = row
     return {
-        "name": "AI_SEMI | mom_only(126,2) trend=N",
-        "params": {
-            "universe": "AI_SEMI",
-            "variant": "mom_only",
-            "mom_lookback": 126,
-            "mom_top_n": 2,
-            "trend_filter": False,
-        },
-        "metrics": {"sharpe": 3.61}
+        "name": name,
+        "params": json.loads(params_str),
+        "metrics": json.loads(metrics_str)
     }
 
 
@@ -139,14 +150,14 @@ class DailyRebalancer:
         """
         from datadesk.history.store import load_closes
 
-        best = _get_best_run()
-        if best is None:
-            logger.warning("[REBALANCER] no backtest runs found — run the sweep first")
+        run_data = _get_best_run()
+        if not run_data:
+            logger.warning("DailyRebalancer: no eligible strategy found in platform.db. Waiting for backtest run...")
             return {"status": "no_runs"}
-
-        params = best["params"]
-        strategy_name = best["name"]
-        logger.info(f"[REBALANCER] using strategy: {strategy_name} (Sharpe {best['metrics'].get('sharpe', 0):.2f})")
+            
+        params = run_data["params"]
+        strategy_name = run_data["name"]
+        logger.info(f"[REBALANCER] using strategy: {strategy_name} (Sharpe {run_data['metrics'].get('sharpe', 0):.2f})")
 
         tickers = _universe_tickers(params)
         if not tickers:

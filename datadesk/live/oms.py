@@ -90,7 +90,7 @@ class OMSFastPath:
 
     @property
     def is_armed(self) -> bool:
-        return self.alpaca is not None
+        return self.alpaca is not None or self.t212 is not None
 
     # ── Position adoption ───────────────────────────────────────────────────
 
@@ -178,7 +178,7 @@ class OMSFastPath:
         elif not market_open and executed:
             reason = f"[QUEUED-NEXT-OPEN] {reason}"
 
-        shadow.record_signal(
+        shadow_row_id = shadow.record_signal(
             source=source,
             ticker=ticker,
             side=side,
@@ -194,8 +194,10 @@ class OMSFastPath:
             if not self._execute_alpaca(ticker, execution_ticker, side, weight_pct):
                 return False
         elif executed_t212:
-            if not self._execute_t212(ticker, side, weight_pct):
+            t212_order_id = self._execute_t212(ticker, side, weight_pct, price)
+            if t212_order_id is None:
                 return False
+            shadow.update_order_id(shadow_row_id, t212_order_id)
         else:
             logger.info(
                 f"[SHADOW] {side} {execution_ticker} via {broker} "
@@ -272,18 +274,27 @@ class OMSFastPath:
             logger.exception(f"[Alpaca PAPER] order failed for {execution_ticker}: {e}")
             return False
 
-    def _execute_t212(self, ticker: str, side: str, weight_pct: float) -> bool:
+    def _execute_t212(self, ticker: str, side: str, weight_pct: float, current_price: float | None) -> str | None:
+        import httpx
         try:
             equity = self.t212.get_equity()
             notional = round(equity * weight_pct, 2)
             if side == "SELL":
-                self.t212.close_position(ticker)
+                result = self.t212.close_position(ticker)
+                order_id = (result or {}).get("id") or (result or {}).get("orderId")
+                logger.info(f"[T212] {side} {ticker} ALL order_id={order_id}")
             else:
-                self.t212.place_market_order(ticker, notional)
-            return True
-        except Exception as e:
+                if current_price is None or current_price <= 0:
+                    logger.error(f"[T212] Cannot execute BUY for {ticker} without current_price to compute quantity")
+                    return None
+                quantity = round(notional / current_price, 5)
+                result = self.t212.place_market_order(ticker, quantity)
+                order_id = (result or {}).get("id") or (result or {}).get("orderId")
+                logger.info(f"[T212] {side} {ticker} qty={quantity} (${notional}) order_id={order_id}")
+            return str(order_id) if order_id is not None else None
+        except (httpx.HTTPStatusError, httpx.RequestError, RuntimeError, KeyError) as e:
             logger.exception(f"[T212] order failed for {ticker}: {e}")
-            return False
+            return None
 
     # ── Continuous updates ──────────────────────────────────────────────────
 

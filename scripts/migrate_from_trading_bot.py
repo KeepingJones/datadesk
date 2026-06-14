@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
-DEST = ROOT / "altdata.db"
+DEST = ROOT / "datadesk" / "data" / "altdata.db"
 SRC_ALT = ROOT.parent / "trading-bot" / "alt_data.db"
 SRC_HIST = ROOT.parent / "trading-bot" / "historical_backtest.db"
 

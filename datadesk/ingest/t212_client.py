@@ -168,20 +168,20 @@ class T212Client:
         cash = self.get_cash()
         return cash.total
 
-    def place_market_order(self, yf_ticker: str, notional_gbp: float) -> dict:
+    def place_market_order(self, yf_ticker: str, quantity: float) -> dict:
         """
-        Buy `notional_gbp` worth of `yf_ticker` at market price.
+        Buy `quantity` shares of `yf_ticker` at market price.
         Converts yfinance ticker to T212 format (ULVR.L → ULVR_GB_EQ).
-        T212 market orders are fractional — no need to round to whole shares.
+        T212 market orders are fractional — can pass floats.
         """
         t212_ticker = resolve_ticker(yf_ticker)
         body = {
-            "ticker": t212_ticker,
-            "value": round(notional_gbp, 2),
+            "instrumentCode": t212_ticker,
+            "quantity": float(round(quantity, 5)),
             "timeValidity": "DAY",
         }
-        result = self._post("/equity/orders/value", body)
-        logger.info(f"[T212 {self.mode.upper()}] BUY {t212_ticker} £{notional_gbp:.2f} → {result}")
+        result = self._post("/equity/orders/market", body)
+        logger.info(f"[T212 {self.mode.upper()}] BUY {t212_ticker} qty={quantity} → {result}")
         return result
 
     def close_position(self, yf_ticker: str) -> None:
