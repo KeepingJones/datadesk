@@ -146,7 +146,7 @@ def backfill_smart(
     """
     Smart backfill: For each ticker, check the last date we have in the DB.
     Only fetch from that date forward to save bandwidth and time.
-    If the ticker has no data, fetch from DEFAULT_START.
+    Groups tickers by start_date and leverages the bulk yfinance engine.
     """
     cov = coverage(db_path=db_path)
     cov_dict = {}
@@ -154,94 +154,19 @@ def backfill_smart(
         cov_dict = cov.set_index("ticker")["last"].to_dict()
 
     written: dict[str, int] = {}
-
-    # Group tickers by their required start date to minimize API calls
-    # Or for simplicity and robust gap filling, we can fetch individually since
-    # it's just catching up.
-    from datadesk.ingest.tiingo import fetch_tiingo_prices, TiingoRateLimitExceeded
-    from datadesk.ingest.massive import fetch_massive_prices, MassiveRateLimitExceeded
     
-    tiingo_limit_hit = False
-    massive_limit_hit = False
-
+    # Group tickers by their required start date to maximize bulk download efficiency
+    from collections import defaultdict
+    groups = defaultdict(list)
     for ticker in tickers:
         last_date = cov_dict.get(ticker)
         start_date = last_date if pd.notna(last_date) else DEFAULT_START
+        groups[start_date].append(ticker)
 
-        logger.info(f"Smart backfill for {ticker} starting from {start_date}")
-        
-        df = None
-        if not tiingo_limit_hit:
-            try:
-                df = fetch_tiingo_prices(ticker, start_date)
-            except TiingoRateLimitExceeded:
-                logger.warning(f"Tiingo limit hit on {ticker}. Falling back to Massive for remaining.")
-                tiingo_limit_hit = True
-
-        if df is None and not massive_limit_hit:
-            try:
-                df = fetch_massive_prices(ticker, start_date)
-            except MassiveRateLimitExceeded:
-                logger.warning(f"Massive limit hit on {ticker}. Falling back to yfinance for remaining.")
-                massive_limit_hit = True
-
-        if df is not None and not df.empty:
-            w = save_bars(df, source="tier_1_2_smart_backfill", db_path=db_path)
-            written[ticker] = w
-            continue
-
-        # Fallback to yfinance
-        try:
-            raw = yf.download(
-                ticker,
-                start=start_date,
-                auto_adjust=True,
-                progress=False,
-            )
-
-            if raw is None or raw.empty:
-                logger.warning(f"backfill_smart: no data for {ticker}")
-                written[ticker] = 0
-                continue
-
-            raw = raw.dropna(how="all")
-            if raw.empty:
-                written[ticker] = 0
-                continue
-
-            # Normalise MultiIndex columns to flat field names — yfinance returns
-            # (field, ticker) for single downloads, (ticker, field) for grouped ones
-            if isinstance(raw.columns, pd.MultiIndex):
-                if "Close" in raw.columns.get_level_values(0):
-                    raw.columns = raw.columns.get_level_values(0)
-                else:
-                    raw = raw[ticker]
-            rows = raw.reset_index()
-            close_col = rows["Close"]
-            open_col = rows.get("Open")
-            high_col = rows.get("High")
-            low_col = rows.get("Low")
-            vol_col = rows.get("Volume")
-            date_col = rows.iloc[:, 0]
-
-            df = pd.DataFrame(
-                {
-                    "ticker": ticker,
-                    "date": date_col,
-                    "open": open_col,
-                    "high": high_col,
-                    "low": low_col,
-                    "close": close_col,
-                    "volume": vol_col,
-                }
-            ).dropna(subset=["close"])
-
-            w = save_bars(df, source="yahoo_smart_backfill", db_path=db_path)
-            written[ticker] = w
-
-        except Exception as e:
-            logger.exception(f"backfill_smart failed for {ticker}: {e}")
-            written[ticker] = 0
+    for start_date, group_tickers in groups.items():
+        logger.info(f"Smart backfill: grouping {len(group_tickers)} tickers starting from {start_date}")
+        w = backfill_history(group_tickers, start=start_date, db_path=db_path)
+        written.update(w)
 
     return written
 
