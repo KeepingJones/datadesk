@@ -1,0 +1,141 @@
+{
+  "universe_tickers": 251,
+  "delisted_added_in_universe": [
+    "ABMD",
+    "ATVI",
+    "CAVM",
+    "CERN",
+    "CTXS",
+    "FLIR",
+    "MXIM",
+    "SBNY",
+    "SGEN",
+    "SIVB",
+    "SPLK",
+    "TWTR",
+    "XLNX"
+  ],
+  "delisted_eligible": [
+    "ABMD",
+    "ATVI",
+    "CAVM",
+    "CERN",
+    "CTXS",
+    "FLIR",
+    "MXIM",
+    "SBNY",
+    "SGEN",
+    "SIVB",
+    "SPLK",
+    "TWTR",
+    "XLNX"
+  ],
+  "walk_forward": {
+    "segments": 15,
+    "param_stability": 0.47,
+    "metrics": {
+      "cagr": 1.1899,
+      "sharpe": 0.588,
+      "sortino": 7.366,
+      "max_drawdown": -0.4508,
+      "calmar": 2.64,
+      "days": 1869
+    }
+  },
+  "holdout": {
+    "ALPACA tiered": {
+      "full_raw": {
+        "cagr": 1.1417,
+        "sharpe": 0.899,
+        "sortino": 4.28,
+        "max_drawdown": -0.3377,
+        "calmar": 3.381,
+        "days": 2503,
+        "avg_annual_turnover": 11.98
+      },
+      "full_vt": {
+        "cagr": 0.4046,
+        "sharpe": 0.965,
+        "sortino": 3.55,
+        "max_drawdown": -0.194,
+        "calmar": 2.086,
+        "days": 2503,
+        "avg_annual_turnover": 8.34
+      },
+      "holdout_raw": {
+        "cagr": 1.9034,
+        "sharpe": 2.373,
+        "sortino": 3.18,
+        "max_drawdown": -0.3068,
+        "calmar": 6.205,
+        "days": 252,
+        "avg_annual_turnover": 8.32
+      },
+      "holdout_vt": {
+        "cagr": 0.6404,
+        "sharpe": 2.819,
+        "sortino": 4.361,
+        "max_drawdown": -0.0782,
+        "calmar": 8.192,
+        "days": 252,
+        "avg_annual_turnover": 4.89
+      },
+      "holdout_spy": {
+        "cagr": 0.1859,
+        "sharpe": 1.42,
+        "sortino": 1.976,
+        "max_drawdown": -0.0888,
+        "calmar": 2.092,
+        "days": 252,
+        "avg_annual_turnover": 0.0
+      }
+    },
+    "T212 ISA tiered+FX": {
+      "full_raw": {
+        "cagr": 1.1036,
+        "sharpe": 0.885,
+        "sortino": 4.212,
+        "max_drawdown": -0.3647,
+        "calmar": 3.026,
+        "days": 2503,
+        "avg_annual_turnover": 11.98
+      },
+      "full_vt": {
+        "cagr": 0.3872,
+        "sharpe": 0.935,
+        "sortino": 3.431,
+        "max_drawdown": -0.217,
+        "calmar": 1.785,
+        "days": 2503,
+        "avg_annual_turnover": 8.34
+      },
+      "holdout_raw": {
+        "cagr": 1.8676,
+        "sharpe": 2.348,
+        "sortino": 3.15,
+        "max_drawdown": -0.308,
+        "calmar": 6.064,
+        "days": 252,
+        "avg_annual_turnover": 8.32
+      },
+      "holdout_vt": {
+        "cagr": 0.6285,
+        "sharpe": 2.778,
+        "sortino": 4.296,
+        "max_drawdown": -0.0786,
+        "calmar": 7.992,
+        "days": 252,
+        "avg_annual_turnover": 4.89
+      },
+      "holdout_spy": {
+        "cagr": 0.1859,
+        "sharpe": 1.42,
+        "sortino": 1.976,
+        "max_drawdown": -0.0888,
+        "calmar": 2.092,
+        "days": 252,
+        "avg_annual_turnover": 0.0
+      }
+    }
+  }
+}
