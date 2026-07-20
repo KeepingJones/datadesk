@@ -4,10 +4,19 @@ OMS Fast-Path.
 Executes intraday event-driven signals immediately while enforcing portfolio
 risk limits (max position %, max daily loss, trailing stops).
 
-SHADOW-FIRST (DESIGN §6.2): broker calls require BOTH Alpaca keys AND the
-explicit DATADESK_ARM_BROKER=1 env flag. Default is shadow mode — every signal
-is recorded to the shadow store (would-have audit trail), nothing is executed.
-Every signal passes the same risk checks in both modes.
+SHADOW-FIRST (DESIGN §6.2): Alpaca broker calls require BOTH Alpaca keys AND
+the explicit DATADESK_ARM_BROKER=1 env flag. Default is shadow mode — every
+signal is recorded to the shadow store (would-have audit trail), nothing is
+executed. Every signal passes the same risk checks in both modes.
+
+T212 MANUAL-CONFIRM-ONLY, FOREVER (DESIGN §8.1, real UK ISA money):
+DATADESK_ARM_BROKER=1 is NEVER sufficient on its own to place a T212 order —
+unlike Alpaca, there is no fully-automated T212 path. A ready T212 signal
+becomes a pending proposal (`pending_t212_orders`); only a separate, explicit
+call to `confirm_t212_order(proposal_id)` can submit it to the broker. Nothing
+in `submit_signal()` or the signal pipeline calls `confirm_t212_order` itself —
+that is intentional. See vault Alpha-Command/DESIGN.md §8.1: "proposal-only:
+bot generates weekly order list, Ewan confirms each."
 """
 
 import logging
@@ -59,6 +68,10 @@ class OMSFastPath:
         self.current_nav = 100_000.0
         self.realized_pnl = 0.0
 
+        # T212 proposals awaiting explicit human confirmation (real ISA money —
+        # never auto-submitted; see confirm_t212_order below).
+        self.pending_t212_orders: dict[str, dict] = {}
+
         armed = os.getenv("DATADESK_ARM_BROKER", "0") == "1"
 
         # Alpaca (US equities)
@@ -82,7 +95,11 @@ class OMSFastPath:
             try:
                 from datadesk.ingest.t212_client import T212Client
                 self.t212 = T212Client()
-                logger.info(f"OMS ARMED: T212 {self.t212.mode} client initialized.")
+                logger.info(
+                    f"OMS ARMED: T212 {self.t212.mode} client initialized. "
+                    "Orders still require a separate confirm_t212_order() call — "
+                    "DATADESK_ARM_BROKER=1 never auto-submits a T212 order."
+                )
             except Exception as e:
                 logger.warning(f"OMS: T212 client failed to init: {e}")
         elif t212_key:
@@ -170,13 +187,20 @@ class OMSFastPath:
         can_execute = market_open or not _skip_if_closed
 
         executed_alpaca = self.alpaca is not None and broker == "Alpaca" and can_execute
-        executed_t212 = self.t212 is not None and broker == "Trading212" and can_execute
-        executed = executed_alpaca or executed_t212
 
-        if not market_open and not executed:
+        # T212 is manual-confirm-only, forever (real UK ISA money — DESIGN §8.1).
+        # DATADESK_ARM_BROKER=1 arms broker *connectivity* only; it must never be
+        # sufficient by itself to place a T212 order. A ready T212 signal becomes
+        # a pending proposal below instead of executing automatically.
+        t212_ready = self.t212 is not None and broker == "Trading212" and can_execute
+        executed = executed_alpaca  # T212 is never auto-executed from submit_signal
+
+        if not market_open and not executed and not t212_ready:
             reason = f"[AFTER-HOURS] {reason}"
         elif not market_open and executed:
             reason = f"[QUEUED-NEXT-OPEN] {reason}"
+        elif t212_ready:
+            reason = f"[T212 PENDING CONFIRM] {reason}"
 
         shadow_row_id = shadow.record_signal(
             source=source,
@@ -193,11 +217,26 @@ class OMSFastPath:
         if executed_alpaca:
             if not self._execute_alpaca(ticker, execution_ticker, side, weight_pct):
                 return False
-        elif executed_t212:
-            t212_order_id = self._execute_t212(ticker, side, weight_pct, price)
-            if t212_order_id is None:
-                return False
-            shadow.update_order_id(shadow_row_id, t212_order_id)
+        elif t212_ready:
+            # NEVER submit to T212 here. Queue a proposal; only an explicit,
+            # separate confirm_t212_order() call (human-in-the-loop) can execute it.
+            proposal_id = str(uuid.uuid4())[:8]
+            with self._lock:
+                self.pending_t212_orders[proposal_id] = {
+                    "ticker": ticker,
+                    "side": side,
+                    "weight_pct": weight_pct,
+                    "price": price,
+                    "reason": reason,
+                    "source": source,
+                    "shadow_row_id": shadow_row_id,
+                    "created_at": datetime.now(UTC).isoformat(),
+                }
+            logger.warning(
+                f"[T212 PENDING CONFIRM] {side} {ticker} weight={weight_pct:.1%} "
+                f"proposal_id={proposal_id} — call confirm_t212_order('{proposal_id}') "
+                "to submit. DATADESK_ARM_BROKER=1 alone never places a T212 order."
+            )
         else:
             logger.info(
                 f"[SHADOW] {side} {execution_ticker} via {broker} "
@@ -295,6 +334,59 @@ class OMSFastPath:
         except (httpx.HTTPStatusError, httpx.RequestError, RuntimeError, KeyError) as e:
             logger.exception(f"[T212] order failed for {ticker}: {e}")
             return None
+
+    # ── T212 manual confirmation (real ISA money — never auto-executes) ────
+    #
+    # submit_signal() only ever queues a T212 proposal. This is the ONE path
+    # that can turn a proposal into a real broker order. It must be called
+    # separately and explicitly — never from within submit_signal, a monitor,
+    # or anywhere in the automated signal pipeline. DATADESK_ARM_BROKER=1 is
+    # necessary but never sufficient for a T212 order to reach the broker.
+
+    def list_pending_t212_orders(self) -> dict[str, dict]:
+        """Read-only snapshot of T212 proposals awaiting explicit confirmation."""
+        with self._lock:
+            return {k: dict(v) for k, v in self.pending_t212_orders.items()}
+
+    def confirm_t212_order(self, proposal_id: str) -> str | None:
+        """Explicitly confirm and submit ONE pending T212 proposal.
+
+        This is the human-in-the-loop step DESIGN §8.1 requires for the ISA
+        book. Returns the broker order id on success, None if the proposal is
+        unknown/already resolved or the order failed.
+        """
+        with self._lock:
+            pending = self.pending_t212_orders.pop(proposal_id, None)
+        if pending is None:
+            logger.warning(
+                f"[T212 CONFIRM] unknown or already-resolved proposal_id={proposal_id}"
+            )
+            return None
+        if self.t212 is None:
+            logger.error(f"[T212 CONFIRM] no T212 client available for proposal_id={proposal_id}")
+            return None
+
+        t212_order_id = self._execute_t212(
+            pending["ticker"], pending["side"], pending["weight_pct"], pending["price"]
+        )
+        if t212_order_id is None:
+            logger.error(f"[T212 CONFIRM] execution failed for proposal_id={proposal_id}")
+            return None
+
+        shadow.update_order_id(pending["shadow_row_id"], t212_order_id)
+        logger.warning(
+            f"[T212 CONFIRMED] {pending['side']} {pending['ticker']} "
+            f"proposal_id={proposal_id} order_id={t212_order_id}"
+        )
+        return t212_order_id
+
+    def reject_t212_order(self, proposal_id: str) -> bool:
+        """Discard a pending T212 proposal without ever submitting it."""
+        with self._lock:
+            existed = self.pending_t212_orders.pop(proposal_id, None) is not None
+        if existed:
+            logger.info(f"[T212 REJECTED] proposal_id={proposal_id}")
+        return existed
 
     # ── Continuous updates ──────────────────────────────────────────────────
 

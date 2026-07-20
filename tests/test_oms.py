@@ -105,20 +105,87 @@ def test_t212_armed_is_armed_true(monkeypatch, tmp_path):
     o = OMSFastPath()
     assert o.is_armed is True
 
-def test_t212_order_id_persisted(oms, monkeypatch):
+def test_t212_never_auto_executes_even_when_armed(oms, monkeypatch):
+    """The gap this fix closes: DATADESK_ARM_BROKER=1 + a valid, ready T212
+    signal must NOT place a real order. It must land as a pending proposal
+    requiring a separate, explicit confirm_t212_order() call."""
     monkeypatch.setenv("T212_DEMO_API_KEY", "fake_key")
     monkeypatch.setenv("DATADESK_ARM_BROKER", "1")
-    
+
+    class FakeT212Client:
+        mode = "demo"
+        submitted = False
+
+        def get_equity(self):
+            return 10000.0
+
+        def place_market_order(self, ticker, quantity):
+            FakeT212Client.submitted = True  # would only flip if a real order fired
+            return {"orderId": "t212_12345"}
+
+    oms.t212 = FakeT212Client()
+    result = oms.submit_signal("ULVR.L", "BUY", 0.05, price=40.0, source="manual")
+
+    assert result is True  # signal accepted (risk checks passed)...
+    assert FakeT212Client.submitted is False  # ...but no order reached the broker
+    assert len(oms.pending_t212_orders) == 1  # instead it's queued for confirmation
+
+    df = shadow.load_signals(db_path=oms._shadow_db)
+    assert df.iloc[0]["executed"] == 0
+    assert df.iloc[0]["order_id"] is None
+
+
+def test_t212_order_id_persisted_after_explicit_confirm(oms, monkeypatch):
+    """Once queued, confirm_t212_order() is the only path that can submit —
+    and it must be called separately, one proposal at a time."""
+    monkeypatch.setenv("T212_DEMO_API_KEY", "fake_key")
+    monkeypatch.setenv("DATADESK_ARM_BROKER", "1")
+
     class FakeT212Client:
         mode = "demo"
         def get_equity(self): return 10000.0
         def place_market_order(self, ticker, quantity): return {"orderId": "t212_12345"}
-        
+
     oms.t212 = FakeT212Client()
     oms.submit_signal("ULVR.L", "BUY", 0.05, price=40.0)
-    
+    assert len(oms.pending_t212_orders) == 1
+    (proposal_id,) = oms.pending_t212_orders.keys()
+
+    order_id = oms.confirm_t212_order(proposal_id)
+
+    assert order_id == "t212_12345"
+    assert oms.pending_t212_orders == {}  # consumed, can't be double-submitted
     df = shadow.load_signals(db_path=oms._shadow_db)
     assert df.iloc[0]["order_id"] == "t212_12345"
+
+
+def test_t212_confirm_unknown_proposal_is_noop(oms):
+    assert oms.confirm_t212_order("does-not-exist") is None
+
+
+def test_t212_reject_discards_without_submitting(oms, monkeypatch):
+    monkeypatch.setenv("T212_DEMO_API_KEY", "fake_key")
+    monkeypatch.setenv("DATADESK_ARM_BROKER", "1")
+
+    class FakeT212Client:
+        mode = "demo"
+        submitted = False
+
+        def get_equity(self):
+            return 10000.0
+
+        def place_market_order(self, ticker, quantity):
+            FakeT212Client.submitted = True
+            return {"orderId": "should-never-happen"}
+
+    oms.t212 = FakeT212Client()
+    oms.submit_signal("ULVR.L", "BUY", 0.05, price=40.0)
+    (proposal_id,) = oms.pending_t212_orders.keys()
+
+    assert oms.reject_t212_order(proposal_id) is True
+    assert oms.pending_t212_orders == {}
+    assert oms.confirm_t212_order(proposal_id) is None  # already gone
+    assert FakeT212Client.submitted is False
 
 def test_rebalancer_queries_db(tmp_path, monkeypatch):
     from datadesk.live.monitors.rebalancer import _get_best_run
