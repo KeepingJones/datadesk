@@ -96,14 +96,21 @@ Live execution: never. `PAPER_TRADE_MODE = True` is hardcoded.
 ```bash
 git clone https://github.com/KeepingJones/datadesk.git
 cd datadesk
-python -m venv .venv && .venv/Scripts/activate  # Windows
-pip install -e ".[dev]"
 cp .env.example .env  # add ALPACA_API_KEY, ALPACA_SECRET_KEY, FRED_API_KEY
 
-python main.py init-db  # Initialize the databases properly
-python main.py          # Prints available commands
-python main.py serve    # Starts the ops console on :8000
-python main.py backfill --preset ai_semi  # Download initial historical data
+# Option 1: Docker (Recommended for Mac/Linux)
+docker compose up -d
+
+# Option 2: Windows Native
+start_windows.bat
+
+# Option 3: Native with `uv` (Ultra-fast Python package manager)
+make install
+make serve
+
+# After starting, initialize your database and download historical data:
+# python main.py init-db
+# python main.py backfill --preset ai_semi
 ```
 
 ---

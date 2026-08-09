@@ -25,6 +25,16 @@ echo =========================================
 
 echo.
 echo =========================================
+echo Killing existing Ops Console (Port 8000)...
+echo =========================================
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8000') do (
+    if "%%a" neq "0" (
+        taskkill /F /PID %%a >nul 2>&1
+    )
+)
+
+echo.
+echo =========================================
 echo Starting Ops Console...
 echo =========================================
 start http://localhost:8000

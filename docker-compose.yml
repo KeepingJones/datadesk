@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  datadesk:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./datadesk/data:/app/datadesk/data
+      - ./.env:/app/.env
+    restart: unless-stopped
+    environment:
+      - T212_MODE=demo

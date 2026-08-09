@@ -294,6 +294,10 @@ def cmd_holdout() -> None:
     w_strat     = apply_bear(w_eq)
     w_strat_vol = apply_bear(w_vol)
 
+    if len(prices) < 252:
+        print(f"\n[ERROR] Not enough price data for {universe_name} holdout (requires 252+ bars, got {len(prices)}). Skipping.")
+        return
+
     warmup = prices.index[min(150, len(prices) - 1)]
     holdout_start = prices.index[max(len(prices) - 252, 151)]
     spy_w = pd.DataFrame({"SPY": [1.0]}, index=[prices.index[0]]) if "SPY" in prices else None

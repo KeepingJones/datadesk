@@ -1,0 +1,113 @@
+{
+  "walk_forward": {
+    "v2": {
+      "metrics": {
+        "cagr": 0.4101,
+        "sharpe": 1.054,
+        "sortino": 1.459,
+        "max_drawdown": -0.5297,
+        "calmar": 0.774,
+        "days": 1869
+      },
+      "param_stability": 0.33,
+      "segments": 15
+    },
+    "v2+VT": {
+      "metrics": {
+        "cagr": 0.2724,
+        "sharpe": 1.293,
+        "sortino": 1.828,
+        "max_drawdown": -0.2757,
+        "calmar": 0.988,
+        "days": 1869
+      },
+      "param_stability": 0.33,
+      "segments": 15
+    },
+    "v3": {
+      "metrics": {
+        "cagr": 0.7464,
+        "sharpe": 1.026,
+        "sortino": 5.441,
+        "max_drawdown": -0.1467,
+        "calmar": 5.089,
+        "days": 1869
+      },
+      "param_stability": 0.2,
+      "segments": 15
+    }
+  },
+  "holdout": {
+    "v2": {
+      "full": {
+        "cagr": 1.1261,
+        "sharpe": 0.894,
+        "sortino": 4.192,
+        "max_drawdown": -0.4212,
+        "calmar": 2.673,
+        "days": 2503,
+        "avg_annual_turnover": 12.0
+      },
+      "holdout": {
+        "cagr": 1.9034,
+        "sharpe": 2.373,
+        "sortino": 3.18,
+        "max_drawdown": -0.3068,
+        "calmar": 6.205,
+        "days": 252,
+        "avg_annual_turnover": 8.32
+      }
+    },
+    "v2+VT": {
+      "full": {
+        "cagr": 0.3981,
+        "sharpe": 0.952,
+        "sortino": 3.562,
+        "max_drawdown": -0.2483,
+        "calmar": 1.603,
+        "days": 2503,
+        "avg_annual_turnover": 8.23
+      },
+      "holdout": {
+        "cagr": 0.6392,
+        "sharpe": 2.818,
+        "sortino": 4.352,
+        "max_drawdown": -0.0782,
+        "calmar": 8.177,
+        "days": 252,
+        "avg_annual_turnover": 4.93
+      }
+    },
+    "v3": {
+      "full": {
+        "cagr": 0.6524,
+        "sharpe": 1.196,
+        "sortino": 5.41,
+        "max_drawdown": -0.2976,
+        "calmar": 2.192,
+        "days": 2503,
+        "avg_annual_turnover": 10.94
+      },
+      "holdout": {
+        "cagr": 0.5933,
+        "sharpe": 2.659,
+        "sortino": 3.888,
+        "max_drawdown": -0.0825,
+        "calmar": 7.192,
+        "days": 252,
+        "avg_annual_turnover": 11.31
+      }
+    },
+    "SPY": {
+      "holdout": {
+        "cagr": 0.1859,
+        "sharpe": 1.42,
+        "sortino": 1.976,
+        "max_drawdown": -0.0888,
+        "calmar": 2.092,
+        "days": 252,
+        "avg_annual_turnover": 0.0
+      }
+    }
+  }
+}

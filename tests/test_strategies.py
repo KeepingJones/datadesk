@@ -3,6 +3,7 @@ import pandas as pd
 
 from datadesk.strategies.meanrev import mean_reversion
 from datadesk.strategies.momentum import momentum, month_end_dates
+from datadesk.strategies.momentum_v3 import regime_tier_scale, residual_momentum
 from datadesk.strategies.regime import vix_scale
 from datadesk.strategies.trend import trend_signal
 
@@ -120,3 +121,79 @@ def test_compose_scales_takes_min_not_product():
     combined = compose_scales(trend, vix)
     # min, not product: stressed day is 0.0 (trend) not 0.0*0.3, calm day stays 1.0
     assert list(combined) == [0.6, 0.0, 1.0]
+
+
+# ── strategy v3: 4-tier regime overlay ───────────────────────────────────────
+
+
+def test_regime_tier_scale_vix_bands_when_spy_strong():
+    """SPY flat (never below its own MA) isolates the VIX ladder → tiers 0/1/2."""
+    idx = pd.bdate_range("2021-01-04", periods=250)
+    spy = pd.Series(100.0, index=idx)  # flat: `100 < 100` is False → never below MA
+    for vix_level, expected in [(15.0, 1.0), (22.0, 0.70), (27.0, 0.40)]:
+        scale = regime_tier_scale(spy, pd.Series(vix_level, index=idx))
+        assert scale.iloc[-1] == expected, f"VIX {vix_level} → {scale.iloc[-1]}"
+
+
+def test_regime_tier_scale_high_vix_strong_spy_is_bear_not_full():
+    """The gap the literal bands leave: VIX ≥ 30 but SPY > 200dMA → Bear 0.40."""
+    idx = pd.bdate_range("2021-01-04", periods=250)
+    spy = pd.Series(100.0, index=idx)  # above its MAs
+    scale = regime_tier_scale(spy, pd.Series(35.0, index=idx))
+    assert scale.iloc[-1] == 0.40  # not crisis (needs SPY < 200dMA), not full
+
+
+def test_regime_tier_scale_crisis_when_spy_below_and_vix_panic():
+    idx = pd.bdate_range("2021-01-04", periods=260)
+    spy = pd.Series(
+        np.concatenate([np.full(200, 100.0), np.linspace(100.0, 80.0, 60)]), index=idx
+    )  # tail drops below both the 50d and 200d MA
+    scale = regime_tier_scale(spy, pd.Series(35.0, index=idx))
+    assert scale.iloc[-1] == 0.10  # SPY < 200dMA AND VIX ≥ 30 → Crisis
+
+
+# ── strategy v3: residual (market-neutral) momentum ──────────────────────────
+
+
+def _resid_prices(n=300, seed=0):
+    """SPY with real variance; a pure high-beta (β2, zero alpha) name, a
+    genuine-alpha name (β1 + drift), and a residual loser. Prices via cumprod."""
+    rng = np.random.default_rng(seed)
+    idx = pd.bdate_range("2021-01-04", periods=n)
+    spy_ret = rng.normal(0.0005, 0.01, n)
+    frame = {
+        "SPY": spy_ret,
+        "HIBETA": 2.0 * spy_ret,          # β=2, zero residual → filtered out
+        "ALPHA": spy_ret + 0.0012,        # β=1, positive residual → selected
+        "LAGGARD": spy_ret - 0.0015,      # β=1, negative residual → filtered out
+    }
+    return pd.DataFrame(
+        {k: 100 * np.cumprod(1 + r) for k, r in frame.items()}, index=idx
+    )
+
+
+def test_residual_momentum_prefers_alpha_over_high_beta():
+    weights = residual_momentum(lookback=126, top_n=1, skip=21, benchmark="SPY")(
+        _resid_prices()
+    )
+    final = weights.iloc[-1]
+    assert final["ALPHA"] == 1.0     # only genuine residual outperformer chosen
+    assert final["HIBETA"] == 0.0    # high raw return but ~zero market-neutral alpha
+    assert final["SPY"] == 0.0       # benchmark is never itself selected
+
+
+def test_residual_momentum_all_cash_when_no_positive_residual():
+    """If every name only matches the market (zero/neg residual), hold cash."""
+    rng = np.random.default_rng(1)
+    idx = pd.bdate_range("2021-01-04", periods=300)
+    spy_ret = rng.normal(0.0005, 0.01, 300)
+    prices = pd.DataFrame(
+        {
+            "SPY": 100 * np.cumprod(1 + spy_ret),
+            "A": 100 * np.cumprod(1 + spy_ret - 0.0010),  # negative residual
+            "B": 100 * np.cumprod(1 + spy_ret - 0.0020),  # negative residual
+        },
+        index=idx,
+    )
+    weights = residual_momentum(lookback=126, top_n=2, benchmark="SPY")(prices)
+    assert float(weights.iloc[-1].sum()) == 0.0
