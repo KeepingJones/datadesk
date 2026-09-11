@@ -349,7 +349,7 @@ Runs the same strategy twice and returns `TaxComparisonResult` with three sets o
 
 ### Tax parameters
 ```python
-UK_HIGHER_RATE = TaxParams(cgt_rate=0.24, annual_exempt=3_000)  # Ewan's rate
+UK_HIGHER_RATE = TaxParams(cgt_rate=0.24, annual_exempt=3_000)  # Standard UK higher rate
 UK_BASIC_RATE  = TaxParams(cgt_rate=0.18, annual_exempt=3_000)
 ```
 
