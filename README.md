@@ -1,4 +1,16 @@
-# DataDesk
+<div align="center">
+
+![DataDesk Platform Architecture](docs/banner.jpg)
+
+# DataDesk — Systematic Market Data & Quality Platform
+
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white&style=flat-square)](https://www.python.org/)
+[![Engine](https://img.shields.io/badge/Engine-7--Cause%20Break%20Classifier-0ea5e9?style=flat-square)](https://github.com/KeepingJones/datadesk)
+[![Storage](https://img.shields.io/badge/Storage-SQLite%20WAL%20%7C%20DuckDB-10b981?style=flat-square)](https://github.com/KeepingJones/datadesk)
+[![Backtest](https://img.shields.io/badge/Backtesting-Vectorized%20Costs--Always--On-f59e0b?style=flat-square)](https://github.com/KeepingJones/datadesk)
+[![Tests](https://img.shields.io/badge/Tests-80%2B%20Passing-emerald?style=flat-square)](https://github.com/KeepingJones/datadesk)
+
+</div>
 
 A market data platform built to mirror the internal tooling a prop trading firm or systematic fund would maintain: dataset catalogue, multi-source quality reconciliation, alternative data ingestion, AI-assisted tagging, usage/cost tracking, and a quantitative strategy library with honest backtests.
 
